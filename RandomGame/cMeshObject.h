@@ -6,13 +6,37 @@
 #include <glm/vec3.hpp>
 #include <iostream>
 
-// Quaternion stuff from glm
 #include <glm/gtx/quaternion.hpp>
+#include <glm/gtc/quaternion.hpp>
+#include <glm/gtx/easing.hpp>
+#include <glm/gtx/euler_angles.hpp>
+#include <glm/gtx/norm.hpp>
 #include <vector>
 
-// This represents the location and orientation, etc. of 
-// a single mesh object (a bunch of triangles with colours
-// maybe textures, etc.) like a single PLY file.
+struct PositionKeyFrame
+{
+	glm::vec3 value;
+	float time;
+};
+
+struct ScaleKeyFrame
+{
+	glm::vec3 value;
+	float time;
+};
+
+struct RotationKeyFrame
+{
+	glm::vec3 value;
+	float time;
+	bool useSlerp;
+};
+
+struct ColorKeyFrame
+{
+	glm::vec3 value;
+	float time;
+};
 
 class cMeshObject {
 public:
@@ -53,7 +77,7 @@ public:
 		this->scaleXYZ.z *= scalar;
 	}
 
-	bool isWireframe; 
+	bool isWireframe;
 
 	// This is the "diffuse" colour
 	glm::vec4 RGBA_colour;		// RGA & Alpha, 0,0,0,1 (black, with transparency of 1.0)
@@ -84,12 +108,34 @@ public:
 	unsigned int currentI;
 	unsigned int currentJ;
 	unsigned int moving;
+	unsigned int rotating;
+
+	// Animation properties
+	std::vector<PositionKeyFrame> PositionKeyFrames;
+	std::vector<ScaleKeyFrame> ScaleKeyFrames;
+	std::vector<RotationKeyFrame> RotationKeyFrames;
+	std::vector<ColorKeyFrame> ColorKeyFrames;
+	float CurrentTime;
+	// TO-DO CurrentTime set
+	float Speed;
+	bool IsLooping;
+	bool IsPlaying;
+
+	glm::vec3 GetAnimationPosition(float time, int type);
+	glm::vec3 GetAnimationScale(float time, int type);
+	glm::quat GetAnimationRotation(float time, int type);
+
+	int FindPositionKeyFrameIndex(float time);
+	int FindScaleKeyFrameIndex(float time);
+	int FindRotationKeyFrameIndex(float time);
+
+	void UpdateAnimation(float deltaTime);
 
 	// Child meshes - move with the parent mesh
 	std::vector< cMeshObject* > vecChildMeshes;
 
 	cMeshObject* findObjectByFriendlyName(std::string name, bool bSearchChildren = true);
-	
+
 	unsigned int getID(void) { return this->m_myID; }
 
 	unsigned int m_myID;
