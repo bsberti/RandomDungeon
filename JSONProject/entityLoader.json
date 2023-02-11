@@ -1,0 +1,17 @@
+{
+    "className": "Character",
+    "attributes": [
+        {
+            "name": "HP",
+            "value": 100
+        },
+        {
+            "name": "Mana",
+            "value": 50
+        },
+        {
+            "name": "Level",
+            "value": 1
+        }
+    ]
+}
