@@ -56,6 +56,9 @@ FModManager* fmod_manager;
 FMOD::Channel* _channel;
 constexpr int max_channels = 255;
 
+int animationType;
+float animationSpeed;
+
 // I guess?
 float NinetyDegrees = 1.575f;
 std::map< std::string, cMeshObject*>::iterator itBeholdsToFollow;
@@ -806,16 +809,16 @@ bool calculateNextPosition(cMeshObject* currentBehold, glm::vec3& nextPosition) 
         // SW = j + 1 and j - 1
         // W = i and j - 1
         // NW = i - 1 and j - 1
-        std::string cmBeholdIJString = std::to_string(cmBehold->currentI) + std::to_string(cmBehold->currentJ);
+        std::string cmBeholdIJString = std::to_string(cmBehold->currentI) + "0" + std::to_string(cmBehold->currentJ);
 
-        std::string N = std::to_string(i - 1) + std::to_string(j);
-        std::string NE = std::to_string(i - 1) + std::to_string(j + 1);
-        std::string E = std::to_string(i) + std::to_string(j + 1);
-        std::string SE = std::to_string(i + 1) + std::to_string(j + 1);
-        std::string S = std::to_string(i + 1) + std::to_string(j);
-        std::string SW = std::to_string(i + 1) + std::to_string(j - 1);
-        std::string W = std::to_string(i) + std::to_string(j - 1);
-        std::string NW = std::to_string(i - 1) + std::to_string(j - 1);
+        std::string N = std::to_string(i - 1) + "0" + std::to_string(j);
+        std::string NE = std::to_string(i - 1) + "0" + std::to_string(j + 1);
+        std::string E = std::to_string(i) + "0" + std::to_string(j + 1);
+        std::string SE = std::to_string(i + 1) + "0" + std::to_string(j + 1);
+        std::string S = std::to_string(i + 1) + "0" + std::to_string(j);
+        std::string SW = std::to_string(i + 1) + "0" + std::to_string(j - 1);
+        std::string W = std::to_string(i) + "0" + std::to_string(j - 1);
+        std::string NW = std::to_string(i - 1) + "0" + std::to_string(j - 1);
 
         if (cmBeholdIJString == N || cmBeholdIJString == NE || cmBeholdIJString == E || cmBeholdIJString == SE ||
             cmBeholdIJString == S || cmBeholdIJString == SW || cmBeholdIJString == W || cmBeholdIJString == NW) {
@@ -879,6 +882,9 @@ int main(int argc, char* argv[]) {
     GLuint shaderID = 0;
     GLint vpos_location = 0;
     GLint vcol_location = 0;
+
+    animationType = 0;
+    animationSpeed = 0.01;
 
     srand(time(NULL));
 
@@ -1234,6 +1240,8 @@ int main(int argc, char* argv[]) {
 
         // Physics Update
         //simView->m_PhysicsSystem.UpdateStep(0.1f);
+
+        // Animation Update
         for (std::map< std::string, cMeshObject*>::iterator itBeholds =
             g_GraphicScene.map_beholds->begin(); itBeholds != g_GraphicScene.map_beholds->end();
             itBeholds++) {
@@ -1253,6 +1261,11 @@ int main(int argc, char* argv[]) {
                     continue;
                 }
 
+                currentBehold->moving = 1;
+                currentBehold->rotating = 1;
+                currentBehold->PositionKeyFrames.clear();
+                currentBehold->RotationKeyFrames.clear();
+
                 std::string currentBeholdNextTileXScript = 
                     "nextTileX" + std::to_string(currentBeholdID) + " = " + 
                     std::to_string(nextPosition.x);
@@ -1263,22 +1276,47 @@ int main(int argc, char* argv[]) {
                     "nextTileZ" + std::to_string(currentBeholdID) + "  = " +
                     std::to_string(nextPosition.z);
 
-                pBrain->RunScriptImmediately(currentBeholdNextTileXScript);
-                pBrain->RunScriptImmediately(currentBeholdNextTileYScript);
-                pBrain->RunScriptImmediately(currentBeholdNextTileZScript);
+                //pBrain->RunScriptImmediately(currentBeholdNextTileXScript);
+                //pBrain->RunScriptImmediately(currentBeholdNextTileYScript);
+                //pBrain->RunScriptImmediately(currentBeholdNextTileZScript);
+
+                RotationKeyFrame currRKF;
+
+                glm::vec3 currentRotation = glm::vec3(currentBehold->qRotation.x,
+                    currentBehold->qRotation.y,
+                    currentBehold->qRotation.z);
+
+                currRKF.value = currentRotation;
+                currRKF.time = 0;
+                currRKF.useSlerp = false;
+                currentBehold->RotationKeyFrames.push_back(currRKF);
+
+                RotationKeyFrame nextRKF;
+                nextRKF.time = 1;
+                nextRKF.useSlerp = false;
 
                 // Setting rotation
-                if (nextPosition.x < currentBehold->position.x) // Going WEST
-                    currentBehold->setRotationFromEuler(glm::vec3(0.0f, NinetyDegrees, 0.0f));
+                if (nextPosition.x < currentBehold->position.x) {// Going WEST
+                    //currentBehold->setRotationFromEuler(glm::vec3(0.0f, NinetyDegrees, 0.0f));
+                    nextRKF.value = glm::vec3(0.0f, NinetyDegrees, 0.0f);
+                }
 
-                if (nextPosition.x > currentBehold->position.x) // Going EAST
-                    currentBehold->setRotationFromEuler(glm::vec3(0.0f, -NinetyDegrees, 0.0f));
+                if (nextPosition.x > currentBehold->position.x) {// Going EAST
+                    //currentBehold->setRotationFromEuler(glm::vec3(0.0f, -NinetyDegrees, 0.0f));
+                    nextRKF.value = glm::vec3(0.0f, -NinetyDegrees, 0.0f);
+                }
 
-                if (nextPosition.z < currentBehold->position.z) // Going NORTH
-                    currentBehold->setRotationFromEuler(glm::vec3(0.0f, 0.0, 0.0f));
+                if (nextPosition.z < currentBehold->position.z) {// Going NORTH
+                    //currentBehold->setRotationFromEuler(glm::vec3(0.0f, 0.0, 0.0f));
+                    nextRKF.value = glm::vec3(0.0f, 0.0, 0.0f);
+                }
 
-                if (nextPosition.z > currentBehold->position.z) // Going SOUTH
-                    currentBehold->setRotationFromEuler(glm::vec3(0.0f, NinetyDegrees * 2, 0.0f));
+                if (nextPosition.z > currentBehold->position.z) {// Going SOUTH
+                    //currentBehold->setRotationFromEuler(glm::vec3(0.0f, NinetyDegrees * 2, 0.0f));
+                    nextRKF.value = glm::vec3(0.0f, NinetyDegrees * 2, 0.0f);
+                }
+
+                currentBehold->RotationKeyFrames.push_back(nextRKF);
 
                 std::cout << " ------------------------------------------------------ " << std::endl;
                 std::cout << currentBehold->friendlyName << " CurrentPosition: (" <<
@@ -1299,17 +1337,47 @@ int main(int argc, char* argv[]) {
                 std::cout << "nextTileY" << currentBeholdID << " changed" << std::endl;
                 std::cout << "nextTileZ" << currentBeholdID << " changed" << std::endl;
 
-                std::string myScriptText = "setObjectState(" + std::to_string(currentBeholdID) + ", " +
-                    std::to_string(currentBehold->position.x) + ", " + 
-                    std::to_string(currentBehold->position.y) + ", " + 
-                    std::to_string(currentBehold->position.z) + ", " + 
-                    " 0, 0, 0, " + 
-                    std::to_string(currentBehold->qRotation.x) + ", " + 
-                    std::to_string(currentBehold->qRotation.y) + ", " + 
-                    std::to_string(currentBehold->qRotation.z) + ", " + 
-                    "1)";
-                pBrain->RunScriptImmediately(myScriptText);
-                currentBehold->moving = 1;
+                PositionKeyFrame currPKF;
+                currPKF.value = glm::vec3(currentBehold->position.x, currentBehold->position.y, currentBehold->position.z);
+                currPKF.time = 0;
+                currentBehold->PositionKeyFrames.push_back(currPKF);
+
+                PositionKeyFrame nextPKF;
+                nextPKF.value = glm::vec3(nextPosition.x, nextPosition.y, nextPosition.z);
+                nextPKF.time = 1;
+                currentBehold->PositionKeyFrames.push_back(nextPKF);
+
+                currentBehold->CurrentTime = 0.f;
+                currentBehold->IsLooping = false;
+                currentBehold->IsPlaying = true;
+
+                //std::string myScriptText = "setObjectState(" + std::to_string(currentBeholdID) + ", " +
+                //    std::to_string(currentBehold->position.x) + ", " + 
+                //    std::to_string(currentBehold->position.y) + ", " + 
+                //    std::to_string(currentBehold->position.z) + ", " + 
+                //    " 0, 0, 0, " + 
+                //    std::to_string(currentBehold->qRotation.x) + ", " + 
+                //    std::to_string(currentBehold->qRotation.y) + ", " + 
+                //    std::to_string(currentBehold->qRotation.z) + ", " + 
+                //    "1)";
+                //pBrain->RunScriptImmediately(myScriptText);
+                //currentBehold->moving = 1;
+            }
+            else if (currentBehold->moving == 2 && !currentBehold->dead && currentBehold->rotating == 0) {
+                // Check if the animation is finished?
+                currentBehold->UpdateAnimation(1);
+                currentBehold->Speed = animationSpeed;
+
+                glm::vec3 newPosition = currentBehold->GetAnimationPosition(currentBehold->CurrentTime, animationType);
+                currentBehold->position.x = newPosition.x;
+                currentBehold->position.z = newPosition.z;
+            }
+            else if (currentBehold->moving == 1 && !currentBehold->dead && currentBehold->rotating == 1) {
+                currentBehold->UpdateAnimation(1);
+                currentBehold->Speed = animationSpeed;
+
+                glm::quat newRotation = currentBehold->GetAnimationRotation(currentBehold->CurrentTime, animationType);
+                currentBehold->qRotation = newRotation;
             }
         }
 

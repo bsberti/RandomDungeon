@@ -15,6 +15,8 @@ extern glm::vec3 g_cameraTarget;// = glm::vec3(0.0f, 0.0f, 0.0f);
 extern GraphicScene g_GraphicScene;
 extern SimulationView* simView;
 extern std::map< std::string, cMeshObject*>::iterator itBeholdsToFollow;
+extern int animationType;
+extern float animationSpeed;
 
 enum eEditMode
 {
@@ -54,10 +56,56 @@ void key_callback(GLFWwindow* window,
         // Check for the mods to turn the spheres on or off
         bEnableDebugLightingObjects = false;
     }
+
     if (key == GLFW_KEY_0 && action == GLFW_PRESS)
     {
         // Check for the mods to turn the spheres on or off
         bEnableDebugLightingObjects = true;
+    }
+
+    if (key == GLFW_KEY_RIGHT && action == GLFW_PRESS)
+    {
+        if (animationType < 3) {
+            animationType++;
+        }
+        else {
+            animationType = 0;
+        }
+    }
+
+    if (key == GLFW_KEY_LEFT && action == GLFW_PRESS)
+    {
+        if (animationType > 0) {
+            animationType--;
+        }
+        else {
+            animationType = 3;
+        }
+    }
+
+    if (key == GLFW_KEY_1 && action == GLFW_PRESS)
+    {
+        animationSpeed = 0.01;
+    }
+
+    if (key == GLFW_KEY_2 && action == GLFW_PRESS)
+    {
+        animationSpeed = 0.02;
+    }
+
+    if (key == GLFW_KEY_3 && action == GLFW_PRESS)
+    {
+        animationSpeed = 0.03;
+    }
+
+    if (key == GLFW_KEY_4 && action == GLFW_PRESS)
+    {
+        animationSpeed = 0.04;
+    }
+
+    if (key == GLFW_KEY_5 && action == GLFW_PRESS)
+    {
+        animationSpeed = 0.05;
     }
 
     switch (theEditMode)
@@ -193,17 +241,7 @@ void key_callback(GLFWwindow* window,
 
     case MOVING_SELECTED_OBJECT:
     {
-        g_GraphicScene.cameraTransitioning = true;
-
-        if (key == GLFW_KEY_F6 && action == GLFW_PRESS) {
-            g_GraphicScene.cameraFollowing = false;
-            g_GraphicScene.cameraTransitioning = true;
-            itBeholdsToFollow++;
-            if (itBeholdsToFollow == g_GraphicScene.map_beholds->end()) {
-                itBeholdsToFollow = g_GraphicScene.map_beholds->begin();
-            }
-        }
-
+        
     }
     break;
     }//switch (theEditMode)
