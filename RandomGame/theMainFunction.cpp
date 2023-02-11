@@ -91,7 +91,6 @@ float RandomFloat(float a, float b) {
     return a + r;
 }
 
-
 // ------------------------ Load Model into VAO ------------------------
 bool LoadModelTypesIntoVAO(std::string fileTypesToLoadName,
     cVAOManager* pVAOManager,
@@ -165,6 +164,7 @@ cMeshObject* pDebugSphere_3 = NULL;// = new cMeshObject();
 cMeshObject* pDebugSphere_4 = NULL;// = new cMeshObject();
 cMeshObject* pDebugSphere_5 = NULL;// = new cMeshObject();
 
+// Creation and positioning of the lights
 void lightning(GLuint shaderID) {
     ::g_pTheLightManager = new cLightManager();
     cLightHelper* pLightHelper = new cLightHelper();
@@ -172,6 +172,7 @@ void lightning(GLuint shaderID) {
     ::g_pTheLightManager->CreateBasicDirecLight(shaderID, glm::vec4(250.0f, 900.0f, 250.0f, 0.0f));
 }
 
+// Function called inside creatingModels for the wall object creation
 void createWall(unsigned int line, unsigned int column, float x, float z, bool horizontal, std::string orientation) {
     sModelDrawInfo drawingInformation;
     pVAOManager->FindDrawInfoByModelName("Wall", drawingInformation);
@@ -185,6 +186,7 @@ void createWall(unsigned int line, unsigned int column, float x, float z, bool h
         wall->setRotationFromEuler(glm::vec3(0.0f, 1.575f, 0.0f));
 }
 
+// Function called inside creatingModels for the Torch object creation
 void createTorch(unsigned int line, unsigned int column, glm::vec3 pos, glm::vec3 rotation, std::string orientation) {
     sModelDrawInfo drawingInformation;
     pVAOManager->FindDrawInfoByModelName("Torch", drawingInformation);
@@ -212,6 +214,7 @@ void createTorch(unsigned int line, unsigned int column, glm::vec3 pos, glm::vec
     g_GraphicScene.vec_torchFlames.push_back(flame);
 }
 
+// Function called inside creatingModels for the Dead Body object creation
 void createDeadbody(unsigned int line, unsigned int column, glm::vec3 pos, glm::vec3 rotation, std::string orientation) {
     sModelDrawInfo drawingInformation;
     pVAOManager->FindDrawInfoByModelName("Deadbody", drawingInformation);
@@ -225,6 +228,17 @@ void createDeadbody(unsigned int line, unsigned int column, glm::vec3 pos, glm::
     deadbody->SetUniformScale(0.2f);
 }
 
+/* Function that create all the objects for the game.
+        The function reads the blockmap and create objects based on what information it has in each pointer
+        Examples:
+        . -> empty tile
+        X -> floor empty tile 
+        B -> Beholder on the floor
+        C -> Crystal on the floor
+        D -> Deadbody on the floor
+
+        The function also creates the walls in all four directions depending on what are the adjacents tiles.
+        Example: If the north tile is empty (.), creates a wall object in the north direction of the tile with the right rotation. */
 void creatingModels() {
     sModelDrawInfo drawingInformation; 
     pVAOManager->FindDrawInfoByModelName("Moon", drawingInformation);
@@ -665,6 +679,7 @@ void creatingModels() {
 
 }
 
+// Functions that creates the debug objets for the lights
 void debugLightSpheres() {
     pDebugSphere_1 = new cMeshObject();
     pDebugSphere_1->meshName = "ISO_Sphere_1";
@@ -717,6 +732,7 @@ void debugLightSpheres() {
     g_GraphicScene.vec_pMeshObjects.push_back(pDebugSphere_5);
 }
 
+// Calculate triangles center of the cMeshObject in parameter
 void calculateTrianglesCenter(cMeshObject* obj) {
     g_GraphicScene.trianglesCenter.reserve(obj->numberOfTriangles);
     sModelDrawInfo drawingInformation;
@@ -753,16 +769,9 @@ void calculateTrianglesCenter(cMeshObject* obj) {
     }
 }
 
-void positioningObjects() {
-    for (int i = 0; i < g_GraphicScene.vec_pMeshObjects.size(); i++) {
-        cMeshObject* currObj = g_GraphicScene.vec_pMeshObjects[i];
-        if (currObj->friendlyName != "Terrain_Florest" && 
-            currObj->friendlyName != "Plane") {
-            g_GraphicScene.PositioningMe(currObj);
-        }
-    }
-}
-
+/* Function that calculat next posible position for the beholder based on the block map (map of tiles of the dungeon). 
+Beholder can only move in 4 directions (north, west, east and south) and the function returns true if the nextPosition is valid 
+returns false if next position or the current position is also a next or current position of other beholder. */
 bool calculateNextPosition(cMeshObject* currentBehold, glm::vec3& nextPosition) {
 
     std::string northString = "";
@@ -943,7 +952,6 @@ int main(int argc, char* argv[]) {
     gameUi.fmod_manager_ = fmod_manager;
     gameUi.iniciatingUI();
 
-    // Create a shader thingy 
     pTheShaderManager = new cShaderManager();
 
     cShaderManager::cShader vertexShader01;
@@ -976,7 +984,6 @@ int main(int argc, char* argv[]) {
         // TO-DO
     }
 
-    // Load the models
     creatingModels();
     itBeholdsToFollow = g_GraphicScene.map_beholds->begin();
 
@@ -1046,7 +1053,6 @@ int main(int argc, char* argv[]) {
     // ---------------- LOADING TEXTURES ----------------------------------------------
 
     // ---------------- LUA  ----------------------------------------------
-
     std::string moveScriptTowardsDestinationFUNCTION =
         "function moveObjectTowardsDestination( objectID, xDest, yDest, zDest )										    \n"	\
         "	isValidObj, xObj, yObj, zObj, vxObj, vyObj, vzObj, moving = getObjectState( objectID )		\n"	\
@@ -1124,9 +1130,7 @@ int main(int argc, char* argv[]) {
 
         glViewport(0, 0, width, height);
 
-        // note the binary OR (not the usual boolean "or" comparison)
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        //glClear(GL_COLOR_BUFFER_BIT);
 
         glm::vec3 upVector = glm::vec3(0.0f, 1.0f, 0.0f);
 
@@ -1135,7 +1139,6 @@ int main(int argc, char* argv[]) {
             upVector);
 
         // Pass eye location to the shader
-        // uniform vec4 eyeLocation;
         GLint eyeLocation_UniLoc = glGetUniformLocation(shaderID, "eyeLocation");
 
         glUniform4f(eyeLocation_UniLoc,
@@ -1148,11 +1151,10 @@ int main(int argc, char* argv[]) {
             10000.0f);      // Far plane (make this as SMALL as possible)
                             // 6-8 digits of precision
 
-        // Set once per scene (not per object)
         glUniformMatrix4fv(mView_location, 1, GL_FALSE, glm::value_ptr(matView));
         glUniformMatrix4fv(mProjection_location, 1, GL_FALSE, glm::value_ptr(matProjection));
 
-        // Making the fire "move"
+        // Making the fire impostor "move"
         for (int i = 0; i < g_GraphicScene.vec_torchFlames.size(); i++) {
             cMeshObject* torchFire = g_GraphicScene.vec_torchFlames[i];
             if (torchFire) {
@@ -1173,18 +1175,14 @@ int main(int argc, char* argv[]) {
             itCurrentMesh != g_GraphicScene.vec_pMeshObjects.end();
             itCurrentMesh++)
         {
-            cMeshObject* pCurrentMeshObject = *itCurrentMesh;        // * is the iterator access thing
+            cMeshObject* pCurrentMeshObject = *itCurrentMesh;
 
             if (!pCurrentMeshObject->bIsVisible)
-            {
-                // Skip the rest of the loop
                 continue;
-            }
 
             // The parent's model matrix is set to the identity
             glm::mat4x4 matModel = glm::mat4x4(1.0f);
 
-            // All the drawing code has been moved to the DrawObject function
             DrawObject(pCurrentMeshObject,
                 matModel,
                 shaderID, ::g_pTextureManager,
@@ -1198,22 +1196,14 @@ int main(int argc, char* argv[]) {
 
             glm::mat4x4 matModel = glm::mat4x4(1.0f);
 
-            // move skybox to the cameras location
             pSkyBox->position = ::g_cameraEye;
-
-            // The scale of this large skybox needs to be smaller than the far plane
-            //  of the projection matrix.
-            // Maybe make it half the size
-            // Here, our far plane is 10000.0f...
             pSkyBox->SetUniformScale(7500.0f);
 
-            // All the drawing code has been moved to the DrawObject function
             DrawObject(pSkyBox,
                 matModel,
                 shaderID, ::g_pTextureManager,
                 pVAOManager, mModel_location, mModelInverseTransform_location);
 
-            // Turn this off
             glUniform1f(bIsSkyboxObject_UL, (GLfloat)GL_FALSE);
         }
         // --------------- Draw the skybox -----------------------------
@@ -1237,18 +1227,8 @@ int main(int argc, char* argv[]) {
 
         glfwSwapBuffers(window);
 
-        // Set the window title
         std::stringstream ssTitle;
-        ssTitle << "Camera (x,y,z): "
-            << ::g_cameraEye.x << ", "
-            << ::g_cameraEye.y << ", "
-            << ::g_cameraEye.z
-            << "  Light #0 (xyz): "
-            << ::g_pTheLightManager->vecTheLights[0].position.x << ", "
-            << ::g_pTheLightManager->vecTheLights[0].position.y << ", "
-            << ::g_pTheLightManager->vecTheLights[0].position.z
-            << " linear: " << ::g_pTheLightManager->vecTheLights[0].atten.y
-            << " quad: " << ::g_pTheLightManager->vecTheLights[0].atten.z;
+        ssTitle << "Multiverse Cursed Village";
 
         std::string theText = ssTitle.str();
 
