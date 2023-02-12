@@ -70,6 +70,8 @@ std::map< std::string, cMeshObject*>::iterator itBeholdsToFollow;
 #define SMALLEST_DISTANCE 0.1
 #define CAMERA_OFFSET 50.0
 
+cMeshObject* mainChar;
+
 // Call back signatures here
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
 
@@ -480,61 +482,14 @@ void creatingModels() {
                         crystalC->setRotationFromEuler(glm::vec3(0.0f, rand() % 180, 0.0f));
                     }
 
-                    // Creating the mighty BEHOLDER!
-                    if (currentString == "B") {
-                        pVAOManager->FindDrawInfoByModelName("Beholder", drawingInformation);
-                        g_GraphicScene.CreateGameObjectByType("Beholder", glm::vec3(x - (GLOBAL_MAP_OFFSET / 2), 25.0f, z - (GLOBAL_MAP_OFFSET / 2)), drawingInformation);
-                        cMeshObject* beholder;
-                        beholder = g_GraphicScene.GetObjectByName("Beholder", false);
-                        std::string beholderName = "Beholder" + std::to_string(i) + "_" + std::to_string(j);
-                        beholder->friendlyName = beholderName;
-                        beholder->textures[0] = "Beholder_Base_color.bmp";
-                        beholder->textureRatios[0] = 1.0f;
-                        beholder->setRotationFromEuler(glm::vec3(0.0f, -NinetyDegrees, 0.0f));
-                        beholder->SetUniformScale(10.0f);
-
-                        GLuint shaderID = 0;
-                        shaderID = pTheShaderManager->getIDFromFriendlyName("Shader_1");
-
-                        ::g_pTheLightManager->CreateBasicSpotLight(shaderID, 
-                            glm::vec4(beholder->position.x, 
-                                beholder->position.y + 15, 
-                                beholder->position.z - 10, 
-                                0.0f));
-
-                        ::g_pTheLightManager->vecTheLights[11].direction.x = 1.04f;
-                        ::g_pTheLightManager->vecTheLights[11].direction.y = 0.0f;
-                        ::g_pTheLightManager->vecTheLights[11].direction.z = -0.09f;
-                        ::g_pTheLightManager->vecTheLights[11].param1.y = 1.0f;
-                        ::g_pTheLightManager->vecTheLights[11].param1.z = 1.0f;
-                        ::g_pTheLightManager->vecTheLights[11].specular = glm::vec4(1.0f, 0.0f, 0.0f, 1.0f);
-
-                        ::g_pTheLightManager->CreateBasicSpotLight(shaderID,
-                            glm::vec4(beholder->position.x,
-                                beholder->position.y + 15,
-                                beholder->position.z + 10,
-                                0.0f));
-
-                        ::g_pTheLightManager->vecTheLights[12].direction.x = 0.91f;
-                        ::g_pTheLightManager->vecTheLights[12].direction.y = 0.0f;
-                        ::g_pTheLightManager->vecTheLights[12].direction.z = 0.48f;
-                        ::g_pTheLightManager->vecTheLights[12].param1.y = 1.0f;
-                        ::g_pTheLightManager->vecTheLights[12].param1.z = 1.0f;
-                        ::g_pTheLightManager->vecTheLights[12].specular = glm::vec4(0.0f, 1.0f, 0.0f, 1.0f);
-
-
-                        ::g_pTheLightManager->CreateBasicSpotLight(shaderID,
-                            glm::vec4(beholder->position.x,
-                                beholder->position.y + 15,
-                                beholder->position.z + 5,
-                                0.0f));
-
-                        ::g_pTheLightManager->vecTheLights[13].direction.x = 1.01f;
-                        ::g_pTheLightManager->vecTheLights[13].direction.y = 0.0f;
-                        ::g_pTheLightManager->vecTheLights[13].direction.z = 0.30f;
-                        ::g_pTheLightManager->vecTheLights[13].param1.y = 1.0f;
-                        ::g_pTheLightManager->vecTheLights[13].param1.z = 1.0f;
-                        ::g_pTheLightManager->vecTheLights[13].specular = glm::vec4(-1.0f, -0.05f, -0.40f, 1.0f);
+                    // Creating the Main Character!
+                    if (currentString == "M") {
+                        pVAOManager->FindDrawInfoByModelName("ISO_Sphere_1", drawingInformation);
+                        g_GraphicScene.CreateGameObjectByType("ISO_Sphere_1", glm::vec3(x - (GLOBAL_MAP_OFFSET / 2), 25.0f, z - (GLOBAL_MAP_OFFSET / 2)), drawingInformation);
+                        
+                        mainChar = g_GraphicScene.GetObjectByName("ISO_Sphere_1", false);
+                        mainChar->friendlyName = "MainChar";
+                        mainChar->SetUniformScale(10.0f);
 
                     }
 
