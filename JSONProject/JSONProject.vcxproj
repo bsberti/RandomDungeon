@@ -130,16 +130,18 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="cCharacter.cpp" />
     <ClCompile Include="EntityLoaderManager.cpp" />
-    <ClCompile Include="GameObject.cpp" />
+    <ClCompile Include="cGameObject.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="entityLoader.json" />
+    <None Include="MainCharacter.json" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="cCharacter.h" />
     <ClInclude Include="EntityLoaderManager.h" />
-    <ClInclude Include="GameObject.h" />
+    <ClInclude Include="cGameObject.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

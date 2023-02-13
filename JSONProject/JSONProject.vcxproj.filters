@@ -21,12 +21,15 @@
     <ClCompile Include="EntityLoaderManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="GameObject.cpp">
+    <ClCompile Include="cGameObject.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="cCharacter.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="entityLoader.json">
+    <None Include="MainCharacter.json">
       <Filter>Resource Files</Filter>
     </None>
   </ItemGroup>
@@ -34,7 +37,10 @@
     <ClInclude Include="EntityLoaderManager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="GameObject.h">
+    <ClInclude Include="cGameObject.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="cCharacter.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

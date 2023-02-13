@@ -1,5 +1,5 @@
 {
-    "className": "MainCharacter",
+    "className": "Character",
     "attributes": [
         {
             "name": "friendlyName",
@@ -14,16 +14,28 @@
             "value": "assets/models/ISO_Shphere_flat_3div_xyz_n_rgba_uv.ply"
         },
         {
-            "name": "HP",
+            "name": "name",
+            "value": "Ditto"
+        },
+        {
+            "name": "level",
+            "value": 1
+        },
+        {
+            "name": "maxHealth",
             "value": 100
         },
         {
-            "name": "Mana",
-            "value": 50
+            "name": "currentHealth",
+            "value": 90
         },
         {
-            "name": "Level",
-            "value": 1
+            "name": "maxMana",
+            "value": 75
+        },
+        {
+            "name": "currentMana",
+            "value": 50
         }
     ]
 }

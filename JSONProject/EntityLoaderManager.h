@@ -1,6 +1,7 @@
 #pragma once
 #include <string>
-#include "GameObject.h"
+#include "cGameObject.h"
+#include "cCharacter.h"
 
 /// <summary>
 /// This Singleton Class is responsible to Load Entities from a single JSON file
@@ -28,13 +29,24 @@ public:
 
 	/// <summary>
 	/// This method reads the JSON defined at path variable
-	/// And tries to load all information inside the variable gameObject
+	/// And tries to load all information inside the class cGameObject
 	/// In case of any error, the string errorMsg will return the issue
 	/// </summary>
 	/// <param name="path">Path to the JSON file</param>
-	/// <param name="gameObject">Address to the GameObject instance</param>
+	/// <param name="gameObject">Address to the cGameObject instance</param>
 	/// <param name="errorMsg">Address to a string which will contain error msg if needed</param>
-	/// <returns>True if gameObject loaded correctly, else false and returns a errorMsg</returns>
-	static bool LoadMainCharacter(const std::string path, GameObject& gameObject, std::string& errorMsg);
+	/// <returns>True if cGameObject was loaded correctly, else false and returns a errorMsg</returns>
+	static bool LoadGameObject(const std::string path, cGameObject& gameObject, std::string& errorMsg);
+
+	/// <summary>
+	/// This method reads the JSON defined at path variable
+	/// And tries to load all information inside the class cCharacter
+	/// In case of any error, the string errorMsg will return the issue
+	/// </summary>
+	/// <param name="path">Path to the JSON file</param>
+	/// <param name="character">Address to the cCharacter instance</param>
+	/// <param name="errorMsg">Address to a string which will contain error msg if needed</param>
+	/// <returns>True if cCharacter was loaded correctly, else false and returns a errorMsg</returns>
+	static bool LoadCharacter(const std::string path, cCharacter& character, std::string& errorMsg);
 };
 
