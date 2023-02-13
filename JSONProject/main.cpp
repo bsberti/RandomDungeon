@@ -5,10 +5,18 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#include "EntityLoaderManager.h"
 
 int main(int argc, char* argv[]) {
 
-	std::ifstream file("entityLoader.json");
+	EntityLoaderManager* entityLoaderManager = EntityLoaderManager::GetInstance();
+	GameObject gameObject;
+	std::string pathJSONFile = "entityLoader.json";
+	std::string errorMessage;
+	bool loaderReturn = entityLoaderManager->LoadGameObject(pathJSONFile, gameObject, errorMessage);
+	std::cout << "EntityLoaderManager return is: " << loaderReturn << std::endl;
+
+	std::ifstream file(pathJSONFile);
 	std::stringstream buffer;
 	buffer << file.rdbuf();
 	std::string content = buffer.str();
@@ -27,6 +35,8 @@ int main(int argc, char* argv[]) {
 		
 		std::cout << "Attribute: " << attrName << " | Value: " << attrValue << std::endl;
 	}
+
+	delete entityLoaderManager;
 
 	return 0;
 }
