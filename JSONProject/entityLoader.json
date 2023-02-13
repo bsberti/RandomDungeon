@@ -1,6 +1,18 @@
 {
-    "className": "Character",
+    "className": "MainCharacter",
     "attributes": [
+        {
+            "name": "friendlyName",
+            "value": "Main Character"
+        },
+        {
+            "name": "position",
+            "value": [825,25,475]
+        },
+        {
+            "name": "meshFilePath",
+            "value": "assets/models/ISO_Shphere_flat_3div_xyz_n_rgba_uv.ply"
+        },
         {
             "name": "HP",
             "value": 100

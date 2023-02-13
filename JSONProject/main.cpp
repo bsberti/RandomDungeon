@@ -1,11 +1,5 @@
-#include "rapidjson/document.h"
-#include "rapidjson/writer.h"
-#include "rapidjson/stringbuffer.h"
-
-#include <iostream>
-#include <fstream>
-#include <sstream>
 #include "EntityLoaderManager.h"
+#include <iostream>
 
 int main(int argc, char* argv[]) {
 
@@ -13,30 +7,16 @@ int main(int argc, char* argv[]) {
 	GameObject gameObject;
 	std::string pathJSONFile = "entityLoader.json";
 	std::string errorMessage;
-	bool loaderReturn = entityLoaderManager->LoadGameObject(pathJSONFile, gameObject, errorMessage);
-	std::cout << "EntityLoaderManager return is: " << loaderReturn << std::endl;
+	bool loaderReturn = entityLoaderManager->LoadMainCharacter(pathJSONFile, gameObject, errorMessage);
 
-	std::ifstream file(pathJSONFile);
-	std::stringstream buffer;
-	buffer << file.rdbuf();
-	std::string content = buffer.str();
-
-	rapidjson::Document doc;
-	doc.Parse(content.c_str());
-
-	const rapidjson::Value& className = doc["className"];
-	const rapidjson::Value& attributes = doc["attributes"];
-	std::cout << "Classname: " << className.GetString() << std::endl;
-
-	for (rapidjson::SizeType i = 0; i < attributes.Size(); i++) {
-		const rapidjson::Value& attribute = attributes[i];
-		std::string attrName = attribute["name"].GetString();
-		int attrValue = attribute["value"].GetInt();
-		
-		std::cout << "Attribute: " << attrName << " | Value: " << attrValue << std::endl;
+	if (loaderReturn) {
+		std::cout << "friendlyName: " << gameObject.m_friendlyName << std::endl;
+		std::cout << "position(x,y,z): (" << gameObject.m_position[0] << ", " << gameObject.m_position[1] << ", " << gameObject.m_position[2] << ")" << std::endl;
+		std::cout << "meshFilePath: " << gameObject.m_meshFilePath << std::endl;
+	} else {
+		std::cout << "Error: " << errorMessage << std::endl;
 	}
 
 	delete entityLoaderManager;
-
 	return 0;
 }

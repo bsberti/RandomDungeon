@@ -35,6 +35,6 @@ public:
 	/// <param name="gameObject">Address to the GameObject instance</param>
 	/// <param name="errorMsg">Address to a string which will contain error msg if needed</param>
 	/// <returns>True if gameObject loaded correctly, else false and returns a errorMsg</returns>
-	static bool LoadGameObject(const std::string path, GameObject& gameObject, std::string& errorMsg);
+	static bool LoadMainCharacter(const std::string path, GameObject& gameObject, std::string& errorMsg);
 };
 
