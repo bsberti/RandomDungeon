@@ -123,7 +123,7 @@ public:
 
 	glm::vec3 GetAnimationPosition(float time, int type);
 	glm::vec3 GetAnimationScale(float time, int type);
-	glm::quat GetAnimationRotation(float time, int type);
+	glm::vec3 GetAnimationRotation(float time, int type);
 
 	int FindPositionKeyFrameIndex(float time);
 	int FindScaleKeyFrameIndex(float time);

@@ -46,7 +46,7 @@ void key_callback(GLFWwindow* window,
         glfwSetWindowShouldClose(window, GLFW_TRUE);
     }
 
-    if (key == GLFW_KEY_A && action == GLFW_PRESS) {
+    if (key == GLFW_KEY_T && action == GLFW_PRESS) {
         theEditMode = ANIMATION;
     }
     else if (key == GLFW_KEY_C && action == GLFW_PRESS) {

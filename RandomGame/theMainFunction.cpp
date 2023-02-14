@@ -197,8 +197,10 @@ void createWall(unsigned int line, unsigned int column, float x, float z, bool h
     wall->friendlyName = "Wall" + std::to_string(line) + "_" + std::to_string(column) + orientation;
     wall->textures[0] = "Dungeons_2_Texture_01_A.bmp";
     wall->textureRatios[0] = 1.0f;
-    if (!horizontal)
-        wall->setRotationFromEuler(glm::vec3(0.0f, 1.575f, 0.0f));
+    if (!horizontal) {
+        //wall->setRotationFromEuler(glm::vec3(0.0f, 1.575f, 0.0f));
+        wall->rotation.y = 1.575f;
+    }
 }
 
 // Function called inside creatingModels for the Torch object creation
@@ -1255,11 +1257,11 @@ int main(int argc, char* argv[]) {
 
                 RotationKeyFrame currRKF;
 
-                glm::vec3 currentRotation = glm::vec3(currentBehold->qRotation.x,
-                    currentBehold->qRotation.y,
-                    currentBehold->qRotation.z);
+                //glm::vec3 currentRotation = glm::vec3(currentBehold->rotation.x,
+                //    currentBehold->rotation.y,
+                //    currentBehold->rotation.z);
 
-                currRKF.value = currentRotation;
+                currRKF.value = currentBehold->rotation;
                 currRKF.time = 0;
                 currRKF.useSlerp = false;
                 currentBehold->RotationKeyFrames.push_back(currRKF);
@@ -1349,8 +1351,8 @@ int main(int argc, char* argv[]) {
                 currentBehold->UpdateAnimation(1);
                 currentBehold->Speed = animationSpeed;
 
-                glm::quat newRotation = currentBehold->GetAnimationRotation(currentBehold->CurrentTime, animationType);
-                currentBehold->qRotation = newRotation;
+                glm::vec3 newRotation = currentBehold->GetAnimationRotation(currentBehold->CurrentTime, animationType);
+                currentBehold->rotation = newRotation;
             }
         }
 

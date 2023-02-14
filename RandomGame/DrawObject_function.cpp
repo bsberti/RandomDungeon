@@ -57,19 +57,25 @@ void DrawObject(cMeshObject* pCurrentMeshObject,
     glm::mat4 matTranslation = glm::translate(glm::mat4(1.0f),
                                               pCurrentMeshObject->position);
     
-    glm::mat4 matQRotation = glm::mat4(pCurrentMeshObject->qRotation);
+    //glm::mat4 matQRotation = glm::mat4(pCurrentMeshObject->qRotation);
+    glm::mat4 matRoationZ = glm::rotate(glm::mat4(1.0f), pCurrentMeshObject->rotation.z, glm::vec3(0.0f, 0.0f, 1.0f));
+    glm::mat4 matRoationY = glm::rotate(glm::mat4(1.0f), pCurrentMeshObject->rotation.y, glm::vec3(0.0f, 1.0f, 0.0f));
+    glm::mat4 matRoationX = glm::rotate(glm::mat4(1.0f), pCurrentMeshObject->rotation.x, glm::vec3(1.0f, 0.0f, 0.0f));
 
     // Scale the object
     glm::mat4 matScale = glm::scale(glm::mat4(1.0f),
-                                    glm::vec3(pCurrentMeshObject->scaleXYZ.x,
-                                              pCurrentMeshObject->scaleXYZ.y,
-                                              pCurrentMeshObject->scaleXYZ.z));
+        glm::vec3(pCurrentMeshObject->scaleXYZ.x,
+            pCurrentMeshObject->scaleXYZ.y,
+            pCurrentMeshObject->scaleXYZ.z));
 
     // Applying all these transformations to the MODEL 
     // (or "world" matrix)
     matModel = matModel * matTranslation;
 
-    matModel = matModel * matQRotation;
+    //matModel = matModel * matQRotation;
+    matModel = matModel * matRoationX;
+    matModel = matModel * matRoationY;
+    matModel = matModel * matRoationZ;
 
     matModel = matModel * matScale;
 

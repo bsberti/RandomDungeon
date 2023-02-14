@@ -175,7 +175,7 @@ glm::vec3 cMeshObject::GetAnimationScale(float time, int type)
 	return result;
 }
 
-glm::quat cMeshObject::GetAnimationRotation(float time, int type)
+glm::vec3 cMeshObject::GetAnimationRotation(float time, int type)
 {
 	if (RotationKeyFrames.size() == 1)
 		return RotationKeyFrames[0].value;
@@ -217,7 +217,7 @@ glm::quat cMeshObject::GetAnimationRotation(float time, int type)
 		break;
 	}
 
-	glm::quat result;
+	glm::vec3 result;
 
 	//if (rotationKeyFrame.useSlerp) {
 	//	//result = glm::slerp(rotationKeyFrame.value, nextRotationKeyFrame.value, ratio);
