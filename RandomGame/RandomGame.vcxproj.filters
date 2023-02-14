@@ -48,6 +48,12 @@
     <Filter Include="Lua">
       <UniqueIdentifier>{9190cf89-cec1-4cb8-99e6-0b9d2524ad21}</UniqueIdentifier>
     </Filter>
+    <Filter Include="JSON">
+      <UniqueIdentifier>{33aa6a68-039e-4a94-a1fa-02565d45a023}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Game">
+      <UniqueIdentifier>{d4b0ee07-c1ea-4381-8f85-9751af2d7ce5}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="cVAOManager\cVAOManager.cpp">
@@ -169,6 +175,15 @@
     </ClCompile>
     <ClCompile Include="cLuaBrain.cpp">
       <Filter>Lua</Filter>
+    </ClCompile>
+    <ClCompile Include="EntityLoaderManager.cpp">
+      <Filter>JSON</Filter>
+    </ClCompile>
+    <ClCompile Include="cCharacter.cpp">
+      <Filter>Game</Filter>
+    </ClCompile>
+    <ClCompile Include="cGameObject.cpp">
+      <Filter>Game</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -298,6 +313,15 @@
     <ClInclude Include="cLuaBrain.h">
       <Filter>Lua</Filter>
     </ClInclude>
+    <ClInclude Include="EntityLoaderManager.h">
+      <Filter>JSON</Filter>
+    </ClInclude>
+    <ClInclude Include="cCharacter.h">
+      <Filter>Game</Filter>
+    </ClInclude>
+    <ClInclude Include="cGameObject.h">
+      <Filter>Game</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="assets\shaders\fragmentShader01.glsl">
@@ -305,6 +329,9 @@
     </None>
     <None Include="assets\shaders\vertexShader01.glsl">
       <Filter>Shaders</Filter>
+    </None>
+    <None Include="MainCharacter.json">
+      <Filter>Resource Files</Filter>
     </None>
   </ItemGroup>
 </Project>

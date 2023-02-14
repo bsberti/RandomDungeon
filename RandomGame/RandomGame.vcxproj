@@ -143,6 +143,8 @@
     <ClCompile Include="cBasicTextureManager\C24BitBMPpixel.cpp" />
     <ClCompile Include="cBasicTextureManager\cBasicTextureManager.cpp" />
     <ClCompile Include="cBasicTextureManager\CTextureFromBMP.cpp" />
+    <ClCompile Include="cCharacter.cpp" />
+    <ClCompile Include="cGameObject.cpp" />
     <ClCompile Include="cLight.cpp" />
     <ClCompile Include="cLightHelper.cpp" />
     <ClCompile Include="cLightManager.cpp" />
@@ -150,6 +152,7 @@
     <ClCompile Include="cMeshObject.cpp" />
     <ClCompile Include="cRandomUI.cpp" />
     <ClCompile Include="DrawObject_function.cpp" />
+    <ClCompile Include="EntityLoaderManager.cpp" />
     <ClCompile Include="FModManager.cpp" />
     <ClCompile Include="glad.c" />
     <ClCompile Include="globalThings.cpp" />
@@ -187,11 +190,14 @@
     <ClInclude Include="cBasicTextureManager\C24BitBMPpixel.h" />
     <ClInclude Include="cBasicTextureManager\cBasicTextureManager.h" />
     <ClInclude Include="cBasicTextureManager\CTextureFromBMP.h" />
+    <ClInclude Include="cCharacter.h" />
+    <ClInclude Include="cGameObject.h" />
     <ClInclude Include="cLight.h" />
     <ClInclude Include="cLightHelper.h" />
     <ClInclude Include="cLightManager.h" />
     <ClInclude Include="cLuaBrain.h" />
     <ClInclude Include="cRandomUI.h" />
+    <ClInclude Include="EntityLoaderManager.h" />
     <ClInclude Include="FModManager.h" />
     <ClInclude Include="globalOpenGL.h" />
     <ClInclude Include="globalThings.h" />
@@ -227,6 +233,7 @@
   <ItemGroup>
     <None Include="assets\shaders\fragmentShader01.glsl" />
     <None Include="assets\shaders\vertexShader01.glsl" />
+    <None Include="MainCharacter.json" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

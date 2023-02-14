@@ -33,6 +33,7 @@
 #include "BlocksLoader.h"
 #include "cBasicTextureManager/cBasicTextureManager.h"
 #include "cLuaBrain.h"
+#include "EntityLoaderManager.h"
 
 BlocksLoader* m_blocksLoader;
 
@@ -69,8 +70,17 @@ std::map< std::string, cMeshObject*>::iterator itBeholdsToFollow;
 #define GLOBAL_MAP_OFFSET 50
 #define SMALLEST_DISTANCE 0.1
 #define CAMERA_OFFSET 50.0
+#define MAIN_CHAR_JSON_INFO "MainCharacter.json"
 
+// Main Character Objects
 cMeshObject* mainChar;
+cCharacter   playabledCharacter;
+
+// Entity Loader using JSON
+EntityLoaderManager* entityLoaderManager = EntityLoaderManager::GetInstance();
+
+// String used for error feedback for methods call
+std::string errorMessage;
 
 // Call back signatures here
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
@@ -484,11 +494,19 @@ void creatingModels() {
 
                     // Creating the Main Character!
                     if (currentString == "M") {
-                        pVAOManager->FindDrawInfoByModelName("ISO_Sphere_1", drawingInformation);
-                        g_GraphicScene.CreateGameObjectByType("ISO_Sphere_1", glm::vec3(x - (GLOBAL_MAP_OFFSET / 2), 25.0f, z - (GLOBAL_MAP_OFFSET / 2)), drawingInformation);
+                        bool loaderReturn = entityLoaderManager->LoadCharacter(MAIN_CHAR_JSON_INFO, playabledCharacter, errorMessage);
+
+                        if (!loaderReturn) {
+                            std::cout << "Error loading playable character: " << errorMessage << std::endl;
+                        }
+
+                        pVAOManager->FindDrawInfoByModelName(playabledCharacter.mFriendlyName, drawingInformation);
+                        glm::vec3 mainCharacterPosition(playabledCharacter.mPosition[0], playabledCharacter.mPosition[1], playabledCharacter.mPosition[2]);
+                        g_GraphicScene.CreateGameObjectByType(playabledCharacter.mFriendlyName, mainCharacterPosition, drawingInformation);
                         
-                        mainChar = g_GraphicScene.GetObjectByName("ISO_Sphere_1", false);
+                        mainChar = g_GraphicScene.GetObjectByName(playabledCharacter.mFriendlyName, false);
                         mainChar->friendlyName = "MainChar";
+                        playabledCharacter.mFriendlyName = mainChar->friendlyName;
                         mainChar->SetUniformScale(10.0f);
 
                     }
@@ -1384,6 +1402,7 @@ int main(int argc, char* argv[]) {
     // Get rid of stuff
     delete pTheShaderManager;
     delete ::g_pTheLightManager;
+    delete entityLoaderManager;
 
     glfwDestroyWindow(window);
     fmod_manager->Shutdown();
@@ -1476,5 +1495,6 @@ void DrawConcentricDebugLightObjects(int currentLight) {
         pDebugSphere_5->scale = distance5percent;
         pDebugSphere_5->position = glm::vec3(::g_pTheLightManager->vecTheLights[currentLight].position);
     }
+
     return;
 }

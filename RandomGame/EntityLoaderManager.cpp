@@ -101,6 +101,10 @@ bool EntityLoaderManager::LoadCharacter(const std::string path, cCharacter& char
 
 	// JSON File
 	std::ifstream file(path);
+	// Checks if the file is null
+	if (!file.is_open()) {
+		std::cout << "Error loading JSON file: " << path << std::endl;
+	}
 	// JSON File String Buffer
 	std::stringstream buffer;
 	buffer << file.rdbuf();
