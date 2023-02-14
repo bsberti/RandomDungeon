@@ -2,6 +2,9 @@
 
 Title: Multiverse Cursed Village
 
+Developers: Bruno de Souza Berti
+			Diego Lima Bastos
+
 This solution was created using Visual Studio Community 2022 Version 17 Toolset v143.
 
 The project is currently configured to be build in Debug and Release mode, both on x64 architecture.
