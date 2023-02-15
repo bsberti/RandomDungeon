@@ -147,10 +147,10 @@
     <ClCompile Include="graphics\texture\texturemanager.cpp">
       <Filter>graphics\texture</Filter>
     </ClCompile>
-    <ClCompile Include="graphics\window\window.cpp">
+    <ClCompile Include="graphics\window\WindowProperties.cpp">
       <Filter>graphics\window</Filter>
     </ClCompile>
-    <ClCompile Include="graphics\window\windowmanager.cpp">
+    <ClCompile Include="graphics\window\WindowManager.cpp">
       <Filter>graphics\window</Filter>
     </ClCompile>
     <ClCompile Include="world\World.cpp">
@@ -185,6 +185,12 @@
     </ClCompile>
     <ClCompile Include="systems\motionsystem.cpp">
       <Filter>systems</Filter>
+    </ClCompile>
+    <ClCompile Include="GraphicsSystem.cpp">
+      <Filter>graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="Window.cpp">
+      <Filter>graphics\window</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -275,10 +281,10 @@
     <ClInclude Include="graphics\texture\texturemanager.h">
       <Filter>graphics\texture</Filter>
     </ClInclude>
-    <ClInclude Include="graphics\window\window.h">
+    <ClInclude Include="graphics\window\WindowProperties.h">
       <Filter>graphics\window</Filter>
     </ClInclude>
-    <ClInclude Include="graphics\window\windowmanager.h">
+    <ClInclude Include="graphics\window\WindowManager.h">
       <Filter>graphics\window</Filter>
     </ClInclude>
     <ClInclude Include="world\World.h">
@@ -322,6 +328,12 @@
     </ClInclude>
     <ClInclude Include="systems\scriptsystem.h">
       <Filter>systems</Filter>
+    </ClInclude>
+    <ClInclude Include="GraphicsSystem.h">
+      <Filter>graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Window.h">
+      <Filter>graphics\window</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

@@ -28,6 +28,10 @@ std::vector<PositionVelocityEntityType> position_velocity_types;
 
 
 int main(int argc, char** argv) {
+
+	g_Engine.Initialize();
+
+
 	MotionSystem motion;
 	PhysicsSystem physics;
 

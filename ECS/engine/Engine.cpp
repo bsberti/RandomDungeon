@@ -65,3 +65,8 @@ void Engine::RemoveSystem(System* system)
 	m_Systems.erase(itFind);
 }
 
+void Engine::CreateWindow(const char* title, int width, int height) {
+	unsigned int entity = CreateEntity();
+	m_WindowManager.CreateWindowEntity(entity, title, width, height);
+}
+

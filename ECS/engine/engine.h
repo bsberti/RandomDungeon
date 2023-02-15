@@ -18,6 +18,7 @@
 #include <graphics/texture/texturemanager.h>
 
 #include <world/worldmanager.h>
+#include <graphics/window/WindowManager.h>
 
 
 class Engine
@@ -56,6 +57,8 @@ public:
 	void AddSystem(System* newSystem);
 	void RemoveSystem(System* removeSystem);
 
+	void CreateWindow(const char* title, int width, int height);
+
 private:
 	AnimationManager m_AnimationManager;
 	AudioManager m_AudioManager;
@@ -66,6 +69,7 @@ private:
 	ShaderManager m_ShaderManager;
 	TextureManager m_TextureManager;
 	WorldManager m_WorldManager;
+	WindowManager m_WindowManager;
 
 	EntityManager m_EntityManager;
 

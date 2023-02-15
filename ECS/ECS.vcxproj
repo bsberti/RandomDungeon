@@ -71,7 +71,7 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>$(ProjectDir);$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir);$(SolutionDir)RandomGame\include;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -139,6 +139,7 @@
     <ClCompile Include="engine\InputManager.cpp" />
     <ClCompile Include="engine\job\job.cpp" />
     <ClCompile Include="engine\job\jobqueue.cpp" />
+    <ClCompile Include="GraphicsSystem.cpp" />
     <ClCompile Include="graphics\camera\camera.cpp" />
     <ClCompile Include="graphics\camera\cameramanager.cpp" />
     <ClCompile Include="graphics\material\material.cpp" />
@@ -150,8 +151,8 @@
     <ClCompile Include="graphics\shader\shaderprogram.cpp" />
     <ClCompile Include="graphics\texture\texture.cpp" />
     <ClCompile Include="graphics\texture\texturemanager.cpp" />
-    <ClCompile Include="graphics\window\window.cpp" />
-    <ClCompile Include="graphics\window\windowmanager.cpp" />
+    <ClCompile Include="graphics\window\WindowProperties.cpp" />
+    <ClCompile Include="graphics\window\WindowManager.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="physics\bodies\collisionbody.cpp" />
     <ClCompile Include="physics\bodies\rigidbody.cpp" />
@@ -162,6 +163,7 @@
     <ClCompile Include="physics\Physicsworld.cpp" />
     <ClCompile Include="physics\utils\PhysicsUtils.cpp" />
     <ClCompile Include="systems\motionsystem.cpp" />
+    <ClCompile Include="Window.cpp" />
     <ClCompile Include="world\World.cpp" />
     <ClCompile Include="world\worldmanager.cpp" />
   </ItemGroup>
@@ -182,6 +184,7 @@
     <ClInclude Include="engine\InputManager.h" />
     <ClInclude Include="engine\job\job.h" />
     <ClInclude Include="engine\job\jobqueue.h" />
+    <ClInclude Include="GraphicsSystem.h" />
     <ClInclude Include="graphics\camera\camera.h" />
     <ClInclude Include="graphics\camera\cameramanager.h" />
     <ClInclude Include="graphics\components\MeshRenderer.h" />
@@ -195,8 +198,8 @@
     <ClInclude Include="graphics\shader\shaderprogram.h" />
     <ClInclude Include="graphics\texture\texture.h" />
     <ClInclude Include="graphics\texture\texturemanager.h" />
-    <ClInclude Include="graphics\window\window.h" />
-    <ClInclude Include="graphics\window\windowmanager.h" />
+    <ClInclude Include="graphics\window\WindowProperties.h" />
+    <ClInclude Include="graphics\window\WindowManager.h" />
     <ClInclude Include="physics\bodies\collisionbody.h" />
     <ClInclude Include="physics\bodies\rigidbody.h" />
     <ClInclude Include="physics\bodies\softbody.h" />
@@ -209,6 +212,7 @@
     <ClInclude Include="physics\utils\PhysicsUtils.h" />
     <ClInclude Include="systems\motionsystem.h" />
     <ClInclude Include="systems\scriptsystem.h" />
+    <ClInclude Include="Window.h" />
     <ClInclude Include="world\World.h" />
     <ClInclude Include="world\worldmanager.h" />
   </ItemGroup>
