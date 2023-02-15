@@ -4,10 +4,10 @@
 
 PhysicsWorld* PhysicsUtils::GetActiveWorld()
 {
-	return s_ActivePhysicsWorld;
+	return nullptr;//s_ActivePhysicsWorld;
 }
 
 void PhysicsUtils::SetActiveWorld(PhysicsWorld* world)
 {
-	s_ActivePhysicsWorld = world;
+	//s_ActivePhysicsWorld = world;
 }

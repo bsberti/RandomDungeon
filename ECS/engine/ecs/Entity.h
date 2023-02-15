@@ -56,7 +56,8 @@ struct Entity
 		// TODO: Ensure T is type of Component
 		if (HasComponent<T>())
 		{
-			return;
+			T* failedComponent = nullptr;
+			return failedComponent;
 		}
 
 		T* newComponent = new T();
@@ -74,7 +75,7 @@ struct Entity
 			T* component = dynamic_cast<T*>(*it);
 			if (component != nullptr)
 			{
-				newComponent->Disable();
+				component->Disable();
 				components.erase(it);
 				return *it;
 			}

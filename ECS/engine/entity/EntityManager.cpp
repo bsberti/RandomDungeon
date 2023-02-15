@@ -1,4 +1,4 @@
-#include <engine/entity/entitymanager.h>
+#include <engine/entity/Entitymanager.h>
 
 #include <assert.h>
 

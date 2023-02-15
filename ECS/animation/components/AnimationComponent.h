@@ -1,6 +1,6 @@
 #pragma once
 
-#include <ecs/Component.h>
+#include <engine/ecs/Component.h>
 
 class AnimationSequence;
 

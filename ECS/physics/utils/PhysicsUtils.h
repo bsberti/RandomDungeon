@@ -1,6 +1,7 @@
 #pragma once
 
-class PhysicsWorld;
+#include <physics/Physicsworld.h>
+//class PhysicsWorld;
 class PhysicsUtils
 {
 public:
@@ -8,5 +9,6 @@ public:
 	static void SetActiveWorld(PhysicsWorld* world);
 
 private:
-	static PhysicsWorld* s_ActivePhysicsWorld;
+	//TODO: Uncomment this and solve the linker error
+	//static PhysicsWorld* s_ActivePhysicsWorld;
 };

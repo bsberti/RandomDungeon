@@ -21,7 +21,7 @@
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
-    <ProjectGuid>{bd51ed38-7861-429a-ac39-67c95be697d4}</ProjectGuid>
+    <ProjectGuid>{b284e98f-3fbc-48fa-ad36-7b0e1fea6326}</ProjectGuid>
     <RootNamespace>ECS</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
@@ -71,12 +71,7 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>$(ProjectDir);$(VC_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
-    <SourcePath>$(ProjectDir);$(VC_SourcePath);</SourcePath>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <IncludePath>$(ProjectDir);$(VC_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
-    <SourcePath>$(ProjectDir);$(VC_SourcePath);</SourcePath>
+    <IncludePath>$(ProjectDir);$(IncludePath)</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -135,58 +130,12 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="animation\animation.h" />
-    <ClInclude Include="animation\animationmanager.h" />
-    <ClInclude Include="animation\animationsystem.h" />
-    <ClInclude Include="animation\components\AnimationComponent.h" />
-    <ClInclude Include="audio\audiomanager.h" />
-    <ClInclude Include="components\cameracomponent.h" />
-    <ClInclude Include="engine\InputManager.h" />
-    <ClInclude Include="engine\job\job.h" />
-    <ClInclude Include="engine\job\jobqueue.h" />
-    <ClInclude Include="graphics\camera\camera.h" />
-    <ClInclude Include="graphics\camera\cameramanager.h" />
-    <ClInclude Include="graphics\components\MeshRenderer.h" />
-    <ClInclude Include="components\positioncomponent.h" />
-    <ClInclude Include="graphics\material\material.h" />
-    <ClInclude Include="graphics\material\materialmanager.h" />
-    <ClInclude Include="graphics\mesh\mesh.h" />
-    <ClInclude Include="graphics\mesh\meshmanager.h" />
-    <ClInclude Include="graphics\shader\shader.h" />
-    <ClInclude Include="graphics\shader\shadermanager.h" />
-    <ClInclude Include="graphics\shader\shaderprogram.h" />
-    <ClInclude Include="graphics\texture\texture.h" />
-    <ClInclude Include="graphics\texture\texturemanager.h" />
-    <ClInclude Include="graphics\window\window.h" />
-    <ClInclude Include="graphics\window\windowmanager.h" />
-    <ClInclude Include="physics\bodies\collisionbody.h" />
-    <ClInclude Include="physics\bodies\softbody.h" />
-    <ClInclude Include="physics\CollisionListener.h" />
-    <ClInclude Include="physics\components\rigidbodycomponent.h" />
-    <ClInclude Include="components\velocitycomponent.h" />
-    <ClInclude Include="engine\ecs\Component.h" />
-    <ClInclude Include="engine\ecs\Entity.h" />
-    <ClInclude Include="engine\ecs\System.h" />
-    <ClInclude Include="engine\engine.h" />
-    <ClInclude Include="engine\entity\entitymanager.h" />
-    <ClInclude Include="physics\physicsfactory.h" />
-    <ClInclude Include="physics\PhysicsSystem.h" />
-    <ClInclude Include="physics\physicsworld.h" />
-    <ClInclude Include="physics\bodies\rigidbody.h" />
-    <ClInclude Include="physics\shapes\shape.h" />
-    <ClInclude Include="physics\utils\PhysicsUtils.h" />
-    <ClInclude Include="systems\motionsystem.h" />
-    <ClInclude Include="graphics\rendersystem.h" />
-    <ClInclude Include="systems\scriptsystem.h" />
-    <ClInclude Include="world\world.h" />
-    <ClInclude Include="world\worldmanager.h" />
-  </ItemGroup>
-  <ItemGroup>
     <ClCompile Include="animation\animation.cpp" />
     <ClCompile Include="animation\animationmanager.cpp" />
     <ClCompile Include="animation\animationsystem.cpp" />
     <ClCompile Include="audio\audiomanager.cpp" />
-    <ClCompile Include="engine\engine.cpp" />
+    <ClCompile Include="engine\Engine.cpp" />
+    <ClCompile Include="engine\entity\EntityManager.cpp" />
     <ClCompile Include="engine\InputManager.cpp" />
     <ClCompile Include="engine\job\job.cpp" />
     <ClCompile Include="engine\job\jobqueue.cpp" />
@@ -204,18 +153,64 @@
     <ClCompile Include="graphics\window\window.cpp" />
     <ClCompile Include="graphics\window\windowmanager.cpp" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="engine\entity\EntityManager.cpp" />
     <ClCompile Include="physics\bodies\collisionbody.cpp" />
+    <ClCompile Include="physics\bodies\rigidbody.cpp" />
     <ClCompile Include="physics\bodies\softbody.cpp" />
     <ClCompile Include="physics\components\RigidBodyComponent.cpp" />
     <ClCompile Include="physics\physicsfactory.cpp" />
     <ClCompile Include="physics\PhysicsSystem.cpp" />
-    <ClCompile Include="physics\physicsworld.cpp" />
-    <ClCompile Include="physics\bodies\rigidbody.cpp" />
+    <ClCompile Include="physics\Physicsworld.cpp" />
     <ClCompile Include="physics\utils\PhysicsUtils.cpp" />
     <ClCompile Include="systems\motionsystem.cpp" />
-    <ClCompile Include="world\world.cpp" />
+    <ClCompile Include="world\World.cpp" />
     <ClCompile Include="world\worldmanager.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="animation\animation.h" />
+    <ClInclude Include="animation\animationmanager.h" />
+    <ClInclude Include="animation\animationsystem.h" />
+    <ClInclude Include="animation\components\AnimationComponent.h" />
+    <ClInclude Include="audio\audiomanager.h" />
+    <ClInclude Include="components\cameracomponent.h" />
+    <ClInclude Include="components\positioncomponent.h" />
+    <ClInclude Include="components\velocitycomponent.h" />
+    <ClInclude Include="engine\ecs\Component.h" />
+    <ClInclude Include="engine\ecs\Entity.h" />
+    <ClInclude Include="engine\ecs\System.h" />
+    <ClInclude Include="engine\Engine.h" />
+    <ClInclude Include="engine\entity\Entitymanager.h" />
+    <ClInclude Include="engine\InputManager.h" />
+    <ClInclude Include="engine\job\job.h" />
+    <ClInclude Include="engine\job\jobqueue.h" />
+    <ClInclude Include="graphics\camera\camera.h" />
+    <ClInclude Include="graphics\camera\cameramanager.h" />
+    <ClInclude Include="graphics\components\MeshRenderer.h" />
+    <ClInclude Include="graphics\material\material.h" />
+    <ClInclude Include="graphics\material\materialmanager.h" />
+    <ClInclude Include="graphics\mesh\mesh.h" />
+    <ClInclude Include="graphics\mesh\meshmanager.h" />
+    <ClInclude Include="graphics\rendersystem.h" />
+    <ClInclude Include="graphics\shader\shader.h" />
+    <ClInclude Include="graphics\shader\shadermanager.h" />
+    <ClInclude Include="graphics\shader\shaderprogram.h" />
+    <ClInclude Include="graphics\texture\texture.h" />
+    <ClInclude Include="graphics\texture\texturemanager.h" />
+    <ClInclude Include="graphics\window\window.h" />
+    <ClInclude Include="graphics\window\windowmanager.h" />
+    <ClInclude Include="physics\bodies\collisionbody.h" />
+    <ClInclude Include="physics\bodies\rigidbody.h" />
+    <ClInclude Include="physics\bodies\softbody.h" />
+    <ClInclude Include="physics\CollisionListener.h" />
+    <ClInclude Include="physics\components\rigidbodycomponent.h" />
+    <ClInclude Include="physics\physicsfactory.h" />
+    <ClInclude Include="physics\PhysicsSystem.h" />
+    <ClInclude Include="physics\Physicsworld.h" />
+    <ClInclude Include="physics\shapes\shape.h" />
+    <ClInclude Include="physics\utils\PhysicsUtils.h" />
+    <ClInclude Include="systems\motionsystem.h" />
+    <ClInclude Include="systems\scriptsystem.h" />
+    <ClInclude Include="world\World.h" />
+    <ClInclude Include="world\worldmanager.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -16,11 +16,11 @@ public:
 	unsigned int CreateEntity();
 
 	template <class T>
-	void AddComponent(unsigned int entityId)
+	T* AddComponent(unsigned int entityId)
 	{
 		assert(entityId < m_Entities.size());
 		Entity* entity = m_Entities[entityId];
-		entity->AddComponent<T>();
+		return entity->AddComponent<T>();
 	}
 
 	template <class T>

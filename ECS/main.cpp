@@ -7,8 +7,7 @@
 
 Engine g_Engine;
 
-unsigned int CreateAnEntity()
-{
+unsigned int CreateAnEntity() {
 	unsigned int entity = g_Engine.CreateEntity();
 	RigidBodyComponent* rbc = g_Engine.AddComponent<RigidBodyComponent>(entity);
 	//rbc->SetRigidBody();
@@ -20,8 +19,7 @@ unsigned int CreateAnEntity()
 	return entity;
 }
 
-struct PositionVelocityEntityType
-{
+struct PositionVelocityEntityType {
 	PositionComponent position;
 	VelocityComponent velocity;
 };
@@ -29,8 +27,7 @@ struct PositionVelocityEntityType
 std::vector<PositionVelocityEntityType> position_velocity_types;
 
 
-int main(int argc, char** argv)
-{
+int main(int argc, char** argv) {
 	MotionSystem motion;
 	PhysicsSystem physics;
 
