@@ -1,5 +1,9 @@
 #include "WindowManager.h"
-#include "WindowProperties.h"
+#include <components/TitleComponent.h>
+#include <components/PositionComponent.h>
+#include <components/SizeComponent.h>
+#include <components/WindowComponent.h>
+
 
 WindowManager::WindowManager() {
 }
@@ -7,13 +11,22 @@ WindowManager::WindowManager() {
 WindowManager::~WindowManager() {
 }
 
-unsigned int WindowManager::CreateWindowEntity(const unsigned int entity, const char* title, int width, int height) {
-	//WindowProperties* wp = g_Engine.AddComponent<WindowProperties>(entity);
-	//rbc->SetRigidBody();
-	//rbc->SetPhysicsMaterial();
-	// Some way to customize the rbc
-	// You want to assign the shape yourself, and collider info
+bool WindowManager::CreateWindowEntity(EntityManager& entityManager, const unsigned int entity, const char* title, int width, int height) {
+	TitleComponent*		titleComponent		= entityManager.AddComponent<TitleComponent>(entity);
+	PositionComponent*	positionComponent	= entityManager.AddComponent<PositionComponent>(entity);
+	SizeComponent*		sizeComponent		= entityManager.AddComponent<SizeComponent>(entity);
+	WindowComponent*	windowComponent		= entityManager.AddComponent<WindowComponent>(entity);
 
+	titleComponent->title = title;
+	positionComponent->x = 0;
+	positionComponent->y = 0;
+	positionComponent->z = 0;
+	sizeComponent->width = width;
+	sizeComponent->height = height;
+	windowComponent->window = glfwCreateWindow(width, height, title, nullptr, nullptr);
+	if (!windowComponent->window) {
+		return false;
+	}
 
-	return 0;
+	return true;
 }

@@ -173,9 +173,12 @@
     <ClInclude Include="animation\animationsystem.h" />
     <ClInclude Include="animation\components\AnimationComponent.h" />
     <ClInclude Include="audio\audiomanager.h" />
-    <ClInclude Include="components\cameracomponent.h" />
-    <ClInclude Include="components\positioncomponent.h" />
-    <ClInclude Include="components\velocitycomponent.h" />
+    <ClInclude Include="components\CameraComponent.h" />
+    <ClInclude Include="components\PositionComponent.h" />
+    <ClInclude Include="components\SizeComponent.h" />
+    <ClInclude Include="components\TitleComponent.h" />
+    <ClInclude Include="components\VelocityComponent.h" />
+    <ClInclude Include="components\WindowComponent.h" />
     <ClInclude Include="engine\ecs\Component.h" />
     <ClInclude Include="engine\ecs\Entity.h" />
     <ClInclude Include="engine\ecs\System.h" />

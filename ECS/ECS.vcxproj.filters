@@ -230,13 +230,13 @@
     <ClInclude Include="animation\components\AnimationComponent.h">
       <Filter>animation\components</Filter>
     </ClInclude>
-    <ClInclude Include="components\cameracomponent.h">
+    <ClInclude Include="components\CameraComponent.h">
       <Filter>components</Filter>
     </ClInclude>
-    <ClInclude Include="components\positioncomponent.h">
+    <ClInclude Include="components\PositionComponent.h">
       <Filter>components</Filter>
     </ClInclude>
-    <ClInclude Include="components\velocitycomponent.h">
+    <ClInclude Include="components\VelocityComponent.h">
       <Filter>components</Filter>
     </ClInclude>
     <ClInclude Include="audio\audiomanager.h">
@@ -334,6 +334,15 @@
     </ClInclude>
     <ClInclude Include="Window.h">
       <Filter>graphics\window</Filter>
+    </ClInclude>
+    <ClInclude Include="components\SizeComponent.h">
+      <Filter>components</Filter>
+    </ClInclude>
+    <ClInclude Include="components\TitleComponent.h">
+      <Filter>components</Filter>
+    </ClInclude>
+    <ClInclude Include="components\WindowComponent.h">
+      <Filter>components</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
