@@ -34,7 +34,7 @@ int main(int argc, char** argv) {
 	MotionSystem motion;
 	PhysicsSystem physics;
 
-	g_Engine.CreateWindow("Multiverse Cursed Village", 800, 600);
+	g_Engine.CreateWindow("Multiverse Cursed Village", 800, 600, "#version 460");
 
 	//g_Engine.AddSystem(&motion);
 	//g_Engine.AddSystem(&physics);
@@ -49,6 +49,7 @@ int main(int argc, char** argv) {
 	//g_Engine.Update(0.1f);
 	//g_Engine.Update(0.1f);
 
+	while (true) {}
 
 	//VelocityComponent* velCmp = g_Engine.AddComponent<VelocityComponent>(entity);
 	//velCmp->vx = 10;

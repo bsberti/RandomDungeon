@@ -344,5 +344,8 @@
     <ClInclude Include="components\WindowComponent.h">
       <Filter>components</Filter>
     </ClInclude>
+    <ClInclude Include="components\GLSLVersionComponent.h">
+      <Filter>components</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

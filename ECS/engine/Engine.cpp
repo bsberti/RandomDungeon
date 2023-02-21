@@ -65,9 +65,9 @@ void Engine::RemoveSystem(System* system)
 	m_Systems.erase(itFind);
 }
 
-void Engine::CreateWindow(const char* title, int width, int height) {
+void Engine::CreateWindow(const char* title, int width, int height, const char* glslVersion) {
 	unsigned int entity = CreateEntity();
-	m_WindowManager.CreateWindowEntity(m_EntityManager, entity, title, width, height);
+	m_WindowManager.CreateWindowEntity(m_EntityManager, entity, title, width, height, glslVersion);
 	
 }
 

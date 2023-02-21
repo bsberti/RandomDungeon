@@ -57,7 +57,7 @@ public:
 	void AddSystem(System* newSystem);
 	void RemoveSystem(System* removeSystem);
 
-	void CreateWindow(const char* title, int width, int height);
+	void CreateWindow(const char* title, int width, int height, const char* glslVersion);
 
 private:
 	AnimationManager m_AnimationManager;

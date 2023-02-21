@@ -72,6 +72,7 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <IncludePath>$(ProjectDir);$(SolutionDir)RandomGame\include;$(IncludePath)</IncludePath>
+    <LibraryPath>$(SolutionDir)RandomGame/lib/Debug_x64;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -111,6 +112,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>pugixml_d.lib;fmod_vc.lib;glfw3.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -127,6 +129,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>pugixml.lib;fmodL_vc.lib;glfw3.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -174,6 +177,7 @@
     <ClInclude Include="animation\components\AnimationComponent.h" />
     <ClInclude Include="audio\audiomanager.h" />
     <ClInclude Include="components\CameraComponent.h" />
+    <ClInclude Include="components\GLSLVersionComponent.h" />
     <ClInclude Include="components\PositionComponent.h" />
     <ClInclude Include="components\SizeComponent.h" />
     <ClInclude Include="components\TitleComponent.h" />
