@@ -149,6 +149,8 @@
     <ClCompile Include="cLightHelper.cpp" />
     <ClCompile Include="cLightManager.cpp" />
     <ClCompile Include="cLuaBrain.cpp" />
+    <ClCompile Include="cMazeMaker_W2023.cpp" />
+    <ClCompile Include="cMazeMaker_W2023_async.cpp" />
     <ClCompile Include="cMeshObject.cpp" />
     <ClCompile Include="cRandomUI.cpp" />
     <ClCompile Include="DrawObject_function.cpp" />
@@ -196,6 +198,7 @@
     <ClInclude Include="cLightHelper.h" />
     <ClInclude Include="cLightManager.h" />
     <ClInclude Include="cLuaBrain.h" />
+    <ClInclude Include="cMazeMaker_W2023.h" />
     <ClInclude Include="cRandomUI.h" />
     <ClInclude Include="EntityLoaderManager.h" />
     <ClInclude Include="FModManager.h" />

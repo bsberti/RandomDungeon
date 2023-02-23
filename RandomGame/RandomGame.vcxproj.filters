@@ -54,6 +54,9 @@
     <Filter Include="Game">
       <UniqueIdentifier>{d4b0ee07-c1ea-4381-8f85-9751af2d7ce5}</UniqueIdentifier>
     </Filter>
+    <Filter Include="MazeGenerator">
+      <UniqueIdentifier>{97816be9-9097-4fa7-ab56-76f35e0d920e}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="cVAOManager\cVAOManager.cpp">
@@ -184,6 +187,12 @@
     </ClCompile>
     <ClCompile Include="cGameObject.cpp">
       <Filter>Game</Filter>
+    </ClCompile>
+    <ClCompile Include="cMazeMaker_W2023.cpp">
+      <Filter>MazeGenerator</Filter>
+    </ClCompile>
+    <ClCompile Include="cMazeMaker_W2023_async.cpp">
+      <Filter>MazeGenerator</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -321,6 +330,9 @@
     </ClInclude>
     <ClInclude Include="cGameObject.h">
       <Filter>Game</Filter>
+    </ClInclude>
+    <ClInclude Include="cMazeMaker_W2023.h">
+      <Filter>MazeGenerator</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

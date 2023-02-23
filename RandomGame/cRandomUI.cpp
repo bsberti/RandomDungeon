@@ -249,10 +249,12 @@ void cRandomUI::render(GraphicScene& scene, FModManager* fmod, std::vector<cLigh
         vecBeholds.push_back(currentBehold);
     }
 
-    listbox_beholds[0] = vecBeholds[0]->friendlyName.c_str();
-    listbox_beholds[1] = vecBeholds[1]->friendlyName.c_str();
-    listbox_beholds[2] = vecBeholds[2]->friendlyName.c_str();
-    ImGui::ListBox("3", &listbox_behold_current, listbox_beholds, IM_ARRAYSIZE(listbox_beholds), 3);
+    if (vecBeholds.size() != 0) {
+        listbox_beholds[0] = vecBeholds[0]->friendlyName.c_str();
+        listbox_beholds[1] = vecBeholds[1]->friendlyName.c_str();
+        listbox_beholds[2] = vecBeholds[2]->friendlyName.c_str();
+        ImGui::ListBox("3", &listbox_behold_current, listbox_beholds, IM_ARRAYSIZE(listbox_beholds), 3);
+    }
 
     ImGui::Text("Light Objets");
     const int totalLights = vecTheLights.size() - 1;

@@ -30,7 +30,7 @@ enum eEditMode
     MOVING_MAINCHAR
 };
 
-eEditMode theEditMode = MOVING_MAINCHAR;
+eEditMode theEditMode = MOVING_CAMERA;
 unsigned int selectedLightIndex = 0;
 unsigned int selectedObjectIndex = 0;
 

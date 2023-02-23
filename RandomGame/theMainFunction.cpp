@@ -35,6 +35,9 @@
 #include "cLuaBrain.h"
 #include "EntityLoaderManager.h"
 
+#include "cMazeMaker_W2023.h"
+#include <chrono>
+
 BlocksLoader* m_blocksLoader;
 
 glm::vec3 g_cameraEye = glm::vec3(0.0f, 0.0f, 0.0f);
@@ -862,6 +865,31 @@ int main(int argc, char* argv[]) {
     animationSpeed = 0.01;
 
     srand(time(NULL));
+
+    std::chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();
+
+    cMazeMaker_W2023 theMM;
+    cMazeMaker_W2023::sProcessMemoryCounters memInfoStart;
+
+    theMM.getMemoryUse(memInfoStart);
+    theMM.GenerateMaze(MAP_HEIGHT, MAP_WIDTH);
+
+    std::chrono::high_resolution_clock::time_point t2 = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double> time_span = std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1);
+
+    std::cout << "It took me " << time_span.count() << " seconds.";
+
+    cMazeMaker_W2023::sProcessMemoryCounters memInfoEnd;
+    theMM.getMemoryUse(memInfoEnd);
+
+    unsigned long long deltaMemoryUsed = memInfoEnd.WorkingSetSize - memInfoStart.WorkingSetSize;
+    std::cout << "Delta memory:" << std::endl;
+    std::cout << "\t" << deltaMemoryUsed << " bytes" << std::endl;
+    std::cout << "\t" << deltaMemoryUsed / 1024 << " K" << std::endl;
+    std::cout << "\t" << deltaMemoryUsed / (1024 * 1024) << " M" << std::endl;
+    std::cout << "\t" << deltaMemoryUsed / (1024 * 1024 * 1024) << " G" << std::endl;
+
+    theMM.PrintMaze();
 
     int updateCount = 0;
     pBrain = new cLuaBrain();
