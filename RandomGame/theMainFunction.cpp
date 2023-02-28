@@ -1,25 +1,10 @@
-
-#include "globalOpenGL.h"
-
-#include <glm/glm.hpp>
-#include <glm/vec3.hpp> 
-#include <glm/vec4.hpp>
-#include <glm/mat4x4.hpp> 
-#include <glm/gtc/matrix_transform.hpp> 
-#include <glm/gtc/type_ptr.hpp> 
 #include <stdlib.h>
 #include <stdio.h>
 #include <iostream>
 #include <fstream>
 #include <sstream>
-#include <math.h>
 
 #include <vector>
-#include "globalThings.h"
-#include "cShaderManager.h"
-#include "cVAOManager/cVAOManager.h"
-#include "cLightHelper.h"
-#include "cVAOManager/c3DModelFileLoader.h"
 #include "GraphicScene.h"
 
 #include "imgui/imgui_impl_glfw.h"
@@ -31,7 +16,6 @@
 #include "SimulationView.h"
 #include "FModManager.h"
 #include "BlocksLoader.h"
-#include "cBasicTextureManager/cBasicTextureManager.h"
 #include "cLuaBrain.h"
 #include "EntityLoaderManager.h"
 
@@ -43,13 +27,9 @@ BlocksLoader* m_blocksLoader;
 glm::vec3 g_cameraEye = glm::vec3(0.0f, 0.0f, 0.0f);
 glm::vec3 g_cameraTarget = glm::vec3(0.0f, 0.0f, 0.0f);
 
-cBasicTextureManager* g_pTextureManager = NULL;
-
-cVAOManager* pVAOManager;
 GraphicScene g_GraphicScene;
 ParticleSystem g_ParticleSystem;
 cLuaBrain* pBrain;
-cShaderManager* pTheShaderManager;
 
 cRandomUI gameUi;
 SimulationView* simView = new SimulationView();
@@ -88,15 +68,6 @@ std::string errorMessage;
 // Call back signatures here
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
 
-void DrawObject(cMeshObject* pCurrentMeshObject,
-    glm::mat4x4 mat_PARENT_Model,               // The "parent's" model matrix
-    GLuint shaderID,                            // ID for the current shader
-    cBasicTextureManager* pTextureManager,
-    cVAOManager* pVAOManager,
-    GLint mModel_location,                      // Uniform location of mModel matrix
-    GLint mModelInverseTransform_location);      // Uniform location of mView location
-
-
 static void error_callback(int error, const char* description) {
     fprintf(stderr, "Error: %s\n", description);
 }
@@ -109,66 +80,6 @@ float RandomFloat(float a, float b) {
     return a + r;
 }
 
-// ------------------------ Load Model into VAO ------------------------
-bool LoadModelTypesIntoVAO(std::string fileTypesToLoadName,
-    cVAOManager* pVAOManager,
-    GLuint shaderID)
-{
-    std::ifstream modelTypeFile(fileTypesToLoadName.c_str());
-    if (!modelTypeFile.is_open()) {
-        // Can't find that file
-        return false;
-    }
-
-    // At this point, the file is open and ready for reading
-    std::string PLYFileNameToLoad;      // example = "assets/models/MOTO/Blender (load from OBJ export) - only Moto_xyz_n_rgba_uv.ply";
-    std::string friendlyName;           // example = "MOTO";
-
-    bool bKeepReadingFile = true;
-
-    const unsigned int BUFFER_SIZE = 1000;  // 1000 characters
-    char textBuffer[BUFFER_SIZE];           // Allocate AND clear (that's the {0} part)
-    // Clear that array to all zeros
-    memset(textBuffer, 0, BUFFER_SIZE);
-
-    while (bKeepReadingFile) {
-        // Reads the entire line into the buffer (including any white space)
-        modelTypeFile.getline(textBuffer, BUFFER_SIZE);
-
-        PLYFileNameToLoad.clear();  // Erase whatever is already there (from before)
-        PLYFileNameToLoad.append(textBuffer);
-
-        // Is this the end of the file (have I read "EOF" yet?)?
-        if (PLYFileNameToLoad == "EOF") {
-            bKeepReadingFile = false;
-            continue;
-        }
-
-        // Load the "friendly name" line also
-        memset(textBuffer, 0, BUFFER_SIZE);
-        modelTypeFile.getline(textBuffer, BUFFER_SIZE);
-        friendlyName.clear();
-        friendlyName.append(textBuffer);
-
-        sModelDrawInfo drawInfo;
-        c3DModelFileLoader fileLoader;
-
-        std::string errorText = "";
-        if (fileLoader.LoadPLYFile_Format_XYZ_N_RGBA_UV(PLYFileNameToLoad, drawInfo, errorText)) {
-            std::cout << "Loaded the file OK" << std::endl;
-        }
-        else {
-            std::cout << errorText;
-        }
-
-        if (pVAOManager->LoadModelIntoVAO(friendlyName, drawInfo, shaderID)) {
-            std::cout << "Loaded the " << friendlyName << " model" << std::endl;
-        }
-    }
-
-    return true;
-}
-// ------------------------ Load Model into VAO ------------------------
 
 bool SaveTheVAOModelTypesToFile(std::string fileTypesToLoadName,
     cVAOManager* pVAOManager);
@@ -193,7 +104,8 @@ void lightning(GLuint shaderID) {
 // Function called inside creatingModels for the wall object creation
 void createWall(unsigned int line, unsigned int column, float x, float z, bool horizontal, std::string orientation) {
     sModelDrawInfo drawingInformation;
-    pVAOManager->FindDrawInfoByModelName("Wall", drawingInformation);
+    //pVAOManager->FindDrawInfoByModelName("Wall", drawingInformation);
+    drawingInformation = g_GraphicScene.returnDrawInformation("Wall");
     g_GraphicScene.CreateGameObjectByType("Wall", glm::vec3(x, 0.0f, z), drawingInformation);
     cMeshObject* wall;
     wall = g_GraphicScene.GetObjectByName("Wall", false);
@@ -209,7 +121,8 @@ void createWall(unsigned int line, unsigned int column, float x, float z, bool h
 // Function called inside creatingModels for the Torch object creation
 void createTorch(unsigned int line, unsigned int column, glm::vec3 pos, glm::vec3 rotation, std::string orientation) {
     sModelDrawInfo drawingInformation;
-    pVAOManager->FindDrawInfoByModelName("Torch", drawingInformation);
+    //pVAOManager->FindDrawInfoByModelName("Torch", drawingInformation);
+    drawingInformation = g_GraphicScene.returnDrawInformation("Torch");
     g_GraphicScene.CreateGameObjectByType("Torch", pos, drawingInformation);
     cMeshObject* torch;
     torch = g_GraphicScene.GetObjectByName("Torch", false);
@@ -237,7 +150,8 @@ void createTorch(unsigned int line, unsigned int column, glm::vec3 pos, glm::vec
 // Function called inside creatingModels for the Dead Body object creation
 void createDeadbody(unsigned int line, unsigned int column, glm::vec3 pos, glm::vec3 rotation, std::string orientation) {
     sModelDrawInfo drawingInformation;
-    pVAOManager->FindDrawInfoByModelName("Deadbody", drawingInformation);
+    //pVAOManager->FindDrawInfoByModelName("Deadbody", drawingInformation);
+    drawingInformation = g_GraphicScene.returnDrawInformation("Deadbody");
     g_GraphicScene.CreateGameObjectByType("Deadbody", pos, drawingInformation);
     cMeshObject* deadbody;
     deadbody = g_GraphicScene.GetObjectByName("Deadbody", false);
@@ -261,7 +175,8 @@ void createDeadbody(unsigned int line, unsigned int column, glm::vec3 pos, glm::
         Example: If the north tile is empty (.), creates a wall object in the north direction of the tile with the right rotation. */
 void creatingModels() {
     sModelDrawInfo drawingInformation; 
-    pVAOManager->FindDrawInfoByModelName("Moon", drawingInformation);
+    //pVAOManager->FindDrawInfoByModelName("Moon", drawingInformation);
+    drawingInformation = g_GraphicScene.returnDrawInformation("Moon");
     g_GraphicScene.CreateGameObjectByType("Moon", glm::vec3(0.0f, 100.0f, 0.0f), drawingInformation);
     cMeshObject* moon;
     moon = g_GraphicScene.GetObjectByName("Moon", false);
@@ -287,7 +202,8 @@ void creatingModels() {
                     
                     float x = (j * GLOBAL_MAP_OFFSET);
                     float z = (i * GLOBAL_MAP_OFFSET);
-                    pVAOManager->FindDrawInfoByModelName("Floor", drawingInformation);
+                    //pVAOManager->FindDrawInfoByModelName("Floor", drawingInformation);
+                    drawingInformation = g_GraphicScene.returnDrawInformation("Floor");
                     g_GraphicScene.CreateGameObjectByType("Floor", glm::vec3(x, 0.0f, z), drawingInformation);
                     cMeshObject* currentObject;
                     currentObject = g_GraphicScene.GetObjectByName("Floor", false);
@@ -333,7 +249,8 @@ void creatingModels() {
 
                         bool validTorch = false;
                         GLuint shaderID = 0;
-                        shaderID = pTheShaderManager->getIDFromFriendlyName("Shader_1");
+                        //shaderID = pTheShaderManager->getIDFromFriendlyName("Shader_1");
+                        shaderID = g_GraphicScene.returnShaderID("Shader_1");
                         do {
                             unsigned int randTorch = rand() % 4;
                             switch (randTorch) {
@@ -414,7 +331,8 @@ void creatingModels() {
 
                         bool validDeadbody = false;
                         GLuint shaderID = 0;
-                        shaderID = pTheShaderManager->getIDFromFriendlyName("Shader_1");
+                        //shaderID = pTheShaderManager->getIDFromFriendlyName("Shader_1");
+                        shaderID = g_GraphicScene.returnShaderID("Shader_1");
                         do {
                             unsigned int randTorch = rand() % 4;
                             switch (randTorch) {
@@ -454,7 +372,8 @@ void creatingModels() {
 
                     // Creating Crystals Clusters (center of tile)
                     if (currentString == "C") {
-                        pVAOManager->FindDrawInfoByModelName("Crystal_Cluster1", drawingInformation);
+                        //pVAOManager->FindDrawInfoByModelName("Crystal_Cluster1", drawingInformation);
+                        drawingInformation = g_GraphicScene.returnDrawInformation("Crystal_Cluster1");
                         g_GraphicScene.CreateGameObjectByType("Crystal_Cluster1", glm::vec3(x - (GLOBAL_MAP_OFFSET / 2), 10.0f, z - (GLOBAL_MAP_OFFSET / 2)), drawingInformation);
                         cMeshObject* crystalC;
                         crystalC = g_GraphicScene.GetObjectByName("Crystal_Cluster1", false);
@@ -469,7 +388,8 @@ void creatingModels() {
 
                     // Creating Crystals Clusters (center of tile)
                     if (currentString == "c") {
-                        pVAOManager->FindDrawInfoByModelName("Crystal_Cluster2", drawingInformation);
+                        //pVAOManager->FindDrawInfoByModelName("Crystal_Cluster2", drawingInformation);
+                        drawingInformation = g_GraphicScene.returnDrawInformation("Crystal_Cluster2");
                         g_GraphicScene.CreateGameObjectByType("Crystal_Cluster2", glm::vec3(x - (GLOBAL_MAP_OFFSET / 2), 10.0f, z - (GLOBAL_MAP_OFFSET / 2)), drawingInformation);
                         cMeshObject* crystalC;
                         crystalC = g_GraphicScene.GetObjectByName("Crystal_Cluster2", false);
@@ -484,7 +404,8 @@ void creatingModels() {
 
                     // Creating Crystals Clusters (center of tile)
                     if (currentString == "Y") {
-                        pVAOManager->FindDrawInfoByModelName("Crystal_Cluster3", drawingInformation);
+                        //pVAOManager->FindDrawInfoByModelName("Crystal_Cluster3", drawingInformation);
+                        drawingInformation = g_GraphicScene.returnDrawInformation("Crystal_Cluster3");
                         g_GraphicScene.CreateGameObjectByType("Crystal_Cluster3", glm::vec3(x - (GLOBAL_MAP_OFFSET / 2), 10.0f, z - (GLOBAL_MAP_OFFSET / 2)), drawingInformation);
                         cMeshObject* crystalC;
                         crystalC = g_GraphicScene.GetObjectByName("Crystal_Cluster3", false);
@@ -505,7 +426,8 @@ void creatingModels() {
                             std::cout << "Error loading playable character: " << errorMessage << std::endl;
                         }
 
-                        pVAOManager->FindDrawInfoByModelName(playabledCharacter.mFriendlyName, drawingInformation);
+                        //pVAOManager->FindDrawInfoByModelName(playabledCharacter.mFriendlyName, drawingInformation);
+                        drawingInformation = g_GraphicScene.returnDrawInformation(playabledCharacter.mFriendlyName);
                         glm::vec3 mainCharacterPosition(playabledCharacter.mPosition[0], playabledCharacter.mPosition[1], playabledCharacter.mPosition[2]);
                         g_GraphicScene.CreateGameObjectByType(playabledCharacter.mFriendlyName, mainCharacterPosition, drawingInformation);
                         
@@ -518,7 +440,8 @@ void creatingModels() {
 
                     // Creating the mighty BEHOLDER!
                     if (currentString == "b") {
-                        pVAOManager->FindDrawInfoByModelName("Beholder", drawingInformation);
+                        //pVAOManager->FindDrawInfoByModelName("Beholder", drawingInformation);
+                        drawingInformation = g_GraphicScene.returnDrawInformation("Beholder");
                         g_GraphicScene.CreateGameObjectByType("Beholder", glm::vec3(x - (GLOBAL_MAP_OFFSET / 2), 25.0f, z - (GLOBAL_MAP_OFFSET / 2)), drawingInformation);
                         cMeshObject* beholder;
                         beholder = g_GraphicScene.GetObjectByName("Beholder", false);
@@ -717,7 +640,8 @@ void debugLightSpheres() {
 void calculateTrianglesCenter(cMeshObject* obj) {
     g_GraphicScene.trianglesCenter.reserve(obj->numberOfTriangles);
     sModelDrawInfo drawingInformation;
-    pVAOManager->FindDrawInfoByModelName(obj->meshName, drawingInformation);
+    //pVAOManager->FindDrawInfoByModelName(obj->meshName, drawingInformation);
+    drawingInformation = g_GraphicScene.returnDrawInformation(obj->meshName);
 
     for (int i = 0; i < obj->numberOfTriangles; i++) {        
         glm::vec3 triangleCenter1;
@@ -856,8 +780,7 @@ bool calculateNextPosition(cMeshObject* currentBehold, glm::vec3& nextPosition) 
 int main(int argc, char* argv[]) {
     std::cout << "starting up..." << std::endl;
 
-    GLuint vertex_buffer = 0;
-    GLuint shaderID = 0;
+    // ---------------------------- Creating the Maze -----------------------------
     GLint vpos_location = 0;
     GLint vcol_location = 0;
 
@@ -896,6 +819,10 @@ int main(int argc, char* argv[]) {
     g_GraphicScene.map_beholds = new std::map<std::string, cMeshObject*>();
 
     m_blocksLoader = new BlocksLoader(MAP_HEIGHT, MAP_WIDTH);
+    // ---------------------------- Creating the Maze -----------------------------
+
+    g_cameraTarget = glm::vec3(1000.f, 0.0, 1000.f);
+    g_cameraEye = glm::vec3(1000.f, 2000.f, 1010.f);
 
     // ------------------ FMOD INITIALIZATION ------------------------------------
     {
@@ -961,105 +888,18 @@ int main(int argc, char* argv[]) {
     gameUi.fmod_manager_ = fmod_manager;
     gameUi.iniciatingUI();
 
-    pTheShaderManager = new cShaderManager();
-
-    cShaderManager::cShader vertexShader01;
-    cShaderManager::cShader fragmentShader01;
-
-    vertexShader01.fileName = "assets/shaders/vertexShader01.glsl";
-    fragmentShader01.fileName = "assets/shaders/fragmentShader01.glsl";
-
-    if (!pTheShaderManager->createProgramFromFile("Shader_1", vertexShader01, fragmentShader01)) {
-        std::cout << "Didn't compile shaders" << std::endl;
-        std::string theLastError = pTheShaderManager->getLastError();
-        std::cout << "Because: " << theLastError << std::endl;
-        return -1;
-    }
-    else {
-        std::cout << "Compiled shader OK." << std::endl;
-    }
-
-    pTheShaderManager->useShaderProgram("Shader_1");
-    shaderID = pTheShaderManager->getIDFromFriendlyName("Shader_1");
-    glUseProgram(shaderID);
+    g_GraphicScene.PrepareScene();
 
     // Setting the lights
-    lightning(shaderID);
-
-    pVAOManager = new cVAOManager();
-    if (!LoadModelTypesIntoVAO("assets/PLYFilesToLoadIntoVAO.txt", pVAOManager, shaderID)) {
-        std::cout << "Error: Unable to load list of models to load into VAO file" << std::endl;
-        // Do we exit here? 
-        // TO-DO
-    }
+    lightning(g_GraphicScene.shaderID);
 
     creatingModels();
     itBeholdsToFollow = g_GraphicScene.map_beholds->begin();
 
     debugLightSpheres();
 
-    GLint mvp_location = glGetUniformLocation(shaderID, "MVP"); 
-    GLint mModel_location = glGetUniformLocation(shaderID, "mModel");
-    GLint mView_location = glGetUniformLocation(shaderID, "mView");
-    GLint mProjection_location = glGetUniformLocation(shaderID, "mProjection");
-    // Need this for lighting
-    GLint mModelInverseTransform_location = glGetUniformLocation(shaderID, "mModelInverseTranspose");
-
-    cMeshObject* pSkyBox = new cMeshObject();
-    pSkyBox->meshName = "Skybox_Sphere";
-    pSkyBox->friendlyName = "skybox";
-
     // ---------------- LOADING TEXTURES ----------------------------------------------
-    ::g_pTextureManager = new cBasicTextureManager();
-    ::g_pTextureManager->SetBasePath("assets/textures");
-
-    if (!::g_pTextureManager->Create2DTextureFromBMPFile("Dungeons_2_Texture_01_A.bmp")) {
-        std::cout << "Didn't load texture" << std::endl;
-    }
-    else {
-        std::cout << "texture loaded" << std::endl;
-    }
-
-    if (!::g_pTextureManager->Create2DTextureFromBMPFile("lroc_color_poles_4k.bmp")) {
-        std::cout << "Didn't load texture" << std::endl;
-    }
-    else {
-        std::cout << "texture loaded" << std::endl;
-    }
-
-    if (!::g_pTextureManager->Create2DTextureFromBMPFile("fire-torch-texture.bmp")) {
-        std::cout << "Didn't load texture" << std::endl;
-    }
-    else {
-        std::cout << "texture loaded" << std::endl;
-    }
-
-    if (!::g_pTextureManager->Create2DTextureFromBMPFile("Beholder_Base_color.bmp")) {
-        std::cout << "Didn't load texture" << std::endl;
-    }
-    else {
-        std::cout << "texture loaded" << std::endl;
-    }
-
-    // Load a skybox
-    // Here's an example of the various sides: http://www.3dcpptutorials.sk/obrazky/cube_map.jpg
-    std::string errorString = "";
-    if (::g_pTextureManager->CreateCubeTextureFromBMPFiles("SpaceBox",
-        "SpaceBox_right1_posX.bmp", /* positive X */
-        "SpaceBox_left2_negX_1.bmp",  /* negative X */
-        "SpaceBox_top3_posY.bmp",    /* positive Y */
-        "SpaceBox_bottom4_negY.bmp",  /* negative Y */
-        "SpaceBox_front5_posZ_1.bmp",  /* positive Z */
-        "SpaceBox_back6_negZ.bmp", /* negative Z */
-        true, errorString)) {
-        std::cout << "Loaded the tropical sunny day cube map OK" << std::endl;
-    }
-    else {
-        std::cout << "ERROR: Didn't load the tropical sunny day cube map. How sad." << std::endl;
-        std::cout << "(because: " << errorString << std::endl;
-    }
-    
-    // ---------------- LOADING TEXTURES ----------------------------------------------
+    g_GraphicScene.LoadTextures();
 
     // ---------------- LUA  ----------------------------------------------
     std::string moveScriptTowardsDestinationFUNCTION =
@@ -1124,104 +964,11 @@ int main(int argc, char* argv[]) {
 
     // ---------------- GAME LOOP START -----------------------------------------------
     while (!glfwWindowShouldClose(window)) {
-        ::g_pTheLightManager->CopyLightInformationToShader(shaderID);
+        ::g_pTheLightManager->CopyLightInformationToShader(g_GraphicScene.shaderID);
 
         DrawConcentricDebugLightObjects(gameUi.listbox_lights_current);
-
-        float ratio;
-        int width, height;
-
-        glm::mat4x4 matProjection;
-        glm::mat4x4 matView;
-
-        glfwGetFramebufferSize(window, &width, &height);
-        ratio = width / (float)height;
-
-        glViewport(0, 0, width, height);
-
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-        glm::vec3 upVector = glm::vec3(0.0f, 1.0f, 0.0f);
-
-        matView = glm::lookAt(::g_cameraEye,
-            ::g_cameraTarget,
-            upVector);
-
-        // Pass eye location to the shader
-        GLint eyeLocation_UniLoc = glGetUniformLocation(shaderID, "eyeLocation");
-
-        glUniform4f(eyeLocation_UniLoc,
-            ::g_cameraEye.x, ::g_cameraEye.y, ::g_cameraEye.z, 1.0f);
-
-        matProjection = glm::perspective(
-            0.6f,           // Field of view (in degress, more or less 180)
-            ratio,
-            0.1f,           // Near plane (make this as LARGE as possible)
-            10000.0f);      // Far plane (make this as SMALL as possible)
-                            // 6-8 digits of precision
-
-        glUniformMatrix4fv(mView_location, 1, GL_FALSE, glm::value_ptr(matView));
-        glUniformMatrix4fv(mProjection_location, 1, GL_FALSE, glm::value_ptr(matProjection));
-
-        // Making the fire impostor "move"
-        for (int i = 0; i < g_GraphicScene.vec_torchFlames.size(); i++) {
-            cMeshObject* torchFire = g_GraphicScene.vec_torchFlames[i];
-            if (torchFire) {
-                torchFire->scaleXYZ.y += RandomFloat(-0.1f, 0.1f);
-            }
-        }
-
-        //    ____  _             _            __                           
-        //   / ___|| |_ __ _ _ __| |_    ___  / _|  ___  ___ ___ _ __   ___ 
-        //   \___ \| __/ _` | '__| __|  / _ \| |_  / __|/ __/ _ \ '_ \ / _ \
-        //    ___) | || (_| | |  | |_  | (_) |  _| \__ \ (_|  __/ | | |  __/
-        //   |____/ \__\__,_|_|   \__|  \___/|_|   |___/\___\___|_| |_|\___|
-        //                                                                  
-        // We draw everything in our "scene"
-        // In other words, go throug the vec_pMeshObjects container
-        //  and draw each one of the objects 
-        for (std::vector< cMeshObject* >::iterator itCurrentMesh = g_GraphicScene.vec_pMeshObjects.begin();
-            itCurrentMesh != g_GraphicScene.vec_pMeshObjects.end();
-            itCurrentMesh++)
-        {
-            cMeshObject* pCurrentMeshObject = *itCurrentMesh;
-
-            if (!pCurrentMeshObject->bIsVisible)
-                continue;
-
-            // The parent's model matrix is set to the identity
-            glm::mat4x4 matModel = glm::mat4x4(1.0f);
-
-            DrawObject(pCurrentMeshObject,
-                matModel,
-                shaderID, ::g_pTextureManager,
-                pVAOManager, mModel_location, mModelInverseTransform_location);
-        }
-
-        // --------------- Draw the skybox -----------------------------
-        {
-            GLint bIsSkyboxObject_UL = glGetUniformLocation(shaderID, "bIsSkyboxObject");
-            glUniform1f(bIsSkyboxObject_UL, (GLfloat)GL_TRUE);
-
-            glm::mat4x4 matModel = glm::mat4x4(1.0f);
-
-            pSkyBox->position = ::g_cameraEye;
-            pSkyBox->SetUniformScale(7500.0f);
-
-            DrawObject(pSkyBox,
-                matModel,
-                shaderID, ::g_pTextureManager,
-                pVAOManager, mModel_location, mModelInverseTransform_location);
-
-            glUniform1f(bIsSkyboxObject_UL, (GLfloat)GL_FALSE);
-        }
-        // --------------- Draw the skybox -----------------------------
-        
-        //    _____           _          __                           
-        //   | ____|_ __   __| |   ___  / _|  ___  ___ ___ _ __   ___ 
-        //   |  _| | '_ \ / _` |  / _ \| |_  / __|/ __/ _ \ '_ \ / _ \
-        //   | |___| | | | (_| | | (_) |  _| \__ \ (_|  __/ | | |  __/
-        //   |_____|_| |_|\__,_|  \___/|_|   |___/\___\___|_| |_|\___|
+       
+        g_GraphicScene.DrawScene(window, ::g_cameraEye, ::g_cameraTarget);
 
         glfwPollEvents();
 
@@ -1422,15 +1169,15 @@ int main(int argc, char* argv[]) {
             }
         }
         else {
-            g_cameraTarget = glm::vec3(500.f, 0.0, 500.f);
-            g_cameraEye = glm::vec3(500.f, 2000.f, 510.f);
+            //g_cameraTarget = glm::vec3(500.f, 0.0, 500.f);
+            //g_cameraEye = glm::vec3(500.f, 2000.f, 510.f);
         }
 
         glfwSetWindowTitle(window, ssTitle.str().c_str());
     }
 
     // Get rid of stuff
-    delete pTheShaderManager;
+    g_GraphicScene.Shutdown();
     delete ::g_pTheLightManager;
     delete entityLoaderManager;
 
