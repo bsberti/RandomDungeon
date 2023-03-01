@@ -95,6 +95,7 @@ public:
 	// Physics Collision properties
 	unsigned int numberOfTriangles;
 	std::vector<glm::vec3> meshTriangles;
+	std::vector<glm::vec3> meshVertices;
 	std::vector<glm::vec3> trianglesCenter;
 
 	// Music properties

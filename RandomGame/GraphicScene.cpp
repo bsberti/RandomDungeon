@@ -1,5 +1,6 @@
 #include "GraphicScene.h"
-#include <iostream>
+
+#include <glm/gtx/intersect.hpp>
 
 GraphicScene::GraphicScene() {
 	cameraFollowing = false;
@@ -20,8 +21,6 @@ void DrawObject(cMeshObject* pCurrentMeshObject,
     cVAOManager* pVAOManager,
     GLint mModel_location,                      // Uniform location of mModel matrix
     GLint mModelInverseTransform_location);      // Uniform location of mView location
-
-
 
 // From here: https://stackoverflow.com/questions/5289613/generate-random-float-between-two-floats/5289624
 float RandomFloatGraphic(float a, float b) {
@@ -92,7 +91,6 @@ bool LoadModelTypesIntoVAO(std::string fileTypesToLoadName,
 }
 // ------------------------ Load Model into VAO ------------------------
 
-
 void GraphicScene::PositioningMe(cMeshObject* pMeWhoIsAsking) {
 	cMeshObject* currObj = pMeWhoIsAsking;
 
@@ -154,7 +152,66 @@ int GraphicScene::PrepareScene() {
     pSkyBox->friendlyName = "skybox";
 }
 
+bool IntersectPlanes(const glm::vec4& plane1, const glm::vec4& plane2, const glm::vec4& plane3, glm::vec3& point) {
+    // Calculate the cross product of the first two planes' normals
+    glm::vec3 n1(plane1);
+    glm::vec3 n2(plane2);
+    glm::vec3 n3(plane3);
+    glm::vec3 n1xn2 = glm::cross(n1, n2);
+
+    // Calculate the determinant of the matrix formed by the three plane normals
+    float det = glm::dot(n1xn2, n3);
+
+    // If the determinant is zero, the planes are parallel and do not intersect
+    if (det == 0.0f) {
+        return false;
+    }
+
+    // Calculate the point where the three planes intersect
+    glm::vec3 p1(plane1.w * n2.y * n3.z + n1.y * plane2.w * n3.z + n1.z * n2.y * plane3.w - n1.z * plane2.w * n3.y - n1.y * n2.z * plane3.w + plane1.w * n2.z * n3.y,
+        n1.x * plane2.w * n3.z + plane1.w * n2.x * n3.z + n1.z * n2.x * plane3.w - n1.z * plane2.w * n3.x - plane1.w * n2.z * n3.x + n1.x * n2.z * plane3.w,
+        n1.x * n2.y * plane3.w + n1.y * n2.x * plane3.w + plane1.w * n2.x * n3.y - n1.x * plane2.w * n3.y - n1.y * plane2.w * n3.x - plane1.w * n2.y * n3.x);
+    point = p1 / det;
+
+    return true;
+}
+
+void GraphicScene::CalculateSceneExtension(glm::vec3 g_cameraEye, glm::vec3 g_cameraTarget) {
+    // Calculate frustum planes
+    frustumMatrix = matProjection * matView;
+    glm::vec4 leftPlane = frustumMatrix[3] + frustumMatrix[0];
+    glm::vec4 rightPlane = frustumMatrix[3] - frustumMatrix[0];
+    glm::vec4 bottomPlane = frustumMatrix[3] + frustumMatrix[1];
+    glm::vec4 topPlane = frustumMatrix[3] - frustumMatrix[1];
+    glm::vec4 nearPlane = frustumMatrix[3] + frustumMatrix[2];
+    glm::vec4 farPlane = frustumMatrix[3] - frustumMatrix[2];
+
+    // Calculate frustum vertices
+    std::vector<glm::vec3> frustumVertices(8);
+    IntersectPlanes(leftPlane, bottomPlane, nearPlane, frustumVertices[0]);
+    IntersectPlanes(leftPlane, topPlane, nearPlane, frustumVertices[1]);
+    IntersectPlanes(rightPlane, topPlane, nearPlane, frustumVertices[2]);
+    IntersectPlanes(rightPlane, bottomPlane, nearPlane, frustumVertices[3]);
+    IntersectPlanes(leftPlane, bottomPlane, farPlane, frustumVertices[4]);
+    IntersectPlanes(leftPlane, topPlane, farPlane, frustumVertices[5]);
+    IntersectPlanes(rightPlane, topPlane, farPlane, frustumVertices[6]);
+    IntersectPlanes(rightPlane, bottomPlane, farPlane, frustumVertices[7]);
+
+    // Calculate scene extension
+    minExt = frustumVertices[0];
+    maxExt = frustumVertices[0];
+    for (int i = 1; i < 8; i++) {
+        glm::vec3 vertex = frustumVertices[i];
+        minExt = glm::min(minExt, vertex);
+        maxExt = glm::max(maxExt, vertex);
+    }
+}
+
 void GraphicScene::DrawScene(GLFWwindow* window, glm::vec3 g_cameraEye, glm::vec3 g_cameraTarget) {
+    
+    vec_pMeshCurrentScene.clear();
+    vec_pMeshSurroundingScene.clear();
+
     // Making the fire impostor "move"
     for (int i = 0; i < vec_torchFlames.size(); i++) {
         cMeshObject* torchFire = vec_torchFlames[i];
@@ -163,28 +220,18 @@ void GraphicScene::DrawScene(GLFWwindow* window, glm::vec3 g_cameraEye, glm::vec
         }
     }
 
-    float ratio;
-    int width, height;
-
-    glm::mat4x4 matProjection;
-    glm::mat4x4 matView;
-
     glfwGetFramebufferSize(window, &width, &height);
     ratio = width / (float)height;
-
     glViewport(0, 0, width, height);
-
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     glm::vec3 upVector = glm::vec3(0.0f, 1.0f, 0.0f);
-
     matView = glm::lookAt(g_cameraEye,
         g_cameraTarget,
         upVector);
 
     // Pass eye location to the shader
     GLint eyeLocation_UniLoc = glGetUniformLocation(shaderID, "eyeLocation");
-
     glUniform4f(eyeLocation_UniLoc,
         g_cameraEye.x, g_cameraEye.y, g_cameraEye.z, 1.0f);
 
@@ -198,6 +245,22 @@ void GraphicScene::DrawScene(GLFWwindow* window, glm::vec3 g_cameraEye, glm::vec
     glUniformMatrix4fv(mView_location, 1, GL_FALSE, glm::value_ptr(matView));
     glUniformMatrix4fv(mProjection_location, 1, GL_FALSE, glm::value_ptr(matProjection));
 
+    CalculateSceneExtension(g_cameraEye, g_cameraTarget);
+
+    float invWidth = 1.f / width;
+    float invHeight = 1.f / height;
+
+    for (std::vector< cMeshObject* >::iterator itCurrentMesh = vec_pMeshObjects.begin();
+        itCurrentMesh != vec_pMeshObjects.end();
+        itCurrentMesh++)
+    {
+        cMeshObject* pCurrentMeshObject = *itCurrentMesh;
+        bool intersects = SATIntersectionTest(pCurrentMeshObject, frustumMatrix);
+        if (intersects) {
+            vec_pMeshCurrentScene.push_back(pCurrentMeshObject);
+        }
+    }
+
     //    ____  _             _            __                           
     //   / ___|| |_ __ _ _ __| |_    ___  / _|  ___  ___ ___ _ __   ___ 
     //   \___ \| __/ _` | '__| __|  / _ \| |_  / __|/ __/ _ \ '_ \ / _ \
@@ -207,8 +270,8 @@ void GraphicScene::DrawScene(GLFWwindow* window, glm::vec3 g_cameraEye, glm::vec
     // We draw everything in our "scene"
     // In other words, go throug the vec_pMeshObjects container
     //  and draw each one of the objects 
-    for (std::vector< cMeshObject* >::iterator itCurrentMesh = vec_pMeshObjects.begin();
-        itCurrentMesh != vec_pMeshObjects.end();
+    for (std::vector< cMeshObject* >::iterator itCurrentMesh = vec_pMeshCurrentScene.begin();
+        itCurrentMesh != vec_pMeshCurrentScene.end();
         itCurrentMesh++)
     {
         cMeshObject* pCurrentMeshObject = *itCurrentMesh;
@@ -250,6 +313,63 @@ void GraphicScene::DrawScene(GLFWwindow* window, glm::vec3 g_cameraEye, glm::vec
     //   | |___| | | | (_| | | (_) |  _| \__ \ (_|  __/ | | |  __/
     //   |_____|_| |_|\__,_|  \___/|_|   |___/\___\___|_| |_|\___|
 
+}
+
+bool GraphicScene::SATIntersectionTest(cMeshObject* mesh, glm::mat4 frustum) {
+    // Extract the six planes of the frustum
+    std::vector<glm::vec4> frustumPlanes;
+    ExtractFrustumPlanes(frustum, frustumPlanes);
+
+    // Iterate over all potential separating axes
+    for (const glm::vec4& plane : frustumPlanes) {
+        // Extract the normal of the plane and normalize it
+        glm::vec3 planeNormal(plane.x, plane.y, plane.z);
+        planeNormal = glm::normalize(planeNormal);
+
+        // Project all vertices of the mesh onto the axis defined by the plane normal
+        float min = INFINITY, max = -INFINITY;
+        ProjectVerticesOntoAxis(mesh->meshVertices, planeNormal, min, max);
+
+        // Check for overlap between the projections
+        if (max < -plane.w || min > plane.w) {
+            // The projections do not overlap, so the mesh is not visible in the frustum
+            return false;
+        }
+    }
+
+    // If we get here, then no separating axis was found, so the mesh is visible in the frustum
+    return true;
+}
+
+void GraphicScene::ExtractFrustumPlanes(const glm::mat4& frustumMatrix,
+    std::vector<glm::vec4>& frustumPlanes) {
+    // Extract the six planes of a frustum matrix
+    frustumPlanes.resize(6);
+    frustumPlanes[0] = GetRow(frustumMatrix, 3) + GetRow(frustumMatrix, 0);  // Left plane
+    frustumPlanes[1] = GetRow(frustumMatrix, 3) - GetRow(frustumMatrix, 0);  // Right plane
+    frustumPlanes[2] = GetRow(frustumMatrix, 3) + GetRow(frustumMatrix, 1);  // Bottom plane
+    frustumPlanes[3] = GetRow(frustumMatrix, 3) - GetRow(frustumMatrix, 1);  // Top plane
+    frustumPlanes[4] = GetRow(frustumMatrix, 3) + GetRow(frustumMatrix, 2);  // Near plane
+    frustumPlanes[5] = GetRow(frustumMatrix, 3) - GetRow(frustumMatrix, 2);  // Far plane
+    for (glm::vec4& plane : frustumPlanes) {
+        plane /= glm::length(glm::vec3(plane));
+    }
+}
+
+glm::vec4 GraphicScene::GetRow(const glm::mat4& matrix, int row) {
+    return glm::vec4(matrix[row][0], matrix[row][1], matrix[row][2], matrix[row][3]);
+}
+
+void GraphicScene::ProjectVerticesOntoAxis(const std::vector<glm::vec3>& vertices,
+    const glm::vec3& axis, float& min, float& max) {
+    // Project a set of vertices onto an axis and find their min/max projections
+    min = INFINITY;
+    max = -INFINITY;
+    for (const glm::vec3& vertex : vertices) {
+        float projection = glm::dot(vertex, axis);
+        min = std::min(min, projection);
+        max = std::max(max, projection);
+    }
 }
 
 void GraphicScene::LoadTextures() {
@@ -334,6 +454,11 @@ void GraphicScene::CreateGameObjectByType(const std::string& type, glm::vec3 pos
 	go->soundPlayed = false;
 	go->numberOfTriangles = drawInfo.numberOfTriangles;
 	go->meshTriangles = drawInfo.modelTriangles;
+
+    for (unsigned int index = 0; index != drawInfo.numberOfVertices; index++) {
+        glm::vec3 newVertice = glm::vec3(drawInfo.pVertices[index].x, drawInfo.pVertices[index].y, drawInfo.pVertices[index].z);
+        go->meshVertices.push_back(newVertice);
+    }
 
 	vec_pMeshObjects.push_back(go);
 }
