@@ -177,6 +177,18 @@ bool IntersectPlanes(const glm::vec4& plane1, const glm::vec4& plane2, const glm
 }
 
 void GraphicScene::CalculateSceneExtension(glm::vec3 g_cameraEye, glm::vec3 g_cameraTarget) {
+    // Set up projection matrix
+    //glMatrixMode(GL_PROJECTION);
+    //glLoadIdentity();
+    //gluPerspective(fov, ratio, nearPlane, farPlane);
+    //glGetFloatv(GL_PROJECTION_MATRIX, &matProjection[0][0]);
+
+    // Set up view matrix
+    //glMatrixMode(GL_MODELVIEW);
+    //glLoadIdentity();
+    //gluLookAt(eyeX, eyeY, eyeZ, targetX, targetY, targetZ, upX, upY, upZ);
+    //glGetFloatv(GL_MODELVIEW_MATRIX, &matView[0][0]);
+    
     // Calculate frustum planes
     frustumMatrix = matProjection * matView;
     glm::vec4 leftPlane = frustumMatrix[3] + frustumMatrix[0];
@@ -261,6 +273,9 @@ void GraphicScene::DrawScene(GLFWwindow* window, glm::vec3 g_cameraEye, glm::vec
         }
     }
 
+    std::cout << "vec_pMeshObjects SIZE         >>>        " << vec_pMeshObjects.size() << std::endl;
+    std::cout << "vec_pMeshCurrentScene SIZE    >>>        " << vec_pMeshCurrentScene.size() << std::endl;
+     
     //    ____  _             _            __                           
     //   / ___|| |_ __ _ _ __| |_    ___  / _|  ___  ___ ___ _ __   ___ 
     //   \___ \| __/ _` | '__| __|  / _ \| |_  / __|/ __/ _ \ '_ \ / _ \
@@ -327,8 +342,12 @@ bool GraphicScene::SATIntersectionTest(cMeshObject* mesh, glm::mat4 frustum) {
         planeNormal = glm::normalize(planeNormal);
 
         // Project all vertices of the mesh onto the axis defined by the plane normal
-        float min = INFINITY, max = -INFINITY;
-        ProjectVerticesOntoAxis(mesh->meshVertices, planeNormal, min, max);
+        //float min = INFINITY, max = -INFINITY;
+        //ProjectVerticesOntoAxis(mesh->meshVertices, planeNormal, min, max);
+
+        float projection = glm::dot(mesh->position, planeNormal);
+        float min = std::min(min, projection);
+        float max = std::max(max, projection);
 
         // Check for overlap between the projections
         if (max < -plane.w || min > plane.w) {
@@ -456,7 +475,10 @@ void GraphicScene::CreateGameObjectByType(const std::string& type, glm::vec3 pos
 	go->meshTriangles = drawInfo.modelTriangles;
 
     for (unsigned int index = 0; index != drawInfo.numberOfVertices; index++) {
-        glm::vec3 newVertice = glm::vec3(drawInfo.pVertices[index].x, drawInfo.pVertices[index].y, drawInfo.pVertices[index].z);
+        glm::vec3 newVertice = glm::vec3(
+            drawInfo.pVertices[index].x, 
+            drawInfo.pVertices[index].y, 
+            drawInfo.pVertices[index].z);
         go->meshVertices.push_back(newVertice);
     }
 
