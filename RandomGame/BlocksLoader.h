@@ -20,4 +20,11 @@ public:
 
 	bool readJsonFile(std::string filePath);
 	bool readFile(std::string filePath);
+
+	std::string getRandomValidPosition();
+	bool checkValidPosition(int i, int j);
+
+	bool checkCurrentBlocks(std::pair<int, int> position);
+	std::vector<std::pair<int, int>>* vec_currentBlocks;
+	void cleanPairs();
 };

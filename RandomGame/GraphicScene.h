@@ -35,6 +35,8 @@ public:
 	void CalculateSceneExtension(glm::vec3 g_cameraEye, glm::vec3 g_cameraTarget);
 	void Shutdown();
 
+	void cleanMazeView();
+
 	bool SATIntersectionTest(cMeshObject* mesh, glm::mat4 frustum);
 	void ExtractFrustumPlanes(const glm::mat4& frustumMatrix,
 		std::vector<glm::vec4>& frustumPlanes);
@@ -52,8 +54,9 @@ public:
 	cMeshObject selectedObject;
 	std::vector<cMeshObject*> vec_torchFlames;
 	std::vector<cMeshObject*> vec_pMeshObjects;
-	std::vector<cMeshObject*> vec_pMeshCurrentScene;
-	std::vector<cMeshObject*> vec_pMeshSurroundingScene;
+	std::vector<cMeshObject*> vec_pMeshFullMaze;
+	std::vector<cMeshObject*> vec_pMeshCurrentMaze;
+	int drawFog;
 
 	std::map<std::string, cMeshObject*>* map_beholds;
 

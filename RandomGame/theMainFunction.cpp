@@ -22,34 +22,31 @@
 #include "cMazeMaker_W2023.h"
 #include <chrono>
 
-BlocksLoader* m_blocksLoader;
-
 glm::vec3 g_cameraEye = glm::vec3(0.0f, 0.0f, 0.0f);
 glm::vec3 g_cameraTarget = glm::vec3(0.0f, 0.0f, 0.0f);
 
 GraphicScene g_GraphicScene;
 ParticleSystem g_ParticleSystem;
 cLuaBrain* pBrain;
+cMazeMaker_W2023 theMM;
+BlocksLoader* m_blocksLoader;
 
 cRandomUI gameUi;
-SimulationView* simView = new SimulationView();
-GLFWwindow* window;
-//initialize our sound manager
 FModManager* fmod_manager;
-
 FMOD::Channel* _channel;
 constexpr int max_channels = 255;
-
+SimulationView* simView = new SimulationView();
 int animationType;
 float animationSpeed;
 
-// I guess?
+GLFWwindow* window;
+
 float NinetyDegrees = 1.575f;
 std::map< std::string, cMeshObject*>::iterator itBeholdsToFollow;
 
 #define NUMBER_OF_TAGS 10
-#define MAP_WIDTH 50
-#define MAP_HEIGHT 50
+#define MAP_WIDTH 100
+#define MAP_HEIGHT 100
 #define GLOBAL_MAP_OFFSET 50
 #define SMALLEST_DISTANCE 0.1
 #define CAMERA_OFFSET 50.0
@@ -80,11 +77,12 @@ float RandomFloat(float a, float b) {
     return a + r;
 }
 
-
 bool SaveTheVAOModelTypesToFile(std::string fileTypesToLoadName,
     cVAOManager* pVAOManager);
 
 void DrawConcentricDebugLightObjects(int currentLight);
+
+void updateCurrentMazeView(int newI, int newJ);
 
 // HACK: These are the light spheres we will use for debug lighting
 cMeshObject* pDebugSphere_1 = NULL;// = new cMeshObject();
@@ -112,10 +110,16 @@ void createWall(unsigned int line, unsigned int column, float x, float z, bool h
     wall->friendlyName = "Wall" + std::to_string(line) + "_" + std::to_string(column) + orientation;
     wall->textures[0] = "Dungeons_2_Texture_01_A.bmp";
     wall->textureRatios[0] = 1.0f;
+
+    wall->currentI = line;
+    wall->currentJ = column;
+
     if (!horizontal) {
         //wall->setRotationFromEuler(glm::vec3(0.0f, 1.575f, 0.0f));
         wall->rotation.y = 1.575f;
     }
+
+    g_GraphicScene.vec_pMeshCurrentMaze.push_back(wall);
 }
 
 // Function called inside creatingModels for the Torch object creation
@@ -160,6 +164,146 @@ void createDeadbody(unsigned int line, unsigned int column, glm::vec3 pos, glm::
     deadbody->textureRatios[0] = 1.0f;
     deadbody->setRotationFromEuler(rotation);
     deadbody->SetUniformScale(0.2f);
+}
+
+void createMazeTile(int i, int j) {
+    sModelDrawInfo drawingInformation;
+    std::string northString = "";
+    std::string westString = "";
+    std::string eastString = "";
+    std::string southString = "";
+
+    if (i > 0) northString = m_blocksLoader->g_blockMap->at(i - 1).at(j);
+    if (j > 0) westString = m_blocksLoader->g_blockMap->at(i).at(j - 1);
+    if (j < m_blocksLoader->g_blockMap->at(i).size()) eastString = m_blocksLoader->g_blockMap->at(i).at(j + 1);
+    if (i < m_blocksLoader->g_blockMap->size()) southString = m_blocksLoader->g_blockMap->at(i + 1).at(j);
+
+    float x = (j * GLOBAL_MAP_OFFSET);
+    float z = (i * GLOBAL_MAP_OFFSET);
+    //pVAOManager->FindDrawInfoByModelName("Floor", drawingInformation);
+    drawingInformation = g_GraphicScene.returnDrawInformation("Floor");
+    g_GraphicScene.CreateGameObjectByType("Floor", glm::vec3(x, 0.0f, z), drawingInformation);
+    cMeshObject* currentObject;
+    currentObject = g_GraphicScene.GetObjectByName("Floor", false);
+    std::string floorName = "Floor" + std::to_string(i) + "_" + std::to_string(j);
+    currentObject->currentI = i;
+    currentObject->currentJ = j;
+    currentObject->friendlyName = floorName;
+    currentObject->textures[0] = "Dungeons_2_Texture_01_A.bmp";
+    currentObject->textureRatios[0] = 1.0f;
+
+    // Creating some Walls! Depending on the adjacents tiles
+    if (i == 0) {
+        if (j == 0) {
+            float x1 = (GLOBAL_MAP_OFFSET / 2) * (i - 1);
+            float z1 = (GLOBAL_MAP_OFFSET) * (j - 1);
+            createWall(i, j, x1, z1, true, "N");
+
+            float x2 = (GLOBAL_MAP_OFFSET) * (i - 1);
+            float z2 = (GLOBAL_MAP_OFFSET / 2) * (i - 1);
+            createWall(i, j, x2, z2, false, "W");
+
+            // Check if there is another Floor - East
+            if (eastString == ".") {
+                float x3 = (GLOBAL_MAP_OFFSET) * (i);
+                float z3 = (GLOBAL_MAP_OFFSET / 2) * (i - 1);
+                createWall(i, j, x3, z3, false, "E");
+            }
+
+            // Check if there is another Floor - South
+            if (southString == ".") {
+                float x4 = (GLOBAL_MAP_OFFSET / 2) * (i - 1);
+                float z4 = (GLOBAL_MAP_OFFSET / 2) * (i);
+                createWall(i, j, x4, z4, true, "S");
+            }
+
+        }
+        else {
+            float x1 = (GLOBAL_MAP_OFFSET / 2) + GLOBAL_MAP_OFFSET * (j - 1);
+            float z1 = (GLOBAL_MAP_OFFSET) * (i - 1);
+            createWall(i, j, x1, z1, true, "N");
+
+            // Check if there is another Floor - West
+            if (westString == ".") {
+                float x2 = (GLOBAL_MAP_OFFSET) * (i);
+                float z2 = (GLOBAL_MAP_OFFSET / 2) * (i - 1);
+                createWall(i, j, x2, z2, false, "W");
+            }
+
+            // Check if there is another Floor - East
+            if (eastString == ".") {
+                float x3 = (GLOBAL_MAP_OFFSET) * (j);
+                float z3 = (GLOBAL_MAP_OFFSET / 2) * (i - 1);
+                createWall(i, j, x3, z3, false, "E");
+            }
+
+            // Check if there is another Floor - South
+            if (southString == ".") {
+                float x4 = (GLOBAL_MAP_OFFSET / 2) + GLOBAL_MAP_OFFSET * (j - 1);
+                float z4 = GLOBAL_MAP_OFFSET * i;
+                createWall(i, j, x4, z4, true, "S");
+            }
+        }
+    }
+    else {
+        if (j == 0) {
+            // Check if there is another Floor - North
+            if (northString == ".") {
+                float x1 = (GLOBAL_MAP_OFFSET / 2) * (j - 1);
+                float z1 = (GLOBAL_MAP_OFFSET) * (i - 1);
+                createWall(i, j, x1, z1, true, "N");
+            }
+
+            float x2 = (GLOBAL_MAP_OFFSET) * (j - 1);
+            float z2 = (GLOBAL_MAP_OFFSET / 2) + GLOBAL_MAP_OFFSET * (i - 1);
+            createWall(i, j, x2, z2, false, "W");
+
+            // Check if there is another Floor - East
+            if (eastString == ".") {
+                float x3 = (GLOBAL_MAP_OFFSET) * (j);
+                float z3 = (GLOBAL_MAP_OFFSET / 2) + GLOBAL_MAP_OFFSET * (i - 1);
+                createWall(i, j, x3, z3, false, "E");
+            }
+
+            // Check if there is another Floor - South
+            if (southString == ".") {
+                float x4 = (GLOBAL_MAP_OFFSET / 2) * (j - 1);
+                float z4 = (GLOBAL_MAP_OFFSET) * (i);
+                createWall(i, j, x4, z4, true, "S");
+            }
+        }
+        else {
+            // Check if there is another Floor - North
+            if (northString == ".") {
+                float x1 = (GLOBAL_MAP_OFFSET / 2) + (GLOBAL_MAP_OFFSET) * (j - 1);
+                float z1 = (GLOBAL_MAP_OFFSET) * (i - 1);
+                createWall(i, j, x1, z1, true, "N");
+            }
+
+            // Check if there is another Floor - West
+            if (westString == ".") {
+                float x2 = (GLOBAL_MAP_OFFSET) * (j - 1);
+                float z2 = (GLOBAL_MAP_OFFSET / 2) + (GLOBAL_MAP_OFFSET) * (i - 1);
+                createWall(i, j, x2, z2, false, "W");
+            }
+
+            // Check if there is another Floor - East
+            if (eastString == ".") {
+                float x3 = (GLOBAL_MAP_OFFSET) * (j);
+                float z3 = (GLOBAL_MAP_OFFSET / 2) + (GLOBAL_MAP_OFFSET) * (i - 1);
+                createWall(i, j, x3, z3, false, "E");
+            }
+
+            // Check if there is another Floor - South
+            if (southString == ".") {
+                float x4 = (GLOBAL_MAP_OFFSET / 2) + (GLOBAL_MAP_OFFSET) * (j - 1);
+                float z4 = (GLOBAL_MAP_OFFSET) * (i);
+                createWall(i, j, x4, z4, true, "S");
+            }
+        }
+    }
+
+    g_GraphicScene.vec_pMeshCurrentMaze.push_back(currentObject);
 }
 
 /* Function that create all the objects for the game.
@@ -208,6 +352,8 @@ void creatingModels() {
                     cMeshObject* currentObject;
                     currentObject = g_GraphicScene.GetObjectByName("Floor", false);
                     std::string floorName = "Floor" + std::to_string(i) + "_" + std::to_string(j);
+                    currentObject->currentI = i;
+                    currentObject->currentJ = j;
                     currentObject->friendlyName = floorName;
                     currentObject->textures[0] = "Dungeons_2_Texture_01_A.bmp";
                     currentObject->textureRatios[0] = 1.0f;
@@ -418,26 +564,6 @@ void creatingModels() {
                         crystalC->setRotationFromEuler(glm::vec3(0.0f, rand() % 180, 0.0f));
                     }
 
-                    // Creating the Main Character!
-                    if (currentString == "M") {
-                        bool loaderReturn = entityLoaderManager->LoadCharacter(MAIN_CHAR_JSON_INFO, playabledCharacter, errorMessage);
-
-                        if (!loaderReturn) {
-                            std::cout << "Error loading playable character: " << errorMessage << std::endl;
-                        }
-
-                        //pVAOManager->FindDrawInfoByModelName(playabledCharacter.mFriendlyName, drawingInformation);
-                        drawingInformation = g_GraphicScene.returnDrawInformation(playabledCharacter.mFriendlyName);
-                        glm::vec3 mainCharacterPosition(playabledCharacter.mPosition[0], playabledCharacter.mPosition[1], playabledCharacter.mPosition[2]);
-                        g_GraphicScene.CreateGameObjectByType(playabledCharacter.mFriendlyName, mainCharacterPosition, drawingInformation);
-                        
-                        mainChar = g_GraphicScene.GetObjectByName(playabledCharacter.mFriendlyName, false);
-                        mainChar->friendlyName = "MainChar";
-                        playabledCharacter.mFriendlyName = mainChar->friendlyName;
-                        mainChar->SetUniformScale(10.0f);
-
-                    }
-
                     // Creating the mighty BEHOLDER!
                     if (currentString == "b") {
                         //pVAOManager->FindDrawInfoByModelName("Beholder", drawingInformation);
@@ -579,7 +705,6 @@ void creatingModels() {
             }
         }
     } 
-
 
 }
 
@@ -777,6 +902,48 @@ bool calculateNextPosition(cMeshObject* currentBehold, glm::vec3& nextPosition) 
     return true;
 }
 
+void updateCurrentMazeView(int newI, int newJ) {
+    
+    g_GraphicScene.cleanMazeView();
+    g_GraphicScene.vec_pMeshCurrentMaze.push_back(mainChar);
+
+    mainChar->currentI = newI;
+    mainChar->currentJ = newJ;
+
+    for (int a = 0; a < g_GraphicScene.drawFog; a++) {
+        for (int b = 0; b < g_GraphicScene.drawFog; b++) {
+
+            int iPlusA = newI + a;
+            int jPlusB = newJ + b;
+            int iMinusA = newI - a;
+            int jMinusB = newJ - b;
+
+            if (m_blocksLoader->checkValidPosition(iPlusA, jPlusB))
+                createMazeTile(iPlusA, jPlusB);
+
+            if (m_blocksLoader->checkValidPosition(iPlusA, jMinusB))
+                createMazeTile(iPlusA, jMinusB);
+
+            if (m_blocksLoader->checkValidPosition(iMinusA, jMinusB))
+                createMazeTile(iMinusA, jMinusB);
+
+            if (m_blocksLoader->checkValidPosition(iMinusA, jPlusB))
+                createMazeTile(iMinusA, jPlusB);
+        }
+    }
+
+    m_blocksLoader->cleanPairs();
+
+    float mainCharX = (newJ * GLOBAL_MAP_OFFSET) - (GLOBAL_MAP_OFFSET / 2);
+    float mainCharZ = (newI * GLOBAL_MAP_OFFSET) - (GLOBAL_MAP_OFFSET / 2);
+    mainChar->position = glm::vec3(mainCharX, 25.f, mainCharZ);
+
+    int breakpoint = g_GraphicScene.vec_pMeshCurrentMaze.size();
+
+    g_cameraTarget = mainChar->position;
+    g_cameraEye = glm::vec3(mainChar->position.x, (g_GraphicScene.drawFog * 160.f), mainChar->position.z + 2.f);
+}
+
 int main(int argc, char* argv[]) {
     std::cout << "starting up..." << std::endl;
 
@@ -791,7 +958,6 @@ int main(int argc, char* argv[]) {
 
     std::chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();
 
-    cMazeMaker_W2023 theMM;
     cMazeMaker_W2023::sProcessMemoryCounters memInfoStart;
 
     theMM.getMemoryUse(memInfoStart);
@@ -893,8 +1059,33 @@ int main(int argc, char* argv[]) {
     // Setting the lights
     lightning(g_GraphicScene.shaderID);
 
-    creatingModels();
+    //creatingModels();
     itBeholdsToFollow = g_GraphicScene.map_beholds->begin();
+
+    // ---------------- MAIN CHAR CREATION ------------------
+    {
+        bool loaderReturn = entityLoaderManager->LoadCharacter(MAIN_CHAR_JSON_INFO, playabledCharacter, errorMessage);
+
+        if (!loaderReturn) {
+            std::cout << "Error loading playable character: " << errorMessage << std::endl;
+        }
+
+        sModelDrawInfo drawingInformation;
+        drawingInformation = g_GraphicScene.returnDrawInformation(playabledCharacter.mFriendlyName);
+        glm::vec3 mainCharacterPosition(playabledCharacter.mPosition[0], playabledCharacter.mPosition[1], playabledCharacter.mPosition[2]);
+        g_GraphicScene.CreateGameObjectByType(playabledCharacter.mFriendlyName, mainCharacterPosition, drawingInformation);
+
+        mainChar = g_GraphicScene.GetObjectByName(playabledCharacter.mFriendlyName, false);
+        mainChar->friendlyName = "MainChar";
+        mainChar->bUse_RGBA_colour = true;
+        mainChar->RGBA_colour = glm::vec4(1.0f, 0.0f, 0.0f, 1.0f);
+        playabledCharacter.mFriendlyName = mainChar->friendlyName;
+        mainChar->SetUniformScale(10.0f);
+
+        mainChar->currentI = mainChar->position.z / GLOBAL_MAP_OFFSET;
+        mainChar->currentJ = mainChar->position.x / GLOBAL_MAP_OFFSET;
+        //std::cout << "i: " << theMM.getStartAxis() << " - j: " << theMM.getStartSide() << std::endl;
+    }
 
     debugLightSpheres();
 
@@ -962,12 +1153,32 @@ int main(int argc, char* argv[]) {
     }
     // ---------------- LUA  ----------------------------------------------
 
+    
+    std::string randomPos;
+    randomPos = m_blocksLoader->getRandomValidPosition();
+    int pos = randomPos.find('.');
+    int randomI = stoi(randomPos.substr(0, pos));
+    int randomJ = stoi(randomPos.substr(pos + 1));
+
+    updateCurrentMazeView(randomI, randomJ);
+
+    /*for (std::vector< cMeshObject* >::iterator itCurrentMesh = g_GraphicScene.vec_pMeshObjects.begin();
+        itCurrentMesh != g_GraphicScene.vec_pMeshObjects.end();
+        itCurrentMesh++)
+    {
+        cMeshObject* pCurrentMeshObject = *itCurrentMesh;
+        if (glm::abs(mainChar->currentI - pCurrentMeshObject->currentI) <= g_GraphicScene.drawFog &&
+            glm::abs(mainChar->currentJ - pCurrentMeshObject->currentJ) <= g_GraphicScene.drawFog) {
+            g_GraphicScene.vec_pMeshCurrentMaze.push_back(pCurrentMeshObject);
+        }
+    }*/
+
     // ---------------- GAME LOOP START -----------------------------------------------
     while (!glfwWindowShouldClose(window)) {
         ::g_pTheLightManager->CopyLightInformationToShader(g_GraphicScene.shaderID);
 
-        DrawConcentricDebugLightObjects(gameUi.listbox_lights_current);
-       
+        DrawConcentricDebugLightObjects(gameUi.listbox_lights_current);        
+        
         g_GraphicScene.DrawScene(window, ::g_cameraEye, ::g_cameraTarget);
 
         glfwPollEvents();

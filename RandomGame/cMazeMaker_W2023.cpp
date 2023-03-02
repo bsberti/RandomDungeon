@@ -196,9 +196,6 @@ void cMazeMaker_W2023::m_initializeMaze(void)
 	}
 }
 
-
-
-
 void cMazeMaker_W2023::PrintMaze(void)
 {
 	std::ofstream outfile("assets/Dungeon1.txt");
@@ -210,17 +207,17 @@ void cMazeMaker_W2023::PrintMaze(void)
 			if (this->maze[a][b][0]) 
 			{
 				outfile << ". ";
-				std::cout << ". ";
+				//std::cout << ". ";
 			}
 			else 
 			{
 				outfile << "X ";
-				std::cout << "X ";
+				//std::cout << "X ";
 			}
 		}
 
 		outfile << std::endl;
-		std::cout << std::endl;
+		//std::cout << std::endl;
 	}
 
 	outfile.close();

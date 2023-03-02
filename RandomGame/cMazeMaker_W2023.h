@@ -56,12 +56,14 @@ public:
 	// returns a summary of the memory used by process
 	bool getMemoryUse(sProcessMemoryCounters &memoryInfo);
 	bool getMemoryUse(std::string &sMemoryInfo);
+	int getStartAxis() { return m_start_axis; }
+	int getStartSide() { return m_start_side; }
 
 private:
 	int m_maze_size[2];
 
 	int m_start_axis;
-	int m_start_side;	
+	int m_start_side;
 
 	static const unsigned int UP = 0;
 	static const unsigned int DOWN = 1;

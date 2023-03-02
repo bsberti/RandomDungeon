@@ -5,6 +5,7 @@
 GraphicScene::GraphicScene() {
 	cameraFollowing = false;
 	cameraTransitioning = false;
+    drawFog = 10;
 }
 
 GraphicScene::~GraphicScene() {
@@ -138,12 +139,14 @@ int GraphicScene::PrepareScene() {
         std::cout << "Error: Unable to load list of models to load into VAO file" << std::endl;
         // Do we exit here? 
         // TO-DO
+        return -1;
     }
 
     mvp_location = glGetUniformLocation(shaderID, "MVP");
     mModel_location = glGetUniformLocation(shaderID, "mModel");
     mView_location = glGetUniformLocation(shaderID, "mView");
     mProjection_location = glGetUniformLocation(shaderID, "mProjection");
+
     // Need this for lighting
     mModelInverseTransform_location = glGetUniformLocation(shaderID, "mModelInverseTranspose");
 
@@ -219,11 +222,12 @@ void GraphicScene::CalculateSceneExtension(glm::vec3 g_cameraEye, glm::vec3 g_ca
     }
 }
 
+void GraphicScene::cleanMazeView() {
+    vec_pMeshCurrentMaze.clear();
+}
+
 void GraphicScene::DrawScene(GLFWwindow* window, glm::vec3 g_cameraEye, glm::vec3 g_cameraTarget) {
     
-    vec_pMeshCurrentScene.clear();
-    vec_pMeshSurroundingScene.clear();
-
     // Making the fire impostor "move"
     for (int i = 0; i < vec_torchFlames.size(); i++) {
         cMeshObject* torchFire = vec_torchFlames[i];
@@ -257,36 +261,35 @@ void GraphicScene::DrawScene(GLFWwindow* window, glm::vec3 g_cameraEye, glm::vec
     glUniformMatrix4fv(mView_location, 1, GL_FALSE, glm::value_ptr(matView));
     glUniformMatrix4fv(mProjection_location, 1, GL_FALSE, glm::value_ptr(matProjection));
 
-    CalculateSceneExtension(g_cameraEye, g_cameraTarget);
+    //CalculateSceneExtension(g_cameraEye, g_cameraTarget);
 
-    float invWidth = 1.f / width;
-    float invHeight = 1.f / height;
+    //float invWidth = 1.f / width;
+    //float invHeight = 1.f / height;
 
-    for (std::vector< cMeshObject* >::iterator itCurrentMesh = vec_pMeshObjects.begin();
-        itCurrentMesh != vec_pMeshObjects.end();
-        itCurrentMesh++)
-    {
-        cMeshObject* pCurrentMeshObject = *itCurrentMesh;
-        bool intersects = SATIntersectionTest(pCurrentMeshObject, frustumMatrix);
-        if (intersects) {
-            vec_pMeshCurrentScene.push_back(pCurrentMeshObject);
-        }
-    }
+    //for (std::vector< cMeshObject* >::iterator itCurrentMesh = vec_pMeshObjects.begin();
+    //    itCurrentMesh != vec_pMeshObjects.end();
+    //    itCurrentMesh++)
+    //{
+    //    cMeshObject* pCurrentMeshObject = *itCurrentMesh;
+    //    bool intersects = SATIntersectionTest(pCurrentMeshObject, frustumMatrix);
+    //    if (intersects) {
+    //        vec_pMeshObjects.push_back(pCurrentMeshObject);
+    //    }
+    //}
 
-    std::cout << "vec_pMeshObjects SIZE         >>>        " << vec_pMeshObjects.size() << std::endl;
-    std::cout << "vec_pMeshCurrentScene SIZE    >>>        " << vec_pMeshCurrentScene.size() << std::endl;
-     
+
+
     //    ____  _             _            __                           
     //   / ___|| |_ __ _ _ __| |_    ___  / _|  ___  ___ ___ _ __   ___ 
     //   \___ \| __/ _` | '__| __|  / _ \| |_  / __|/ __/ _ \ '_ \ / _ \
     //    ___) | || (_| | |  | |_  | (_) |  _| \__ \ (_|  __/ | | |  __/
     //   |____/ \__\__,_|_|   \__|  \___/|_|   |___/\___\___|_| |_|\___|
-    //                                                                  
-    // We draw everything in our "scene"
+                                                                      
+    // We draw everything in our "vec_pMeshCurrentMaze"
     // In other words, go throug the vec_pMeshObjects container
-    //  and draw each one of the objects 
-    for (std::vector< cMeshObject* >::iterator itCurrentMesh = vec_pMeshCurrentScene.begin();
-        itCurrentMesh != vec_pMeshCurrentScene.end();
+    //  and draw each one of the objects
+    for (std::vector< cMeshObject* >::iterator itCurrentMesh = vec_pMeshCurrentMaze.begin();
+        itCurrentMesh != vec_pMeshCurrentMaze.end();
         itCurrentMesh++)
     {
         cMeshObject* pCurrentMeshObject = *itCurrentMesh;
@@ -327,7 +330,6 @@ void GraphicScene::DrawScene(GLFWwindow* window, glm::vec3 g_cameraEye, glm::vec
     //   |  _| | '_ \ / _` |  / _ \| |_  / __|/ __/ _ \ '_ \ / _ \
     //   | |___| | | | (_| | | (_) |  _| \__ \ (_|  __/ | | |  __/
     //   |_____|_| |_|\__,_|  \___/|_|   |___/\___\___|_| |_|\___|
-
 }
 
 bool GraphicScene::SATIntersectionTest(cMeshObject* mesh, glm::mat4 frustum) {
@@ -482,7 +484,7 @@ void GraphicScene::CreateGameObjectByType(const std::string& type, glm::vec3 pos
         go->meshVertices.push_back(newVertice);
     }
 
-	vec_pMeshObjects.push_back(go);
+    vec_pMeshObjects.push_back(go);
 }
 
 cMeshObject* GraphicScene::GetObjectByName(std::string name, bool bSearchChildren) {
