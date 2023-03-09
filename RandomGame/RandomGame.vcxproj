@@ -230,6 +230,7 @@
     <ClInclude Include="Shapes.h" />
     <ClInclude Include="SimulationView.h" />
     <ClInclude Include="Spring.h" />
+    <ClInclude Include="threads.h" />
     <ClInclude Include="Time.h" />
     <ClInclude Include="Vector3.h" />
   </ItemGroup>

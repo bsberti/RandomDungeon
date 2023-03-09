@@ -212,6 +212,7 @@ void cRandomUI::render(GraphicScene& scene, FModManager* fmod, std::vector<cLigh
     //const char* listbox_child[40];
     std::vector<std::string> childList;
     for (int i = 0; i < 40; i++) {
+        if (i >= scene.vec_pMeshObjects.size()) continue;
         if (scene.vec_pMeshObjects[i]->vecChildMeshes.size() != 0) {
             for (int j = 0; j < scene.vec_pMeshObjects[i]->vecChildMeshes.size(); j++) {
                 if (j < totalChildrenObjects) {

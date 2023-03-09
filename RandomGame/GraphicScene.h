@@ -47,8 +47,7 @@ public:
 	sModelDrawInfo returnDrawInformation(std::string objectName);
 	GLuint returnShaderID(std::string shaderName);
 
-	void CreateGameObjectByType(const std::string& type, glm::vec3 position, sModelDrawInfo& drawInfo);
-
+	cMeshObject* CreateGameObjectByType(const std::string& type, glm::vec3 position, sModelDrawInfo& drawInfo);
 	cMeshObject* GetObjectByName(std::string name, bool bSearchChildren);
 
 	cMeshObject selectedObject;

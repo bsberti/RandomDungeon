@@ -57,6 +57,9 @@
     <Filter Include="MazeGenerator">
       <UniqueIdentifier>{97816be9-9097-4fa7-ab56-76f35e0d920e}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Threads">
+      <UniqueIdentifier>{3d59e70c-d514-4051-b6a6-0976b178fdf8}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="cVAOManager\cVAOManager.cpp">
@@ -333,6 +336,9 @@
     </ClInclude>
     <ClInclude Include="cMazeMaker_W2023.h">
       <Filter>MazeGenerator</Filter>
+    </ClInclude>
+    <ClInclude Include="threads.h">
+      <Filter>Threads</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

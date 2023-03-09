@@ -65,6 +65,9 @@ void key_callback(GLFWwindow* window,
     else if (key == GLFW_KEY_M && action == GLFW_PRESS) {
         theEditMode = MOVING_MAINCHAR;
     }
+    else if (key == GLFW_KEY_N && action == GLFW_PRESS) {
+        theEditMode = MOVING_MAZE;
+    }
 
     switch (theEditMode)
     {
@@ -257,7 +260,7 @@ void key_callback(GLFWwindow* window,
 
     }//case MOVING_LIGHT:
     break;
-
+    
     case MOVING_MAINCHAR:
     {
         if (key == GLFW_KEY_A)     // Tile LEFT

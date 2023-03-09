@@ -277,8 +277,6 @@ void GraphicScene::DrawScene(GLFWwindow* window, glm::vec3 g_cameraEye, glm::vec
     //    }
     //}
 
-
-
     //    ____  _             _            __                           
     //   / ___|| |_ __ _ _ __| |_    ___  / _|  ___  ___ ___ _ __   ___ 
     //   \___ \| __/ _` | '__| __|  / _ \| |_  / __|/ __/ _ \ '_ \ / _ \
@@ -304,6 +302,28 @@ void GraphicScene::DrawScene(GLFWwindow* window, glm::vec3 g_cameraEye, glm::vec
             matModel,
             shaderID, g_pTextureManager,
             pVAOManager, mModel_location, mModelInverseTransform_location);
+    }
+
+    for (std::map< std::string, cMeshObject*>::iterator itBeholds =
+        map_beholds->begin(); itBeholds != map_beholds->end();
+        itBeholds++) 
+    {
+        cMeshObject* pCurrentMeshObject = itBeholds->second;
+
+        if (!pCurrentMeshObject->bIsVisible)
+            continue;
+
+        // The parent's model matrix is set to the identity
+        glm::mat4x4 matModel = glm::mat4x4(1.0f);
+
+        float distance = glm::distance(pCurrentMeshObject->position, g_cameraTarget);
+        float range = drawFog * 50.f; //GLOBAL_MAP_OFFSET
+        if (distance < range) {
+            DrawObject(pCurrentMeshObject,
+                matModel,
+                shaderID, g_pTextureManager,
+                pVAOManager, mModel_location, mModelInverseTransform_location);
+        }
     }
 
     // --------------- Draw the skybox -----------------------------
@@ -463,7 +483,7 @@ GLuint GraphicScene::returnShaderID(std::string shaderName)
     return shaderID;
 }
 
-void GraphicScene::CreateGameObjectByType(const std::string& type, glm::vec3 position, sModelDrawInfo& drawInfo) {
+cMeshObject* GraphicScene::CreateGameObjectByType(const std::string& type, glm::vec3 position, sModelDrawInfo& drawInfo) {
 	cMeshObject* go = new cMeshObject();
 	go->meshName = type;
 	go->friendlyName = type;
@@ -476,15 +496,18 @@ void GraphicScene::CreateGameObjectByType(const std::string& type, glm::vec3 pos
 	go->numberOfTriangles = drawInfo.numberOfTriangles;
 	go->meshTriangles = drawInfo.modelTriangles;
 
-    for (unsigned int index = 0; index != drawInfo.numberOfVertices; index++) {
-        glm::vec3 newVertice = glm::vec3(
-            drawInfo.pVertices[index].x, 
-            drawInfo.pVertices[index].y, 
-            drawInfo.pVertices[index].z);
-        go->meshVertices.push_back(newVertice);
-    }
+    //for (unsigned int index = 0; index != drawInfo.numberOfVertices; index++) {
+    //    glm::vec3 newVertice = glm::vec3(
+    //        drawInfo.pVertices[index].x, 
+    //        drawInfo.pVertices[index].y, 
+    //        drawInfo.pVertices[index].z);
+    //    go->meshVertices.push_back(newVertice);
+    //}
 
-    vec_pMeshObjects.push_back(go);
+    // Instead of adding to the vector right now
+    // gonna just return so the one adding to vector can be handle by critical section
+    //vec_pMeshObjects.push_back(go);
+    return go;
 }
 
 cMeshObject* GraphicScene::GetObjectByName(std::string name, bool bSearchChildren) {
