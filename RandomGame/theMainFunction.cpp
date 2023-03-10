@@ -1,10 +1,12 @@
+
+#include "globalOpenGL.h"
+#include "globalThings.h"
+
 #include <stdlib.h>
 #include <stdio.h>
-#include <iostream>
 #include <fstream>
 #include <sstream>
 
-#include <vector>
 #include "GraphicScene.h"
 
 #include "imgui/imgui_impl_glfw.h"
@@ -23,6 +25,8 @@
 #include <chrono>
 
 #include "threads.h"
+
+#include "cFBO.h"
 
 glm::vec3 g_cameraEye = glm::vec3(0.0f, 0.0f, 0.0f);
 glm::vec3 g_cameraTarget = glm::vec3(0.0f, 0.0f, 0.0f);
@@ -62,11 +66,12 @@ cMeshObject* currentBehold;
 PositionKeyFrame nextPKF;
 PositionKeyFrame currPKF;
 
-#define NUM_THREADS 10000
+#define NUM_THREADS 64
 #define NUM_ELEMENTS_TO_INIT 10000
 CRITICAL_SECTION dataMutex; 
 HANDLE dataSemaphore;
-HANDLE ahThread[NUM_THREADS];
+//HANDLE ahThread[NUM_THREADS];
+HANDLE ahThread;
 
 // Main Character Objects
 cMeshObject* mainChar;
@@ -77,6 +82,10 @@ EntityLoaderManager* entityLoaderManager = EntityLoaderManager::GetInstance();
 
 // String used for error feedback for methods call
 std::string errorMessage;
+
+// Frame Buffer Object
+// (This is global so the windows resize callback can "see" it)
+cFBO* g_pFBO_01 = NULL;
 
 // Call back signatures here
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
@@ -184,6 +193,7 @@ void createDeadbody(unsigned int line, unsigned int column, glm::vec3 pos, glm::
     deadbody->setRotationFromEuler(rotation);
     deadbody->SetUniformScale(0.2f);
 }
+
 //DWORD WINAPI createMazeTile(PVOID pvParam) {
 //    _MAZE_TILE_INFO* pInfo = (_MAZE_TILE_INFO*)pvParam;
 //
@@ -969,10 +979,110 @@ void calculateTrianglesCenter(cMeshObject* obj) {
     }
 }
 
+bool checkNorth(float& newPosition, int& newI, int& newJ, int& numTiles) {
+    int i = newI;
+    int j = newJ;
+
+    std::string northString;
+    if (i > 0) {
+        northString = m_blocksLoader->g_blockMap->at(i - 1).at(j);
+    }
+    else {
+        return false;
+    }
+
+    if (northString == "X" || northString == "D" || northString == "T" ||
+        northString == "b" || northString == "B") {
+        newI = i - 1;
+        newPosition -= 50;
+        numTiles++;
+        checkNorth(newPosition, newI, newJ, numTiles);
+        return true;
+    }
+    else {
+        return false;
+    }
+}
+
+bool checkWest(float& newPosition, int& newI, int& newJ, int& numTiles) {
+    int i = newI;
+    int j = newJ;
+
+    std::string westString;
+    if (j > 0) {
+        westString = m_blocksLoader->g_blockMap->at(i).at(j - 1);
+    }
+    else {
+        return false;
+    }
+
+    if (westString == "X" || westString == "D" || westString == "T" ||
+        westString == "b" || westString == "B") {
+        newJ = j - 1;
+        newPosition -= 50;
+        numTiles++;
+        checkWest(newPosition, newI, newJ, numTiles);
+        return true;
+    }
+    else {
+        return false;
+    }
+}
+
+bool checkEast(float& newPosition, int& newI, int& newJ, int& numTiles) {
+    int i = newI;
+    int j = newJ;
+
+    std::string eastString;
+    if (j < m_blocksLoader->g_blockMap->at(i).size()) {
+        eastString = m_blocksLoader->g_blockMap->at(i).at(j + 1);
+    }
+    else {
+        return false;
+    }
+
+    if (eastString == "X" || eastString == "D" || eastString == "T" ||
+        eastString == "b" || eastString == "B") {
+        newJ = j + 1;
+        newPosition += 50;
+        numTiles++;
+        checkEast(newPosition, newI, newJ, numTiles);
+        return true;
+    }
+    else {
+        return false;
+    }
+}
+
+bool checkSouth(float& newPosition, int& newI, int& newJ, int& numTiles) {
+    int i = newI;
+    int j = newJ;
+
+    std::string southString;
+    if (i < m_blocksLoader->g_blockMap->size()) {
+        southString = m_blocksLoader->g_blockMap->at(i + 1).at(j);
+    }
+    else {
+        return false;
+    }
+
+    if (southString == "X" || southString == "D" || southString == "T" ||
+        southString == "b" || southString == "B") {
+        newI = i + 1;
+        newPosition += 50;
+        numTiles++;
+        checkSouth(newPosition, newI, newJ, numTiles);
+        return true;
+    }
+    else {
+        return false;
+    }
+}
+
 /* Function that calculat next posible position for the beholder based on the block map (map of tiles of the dungeon). 
 Beholder can only move in 4 directions (north, west, east and south) and the function returns true if the nextPosition is valid 
 returns false if next position or the current position is also a next or current position of other beholder. */
-bool calculateNextPosition(cMeshObject* currentBehold, glm::vec3& nextPosition) {
+bool calculateNextPosition(cMeshObject* currentBehold, glm::vec3& nextPosition, int& numTiles) {
 
     std::string northString = "";
     std::string westString = "";
@@ -1025,42 +1135,69 @@ bool calculateNextPosition(cMeshObject* currentBehold, glm::vec3& nextPosition) 
     }
 
     bool validPath = false;
+    int newI = i;
+    int newJ = j;
+    float newPosition;
     do {
         unsigned int randPath = rand() % 4;
         switch (randPath) {
         case 0:
             // North
-            if (northString == "X" || northString == "D" || northString == "T" ||
-                northString == "b" || northString == "B") {
-                returnVec.z -= 50.0f;
-                currentBehold->currentI -= 1;
+            //if (northString == "X" || northString == "D" || northString == "T" ||
+            //    northString == "b" || northString == "B") {
+            //    returnVec.z -= 50.0f;
+            //    currentBehold->currentI -= 1;
+            //    validPath = true;
+            //}
+            newPosition = returnVec.z;
+            if (checkNorth(newPosition, newI, newJ, numTiles)) {
+                returnVec.z = newPosition;
+                currentBehold->currentI = newI;
                 validPath = true;
             }
             break;
         case 1:
             // West
-            if (westString == "X" || westString == "D" || westString == "T" ||
-                westString == "b" || westString == "B") {
-                returnVec.x -= 50.0f;
-                currentBehold->currentJ -= 1;
+            //if (westString == "X" || westString == "D" || westString == "T" ||
+            //    westString == "b" || westString == "B") {
+            //    returnVec.x -= 50.0f;
+            //    currentBehold->currentJ -= 1;
+            //    validPath = true;
+            //}
+            newPosition = returnVec.x;
+            if (checkWest(newPosition, newI, newJ, numTiles)) {
+                returnVec.x = newPosition;
+                currentBehold->currentJ = newJ;
                 validPath = true;
             }
             break;
         case 2:
             // East
-            if (eastString == "X" || eastString == "D" || eastString == "T" ||
-                eastString == "b" || eastString == "B") {
-                returnVec.x += 50.0f;
-                currentBehold->currentJ += 1;
+            //if (eastString == "X" || eastString == "D" || eastString == "T" ||
+            //    eastString == "b" || eastString == "B") {
+            //    returnVec.x += 50.0f;
+            //    currentBehold->currentJ += 1;
+            //    validPath = true;
+            //}
+            newPosition = returnVec.x;
+            if (checkEast(newPosition, newI, newJ, numTiles)) {
+                returnVec.x = newPosition;
+                currentBehold->currentJ = newJ;
                 validPath = true;
             }
             break;
         case 3:
             // South
-            if (southString == "X" || southString == "D" || southString == "T" ||
-                southString == "b" || southString == "B") {
-                returnVec.z += 50.0f;
-                currentBehold->currentI += 1;
+            //if (southString == "X" || southString == "D" || southString == "T" ||
+            //    southString == "b" || southString == "B") {
+            //    returnVec.z += 50.0f;
+            //    currentBehold->currentI += 1;
+            //    validPath = true;
+            //}
+            newPosition = returnVec.z;
+            if (checkSouth(newPosition, newI, newJ, numTiles)) {
+                returnVec.z = newPosition;
+                currentBehold->currentI = newI;
                 validPath = true;
             }
             break;
@@ -1079,10 +1216,11 @@ DWORD WINAPI animationUpdate(PVOID pvParam) {
     {
         currentBehold = itBeholds->second;
         unsigned int currentBeholdID = currentBehold->getID();
+        int numTilesNext = 0;
 
         if (currentBehold->moving == 0 && !currentBehold->dead) {
             glm::vec3 nextPosition = glm::vec3(0.0f);
-            if (!calculateNextPosition(currentBehold, nextPosition)) {
+            if (!calculateNextPosition(currentBehold, nextPosition, numTilesNext)) {
                 // Spin and reduce;
                 currentBehold->adjustRoationAngleFromEuler(glm::vec3(0.0f, 0.2f, 0.0f));
                 currentBehold->reduceFromScale(0.99f);
@@ -1098,27 +1236,27 @@ DWORD WINAPI animationUpdate(PVOID pvParam) {
             currentBehold->PositionKeyFrames.clear();
             currentBehold->RotationKeyFrames.clear();
 
-            std::string currentBeholdNextTileXScript =
-                "nextTileX" + std::to_string(currentBeholdID) + " = " +
-                std::to_string(nextPosition.x);
-            std::string currentBeholdNextTileYScript =
-                "nextTileY" + std::to_string(currentBeholdID) + " = " +
-                std::to_string(nextPosition.y);
-            std::string currentBeholdNextTileZScript =
-                "nextTileZ" + std::to_string(currentBeholdID) + "  = " +
-                std::to_string(nextPosition.z);
+            //std::string currentBeholdNextTileXScript =
+            //    "nextTileX" + std::to_string(currentBeholdID) + " = " +
+            //    std::to_string(nextPosition.x);
+            //std::string currentBeholdNextTileYScript =
+            //    "nextTileY" + std::to_string(currentBeholdID) + " = " +
+            //    std::to_string(nextPosition.y);
+            //std::string currentBeholdNextTileZScript =
+            //    "nextTileZ" + std::to_string(currentBeholdID) + "  = " +
+            //    std::to_string(nextPosition.z);
 
             currRKF.value = currentBehold->rotation;
             currRKF.time = 0;
             currRKF.useSlerp = false;
 
             // Lock the mutex to prevent other threads from accessing the vector
-            EnterCriticalSection(&dataMutex);
+            //EnterCriticalSection(&dataMutex);
 
             currentBehold->RotationKeyFrames.push_back(currRKF);
             
             // Unlock the mutex to allow other threads to access the vector
-            LeaveCriticalSection(&dataMutex);
+            //LeaveCriticalSection(&dataMutex);
 
             nextRKF.time = 1;
             nextRKF.useSlerp = false;
@@ -1145,53 +1283,53 @@ DWORD WINAPI animationUpdate(PVOID pvParam) {
             }
 
             // Lock the mutex to prevent other threads from accessing the vector
-            EnterCriticalSection(&dataMutex);
+            //EnterCriticalSection(&dataMutex);
 
             currentBehold->RotationKeyFrames.push_back(nextRKF);
 
             // Unlock the mutex to allow other threads to access the vector
-            LeaveCriticalSection(&dataMutex);
+            //LeaveCriticalSection(&dataMutex);
 
-            std::cout << " ------------------------------------------------------ " << std::endl;
-            std::cout << currentBehold->friendlyName << " CurrentPosition: (" <<
-                currentBehold->position.x << ", " <<
-                currentBehold->position.y << ", " <<
-                currentBehold->position.z << ")" << std::endl;
+            //std::cout << " ------------------------------------------------------ " << std::endl;
+            //std::cout << currentBehold->friendlyName << " CurrentPosition: (" <<
+            //    currentBehold->position.x << ", " <<
+            //    currentBehold->position.y << ", " <<
+            //    currentBehold->position.z << ")" << std::endl;
 
-            std::cout << currentBehold->friendlyName << " I -> " <<
-                currentBehold->currentI << ", J -> " <<
-                currentBehold->currentJ << std::endl;
+            //std::cout << currentBehold->friendlyName << " I -> " <<
+            //    currentBehold->currentI << ", J -> " <<
+            //    currentBehold->currentJ << std::endl;
 
-            std::cout << currentBehold->friendlyName << " NextPosition: (" <<
-                nextPosition.x << ", " <<
-                nextPosition.y << ", " <<
-                nextPosition.z << ")" << std::endl;
+            //std::cout << currentBehold->friendlyName << " NextPosition: (" <<
+            //    nextPosition.x << ", " <<
+            //    nextPosition.y << ", " <<
+            //    nextPosition.z << ")" << std::endl;
 
-            std::cout << "nextTileX" << currentBeholdID << " changed" << std::endl;
-            std::cout << "nextTileY" << currentBeholdID << " changed" << std::endl;
-            std::cout << "nextTileZ" << currentBeholdID << " changed" << std::endl;
+            //std::cout << "nextTileX" << currentBeholdID << " changed" << std::endl;
+            //std::cout << "nextTileY" << currentBeholdID << " changed" << std::endl;
+            //std::cout << "nextTileZ" << currentBeholdID << " changed" << std::endl;
 
             currPKF.value = glm::vec3(currentBehold->position.x, currentBehold->position.y, currentBehold->position.z);
             currPKF.time = 0;
 
             // Lock the mutex to prevent other threads from accessing the vector
-            EnterCriticalSection(&dataMutex);
+            //EnterCriticalSection(&dataMutex);
 
             currentBehold->PositionKeyFrames.push_back(currPKF);
 
             // Unlock the mutex to allow other threads to access the vector
-            LeaveCriticalSection(&dataMutex);
+            //LeaveCriticalSection(&dataMutex);
 
             nextPKF.value = glm::vec3(nextPosition.x, nextPosition.y, nextPosition.z);
             nextPKF.time = 1;
 
             // Lock the mutex to prevent other threads from accessing the vector
-            EnterCriticalSection(&dataMutex);
+            //EnterCriticalSection(&dataMutex);
 
             currentBehold->PositionKeyFrames.push_back(nextPKF);
 
             // Unlock the mutex to allow other threads to access the vector
-            LeaveCriticalSection(&dataMutex);
+            //LeaveCriticalSection(&dataMutex);
 
             currentBehold->CurrentTime = 0.f;
             currentBehold->IsLooping = false;
@@ -1317,48 +1455,83 @@ void updateCurrentMazeView(int newI, int newJ) {
     g_cameraEye = glm::vec3(mainChar->position.x, (g_GraphicScene.drawFog * 160.f), mainChar->position.z + 2.f);
 }
 
+void displayMap(void)
+{
+    // Set up the projection matrix for 2D rendering
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    glOrtho(0, 640, 0, 480, -1, 1);
+
+    // Set up the modelview matrix for 2D rendering
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+
+    // Draw the map
+    glColor3f(1.0f, 1.0f, 1.0f);
+    glBegin(GL_LINE_LOOP);
+    glVertex2f(100, 100);
+    glVertex2f(300, 100);
+    glVertex2f(300, 300);
+    glVertex2f(100, 300);
+    glEnd();
+}
+
+static void refresh_callback(GLFWwindow* window)
+{
+    // Clear the color buffer
+    glClear(GL_COLOR_BUFFER_BIT);
+
+    // Draw the map
+    displayMap();
+
+    // Swap buffers
+    glfwSwapBuffers(window);
+}
+
 int main(int argc, char* argv[]) {
     std::cout << "starting up..." << std::endl;
 
-    // ---------------------------- Creating the Maze -----------------------------
     GLint vpos_location = 0;
     GLint vcol_location = 0;
 
     animationType = 0;
     animationSpeed = 0.01;
 
-    srand(time(NULL));
+    // ---------------------------- Creating the Maze -----------------------------
+    { 
+        srand(time(NULL));
 
-    std::chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();
+        std::chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();
 
-    cMazeMaker_W2023::sProcessMemoryCounters memInfoStart;
+        cMazeMaker_W2023::sProcessMemoryCounters memInfoStart;
 
-    theMM.getMemoryUse(memInfoStart);
-    theMM.GenerateMaze(MAP_HEIGHT, MAP_WIDTH);
+        theMM.getMemoryUse(memInfoStart);
+        theMM.GenerateMaze(MAP_HEIGHT, MAP_WIDTH);
 
-    std::chrono::high_resolution_clock::time_point t2 = std::chrono::high_resolution_clock::now();
-    std::chrono::duration<double> time_span = std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1);
+        std::chrono::high_resolution_clock::time_point t2 = std::chrono::high_resolution_clock::now();
+        std::chrono::duration<double> time_span = std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1);
 
-    std::cout << "It took me " << time_span.count() << " seconds.";
+        std::cout << "It took me " << time_span.count() << " seconds.";
 
-    cMazeMaker_W2023::sProcessMemoryCounters memInfoEnd;
-    theMM.getMemoryUse(memInfoEnd);
+        cMazeMaker_W2023::sProcessMemoryCounters memInfoEnd;
+        theMM.getMemoryUse(memInfoEnd);
 
-    unsigned long long deltaMemoryUsed = memInfoEnd.WorkingSetSize - memInfoStart.WorkingSetSize;
-    std::cout << "Delta memory:" << std::endl;
-    std::cout << "\t" << deltaMemoryUsed << " bytes" << std::endl;
-    std::cout << "\t" << deltaMemoryUsed / 1024 << " K" << std::endl;
-    std::cout << "\t" << deltaMemoryUsed / (1024 * 1024) << " M" << std::endl;
-    std::cout << "\t" << deltaMemoryUsed / (1024 * 1024 * 1024) << " G" << std::endl;
+        unsigned long long deltaMemoryUsed = memInfoEnd.WorkingSetSize - memInfoStart.WorkingSetSize;
+        std::cout << "Delta memory:" << std::endl;
+        std::cout << "\t" << deltaMemoryUsed << " bytes" << std::endl;
+        std::cout << "\t" << deltaMemoryUsed / 1024 << " K" << std::endl;
+        std::cout << "\t" << deltaMemoryUsed / (1024 * 1024) << " M" << std::endl;
+        std::cout << "\t" << deltaMemoryUsed / (1024 * 1024 * 1024) << " G" << std::endl;
 
-    theMM.PrintMaze();
+        theMM.PrintMaze();
+    } // ---------------------------- Creating the Maze -----------------------------
 
     int updateCount = 0;
     pBrain = new cLuaBrain();
+
     g_GraphicScene.map_beholds = new std::map<std::string, cMeshObject*>();
 
     m_blocksLoader = new BlocksLoader(MAP_HEIGHT, MAP_WIDTH);
-    // ---------------------------- Creating the Maze -----------------------------
 
     g_cameraTarget = glm::vec3(1000.f, 0.0, 1000.f);
     g_cameraEye = glm::vec3(1000.f, 2000.f, 1010.f);
@@ -1399,7 +1572,6 @@ int main(int argc, char* argv[]) {
             )
             return -4;
     }
-    // ------------------ FMOD INICIALIZATION ------------------------------------
 
     glfwSetErrorCallback(error_callback);
 
@@ -1424,15 +1596,68 @@ int main(int argc, char* argv[]) {
     gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
     glfwSwapInterval(1);
 
+    // Frame Buffer Object
+    { 
+        ::g_pFBO_01 = new cFBO();
+
+        // Matches the FBO to the screen buffer size
+        int screenWidth = 0;
+        int screenHeight = 0;
+        glfwGetFramebufferSize(window, &screenWidth, &screenHeight);
+
+        std::string FBOErrorString;
+        if (!::g_pFBO_01->init(screenWidth, screenHeight, FBOErrorString)) {
+            std::cout << "FBO error " << FBOErrorString << std::endl;
+        }
+        else {
+            std::cout << "FBO created OK." << std::endl;
+        }
+    }
+
     gameUi.fmod_manager_ = fmod_manager;
     gameUi.iniciatingUI();
 
     g_GraphicScene.PrepareScene();
 
+    // Set up the 2D map view
+    {
+        //glfwMakeContextCurrent(window);
+        //glfwSetWindowSize(window, 200, 200);
+        //glfwSetWindowPos(window, 0, 0);
+        //glfwSetWindowTitle(window, "2D Map");
+        //glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+        //glfwSetFramebufferSizeCallback(window, [](GLFWwindow*, int width, int height) {
+        //    glViewport(0, 0, width, height);
+        //    });
+        //glfwSetWindowAspectRatio(window, 1, 1);
+        //glfwSetWindowPosCallback(window, [](GLFWwindow* window, int xpos, int ypos) {
+        //    int width, height;
+        //    glfwGetWindowSize(window, &width, &height);
+        //    glfwSetWindowPos(window, 0, glfwGetVideoMode(glfwGetPrimaryMonitor())->height - height);
+        //    });
+        //glfwSetWindowAspectRatio(window, 1, 1);
+        //glfwSetWindowRefreshCallback(window, refresh_callback);
+    }
+
+    // Frame Buffer Object
+    {
+        // redirect the output to the frame buffer
+        glBindFramebuffer(GL_FRAMEBUFFER, ::g_pFBO_01->ID);
+
+        // Points the output to the default frame buffer
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+        // We are drawing to the FBO, so need the FBO's size
+        glViewport(0, 0, ::g_pFBO_01->width, ::g_pFBO_01->height);
+        //glViewport(0, 0, width, height);
+
+        // We need to clear the offscreen FBO buffer, not the actual screen buffer
+        ::g_pFBO_01->clearBuffers(true, true);
+    }
+
     // Setting the lights
     lightning(g_GraphicScene.shaderID);
 
-    //creatingModels();
     // Creating Beholders
     for (int i = 0; i < 100; i++) {
         std::string randomPos;
@@ -1467,7 +1692,6 @@ int main(int argc, char* argv[]) {
         beholder->currentJ = randomJ;
 
         g_GraphicScene.map_beholds->try_emplace(beholderName, beholder);
-        //g_GraphicScene.vec_pMeshCurrentMaze.push_back(beholder);
     }
 
     itBeholdsToFollow = g_GraphicScene.map_beholds->begin();
@@ -1502,66 +1726,68 @@ int main(int argc, char* argv[]) {
     g_GraphicScene.LoadTextures();
 
     // ---------------- LUA  ----------------------------------------------
-    std::string moveScriptTowardsDestinationFUNCTION =
-        "function moveObjectTowardsDestination( objectID, xDest, yDest, zDest )										    \n"	\
-        "	isValidObj, xObj, yObj, zObj, vxObj, vyObj, vzObj, moving = getObjectState( objectID )		\n"	\
-        "	if isValidObj and xDest ~= nil and yDest ~= nil and zDest ~= nil and moving == 1 then					\n"	\
-        "		xDirection = xDest - xObj																		    \n"	\
-        "		yDirection = yDest - yObj																		    \n"	\
-        "		zDirection = zDest - zObj																			\n"	\
-        "		magnitude = (xDirection * xDirection + yDirection * yDirection + zDirection * zDirection)^0.5		\n"	\
-        "		if magnitude > " + std::to_string(SMALLEST_DISTANCE) + " then										\n"	\
-        "			xStep = xDirection / magnitude / 2																\n"	\
-        "			yStep = yDirection / magnitude / 2																\n"	\
-        "			zStep = zDirection / magnitude / 2         													    \n"	\
-        "																                                    \n"	\
-        "			xObj = xObj + xStep																					\n"	\
-        "			yObj = yObj + yStep																				    \n"	\
-        "			zObj = zObj + zStep																					\n"	\
-        "																								\n"	\
-        "			setObjectState( objectID, xObj, yObj, zObj, vyObj, vzObj, vzObj, 1 )							\n"	\
-        "			return true																						\n"	\
-        "		else																								\n"	\
-        "		    print(\"Current Object: \", objectID ) 															\n"	\
-        "		    print(\"Setting this position: \", xObj, yObj, zObj ) 															\n"	\
-        "			setObjectState( objectID, xObj, yObj, zObj, vx, vy, vz, 0 )							\n"	\
-        "			return false																					\n"	\
-        "		end																									\n"	\
-        "	end																										\n"	\
-        "end";
-    pBrain->RunScriptImmediately(moveScriptTowardsDestinationFUNCTION);
+    { 
+        std::string moveScriptTowardsDestinationFUNCTION =
+            "function moveObjectTowardsDestination( objectID, xDest, yDest, zDest )										    \n"	\
+            "	isValidObj, xObj, yObj, zObj, vxObj, vyObj, vzObj, moving = getObjectState( objectID )		\n"	\
+            "	if isValidObj and xDest ~= nil and yDest ~= nil and zDest ~= nil and moving == 1 then					\n"	\
+            "		xDirection = xDest - xObj																		    \n"	\
+            "		yDirection = yDest - yObj																		    \n"	\
+            "		zDirection = zDest - zObj																			\n"	\
+            "		magnitude = (xDirection * xDirection + yDirection * yDirection + zDirection * zDirection)^0.5		\n"	\
+            "		if magnitude > " + std::to_string(SMALLEST_DISTANCE) + " then										\n"	\
+            "			xStep = xDirection / magnitude / 2																\n"	\
+            "			yStep = yDirection / magnitude / 2																\n"	\
+            "			zStep = zDirection / magnitude / 2         													    \n"	\
+            "																                                    \n"	\
+            "			xObj = xObj + xStep																					\n"	\
+            "			yObj = yObj + yStep																				    \n"	\
+            "			zObj = zObj + zStep																					\n"	\
+            "																								\n"	\
+            "			setObjectState( objectID, xObj, yObj, zObj, vyObj, vzObj, vzObj, 1 )							\n"	\
+            "			return true																						\n"	\
+            "		else																								\n"	\
+            "		    print(\"Current Object: \", objectID ) 															\n"	\
+            "		    print(\"Setting this position: \", xObj, yObj, zObj ) 															\n"	\
+            "			setObjectState( objectID, xObj, yObj, zObj, vx, vy, vz, 0 )							\n"	\
+            "			return false																					\n"	\
+            "		end																									\n"	\
+            "	end																										\n"	\
+            "end";
+        pBrain->RunScriptImmediately(moveScriptTowardsDestinationFUNCTION);
 
-    pBrain->SetObjectVector(g_GraphicScene.map_beholds);
 
-    for (std::map< std::string, cMeshObject*>::iterator itBeholds =
-        g_GraphicScene.map_beholds->begin(); itBeholds != g_GraphicScene.map_beholds->end();
-        itBeholds++) 
-    {
-        cMeshObject* currentBehold = itBeholds->second;
-        unsigned int currentBeholdID = currentBehold->getID();
+        pBrain->SetObjectVector(g_GraphicScene.map_beholds);
 
-        std::string currentBeholdNextTileXScript = "nextTileX" + std::to_string(currentBeholdID) + " = nil";
-        std::string currentBeholdNextTileYScript = "nextTileY" + std::to_string(currentBeholdID) + " = nil";
-        std::string currentBeholdNextTileZScript = "nextTileZ" + std::to_string(currentBeholdID) + " = nil";
-        pBrain->RunScriptImmediately(currentBeholdNextTileXScript);
-        pBrain->RunScriptImmediately(currentBeholdNextTileYScript);
-        pBrain->RunScriptImmediately(currentBeholdNextTileZScript);
+        for (std::map< std::string, cMeshObject*>::iterator itBeholds =
+            g_GraphicScene.map_beholds->begin(); itBeholds != g_GraphicScene.map_beholds->end();
+            itBeholds++)
+        {
+            cMeshObject* currentBehold = itBeholds->second;
+            unsigned int currentBeholdID = currentBehold->getID();
 
-        std::string myScriptText = "setObjectState(" + std::to_string(currentBeholdID) + ", " +
-            std::to_string(currentBehold->position.x) + ", " +
-            std::to_string(currentBehold->position.y) + ", " +
-            std::to_string(currentBehold->position.z) + ", " + 
-            " 0, 0, 0 " +
-            ")";
-        pBrain->RunScriptImmediately(myScriptText);
+            std::string currentBeholdNextTileXScript = "nextTileX" + std::to_string(currentBeholdID) + " = nil";
+            std::string currentBeholdNextTileYScript = "nextTileY" + std::to_string(currentBeholdID) + " = nil";
+            std::string currentBeholdNextTileZScript = "nextTileZ" + std::to_string(currentBeholdID) + " = nil";
+            pBrain->RunScriptImmediately(currentBeholdNextTileXScript);
+            pBrain->RunScriptImmediately(currentBeholdNextTileYScript);
+            pBrain->RunScriptImmediately(currentBeholdNextTileZScript);
 
-        pBrain->LoadScript("behold" + std::to_string(currentBeholdID) + "BasicMove", "moveObjectTowardsDestination(" +
-            std::to_string(currentBeholdID) + ", " + 
-            "nextTileX" + std::to_string(currentBeholdID) + ", " +
-            "nextTileY" + std::to_string(currentBeholdID) + ", " +
-            "nextTileZ" + std::to_string(currentBeholdID) + ")");
-    }
-    // ---------------- LUA  ----------------------------------------------
+            std::string myScriptText = "setObjectState(" + std::to_string(currentBeholdID) + ", " +
+                std::to_string(currentBehold->position.x) + ", " +
+                std::to_string(currentBehold->position.y) + ", " +
+                std::to_string(currentBehold->position.z) + ", " +
+                " 0, 0, 0 " +
+                ")";
+            pBrain->RunScriptImmediately(myScriptText);
+
+            pBrain->LoadScript("behold" + std::to_string(currentBeholdID) + "BasicMove", "moveObjectTowardsDestination(" +
+                std::to_string(currentBeholdID) + ", " +
+                "nextTileX" + std::to_string(currentBeholdID) + ", " +
+                "nextTileY" + std::to_string(currentBeholdID) + ", " +
+                "nextTileZ" + std::to_string(currentBeholdID) + ")");
+        }
+    } // ---------------- LUA  ----------------------------------------------
 
     std::string randomPos;
     randomPos = m_blocksLoader->getRandomValidPosition();
@@ -1594,146 +1820,149 @@ int main(int argc, char* argv[]) {
 
         std::stringstream ssTitle;
         ssTitle << "Multiverse Cursed Village";
-
         std::string theText = ssTitle.str();
 
         // Physics Update
         //simView->m_PhysicsSystem.UpdateStep(0.1f);
 
         // Animation Update
-        for (std::map< std::string, cMeshObject*>::iterator itBeholds =
-            g_GraphicScene.map_beholds->begin(); itBeholds != g_GraphicScene.map_beholds->end();
-            itBeholds++) 
-        {
-            cMeshObject* currentBehold = itBeholds->second;
-            unsigned int currentBeholdID = currentBehold->getID();
-        
-            if (currentBehold->moving == 0 && !currentBehold->dead) {
-                glm::vec3 nextPosition = glm::vec3(0.0f);
-                if (!calculateNextPosition(currentBehold, nextPosition)) {
-                    // Spin and reduce;
-                    currentBehold->adjustRoationAngleFromEuler(glm::vec3(0.0f, 0.2f, 0.0f));
-                    currentBehold->reduceFromScale(0.99f);
-                    if (currentBehold->scaleXYZ.x <= 0.01) {
-                        currentBehold->dead = true;
-                        std::cout << currentBehold->friendlyName << " is Dead :(" << std::endl;
-                    }
-                    continue;
-                }
-        
-                currentBehold->moving = 1;
-                currentBehold->rotating = 1;
-                currentBehold->PositionKeyFrames.clear();
-                currentBehold->RotationKeyFrames.clear();
-        
-                std::string currentBeholdNextTileXScript = 
-                    "nextTileX" + std::to_string(currentBeholdID) + " = " + 
-                    std::to_string(nextPosition.x);
-                std::string currentBeholdNextTileYScript =
-                    "nextTileY" + std::to_string(currentBeholdID) + " = " +
-                    std::to_string(nextPosition.y);
-                std::string currentBeholdNextTileZScript = 
-                    "nextTileZ" + std::to_string(currentBeholdID) + "  = " +
-                    std::to_string(nextPosition.z);
-        
-                RotationKeyFrame currRKF;        
-                currRKF.value = currentBehold->rotation;
-                currRKF.time = 0;
-                currRKF.useSlerp = false;
-                currentBehold->RotationKeyFrames.push_back(currRKF);
-        
-                RotationKeyFrame nextRKF;
-                nextRKF.time = 1;
-                nextRKF.useSlerp = false;
-        
-                // Setting rotation
-                if (nextPosition.x < currentBehold->position.x) {// Going WEST
-                    //currentBehold->setRotationFromEuler(glm::vec3(0.0f, NinetyDegrees, 0.0f));
-                    nextRKF.value = glm::vec3(0.0f, NinetyDegrees, 0.0f);
-                }
-        
-                if (nextPosition.x > currentBehold->position.x) {// Going EAST
-                    //currentBehold->setRotationFromEuler(glm::vec3(0.0f, -NinetyDegrees, 0.0f));
-                    nextRKF.value = glm::vec3(0.0f, -NinetyDegrees, 0.0f);
-                }
-        
-                if (nextPosition.z < currentBehold->position.z) {// Going NORTH
-                    //currentBehold->setRotationFromEuler(glm::vec3(0.0f, 0.0, 0.0f));
-                    nextRKF.value = glm::vec3(0.0f, 0.0, 0.0f);
-                }
-        
-                if (nextPosition.z > currentBehold->position.z) {// Going SOUTH
-                    //currentBehold->setRotationFromEuler(glm::vec3(0.0f, NinetyDegrees * 2, 0.0f));
-                    nextRKF.value = glm::vec3(0.0f, NinetyDegrees * 2, 0.0f);
-                }
-        
-                currentBehold->RotationKeyFrames.push_back(nextRKF);
-        
-                std::cout << " ------------------------------------------------------ " << std::endl;
-                std::cout << currentBehold->friendlyName << " CurrentPosition: (" <<
-                    currentBehold->position.x << ", " <<
-                    currentBehold->position.y << ", " <<
-                    currentBehold->position.z << ")" << std::endl;
-        
-                std::cout << currentBehold->friendlyName << " I -> " <<
-                    currentBehold->currentI << ", J -> " <<
-                    currentBehold->currentJ << std::endl;
-        
-                std::cout << currentBehold->friendlyName << " NextPosition: (" <<
-                    nextPosition.x << ", " <<
-                    nextPosition.y << ", " <<
-                    nextPosition.z << ")" << std::endl;
-        
-                std::cout << "nextTileX" << currentBeholdID << " changed" << std::endl;
-                std::cout << "nextTileY" << currentBeholdID << " changed" << std::endl;
-                std::cout << "nextTileZ" << currentBeholdID << " changed" << std::endl;
-        
-                PositionKeyFrame currPKF;
-                currPKF.value = glm::vec3(currentBehold->position.x, currentBehold->position.y, currentBehold->position.z);
-                currPKF.time = 0;
-                currentBehold->PositionKeyFrames.push_back(currPKF);
-        
-                PositionKeyFrame nextPKF;
-                nextPKF.value = glm::vec3(nextPosition.x, nextPosition.y, nextPosition.z);
-                nextPKF.time = 1;
-                currentBehold->PositionKeyFrames.push_back(nextPKF);
-        
-                currentBehold->CurrentTime = 0.f;
-                currentBehold->IsLooping = false;
-                currentBehold->IsPlaying = true;
-            }
-            else if (currentBehold->moving == 2 && !currentBehold->dead && currentBehold->rotating == 0) {
-                // Check if the animation is finished?
-                currentBehold->UpdateAnimation(1);
-                currentBehold->Speed = animationSpeed;
-        
-                glm::vec3 newPosition = currentBehold->GetAnimationPosition(currentBehold->CurrentTime, animationType);
-                currentBehold->position.x = newPosition.x;
-                currentBehold->position.z = newPosition.z;
-            }
-            else if (currentBehold->moving == 1 && !currentBehold->dead && currentBehold->rotating == 1) {
-                currentBehold->UpdateAnimation(1);
-                currentBehold->Speed = animationSpeed;
-        
-                glm::vec3 newRotation = currentBehold->GetAnimationRotation(currentBehold->CurrentTime, animationType);
-                currentBehold->rotation = newRotation;
-            }
-        }
+        //for (std::map< std::string, cMeshObject*>::iterator itBeholds =
+        //    g_GraphicScene.map_beholds->begin(); itBeholds != g_GraphicScene.map_beholds->end();
+        //    itBeholds++) 
+        //{
+        //    cMeshObject* currentBehold = itBeholds->second;
+        //    unsigned int currentBeholdID = currentBehold->getID();
+        //    int numTilesNext = 0;
+        //
+        //    if (currentBehold->moving == 0 && !currentBehold->dead) {
+        //        glm::vec3 nextPosition = glm::vec3(0.0f);
+        //        if (!calculateNextPosition(currentBehold, nextPosition, numTilesNext)) {
+        //            // Spin and reduce;
+        //            currentBehold->adjustRoationAngleFromEuler(glm::vec3(0.0f, 0.2f, 0.0f));
+        //            currentBehold->reduceFromScale(0.99f);
+        //            if (currentBehold->scaleXYZ.x <= 0.01) {
+        //                currentBehold->dead = true;
+        //                std::cout << currentBehold->friendlyName << " is Dead :(" << std::endl;
+        //            }
+        //            continue;
+        //        }
+        //
+        //        currentBehold->moving = 1;
+        //        currentBehold->rotating = 1;
+        //        currentBehold->PositionKeyFrames.clear();
+        //        currentBehold->RotationKeyFrames.clear();
+        //
+        //        std::string currentBeholdNextTileXScript = 
+        //            "nextTileX" + std::to_string(currentBeholdID) + " = " + 
+        //            std::to_string(nextPosition.x);
+        //        std::string currentBeholdNextTileYScript =
+        //            "nextTileY" + std::to_string(currentBeholdID) + " = " +
+        //            std::to_string(nextPosition.y);
+        //        std::string currentBeholdNextTileZScript = 
+        //            "nextTileZ" + std::to_string(currentBeholdID) + "  = " +
+        //            std::to_string(nextPosition.z);
+        //
+        //        RotationKeyFrame currRKF;        
+        //        currRKF.value = currentBehold->rotation;
+        //        currRKF.time = 0;
+        //        currRKF.useSlerp = false;
+        //        currentBehold->RotationKeyFrames.push_back(currRKF);
+        //
+        //        RotationKeyFrame nextRKF;
+        //        nextRKF.time = 1;
+        //        nextRKF.useSlerp = false;
+        //
+        //        // Setting rotation
+        //        if (nextPosition.x < currentBehold->position.x) {// Going WEST
+        //            //currentBehold->setRotationFromEuler(glm::vec3(0.0f, NinetyDegrees, 0.0f));
+        //            nextRKF.value = glm::vec3(0.0f, NinetyDegrees, 0.0f);
+        //        }
+        //
+        //        if (nextPosition.x > currentBehold->position.x) {// Going EAST
+        //            //currentBehold->setRotationFromEuler(glm::vec3(0.0f, -NinetyDegrees, 0.0f));
+        //            nextRKF.value = glm::vec3(0.0f, -NinetyDegrees, 0.0f);
+        //        }
+        //
+        //        if (nextPosition.z < currentBehold->position.z) {// Going NORTH
+        //            //currentBehold->setRotationFromEuler(glm::vec3(0.0f, 0.0, 0.0f));
+        //            nextRKF.value = glm::vec3(0.0f, 0.0, 0.0f);
+        //        }
+        //
+        //        if (nextPosition.z > currentBehold->position.z) {// Going SOUTH
+        //            //currentBehold->setRotationFromEuler(glm::vec3(0.0f, NinetyDegrees * 2, 0.0f));
+        //            nextRKF.value = glm::vec3(0.0f, NinetyDegrees * 2, 0.0f);
+        //        }
+        //
+        //        currentBehold->RotationKeyFrames.push_back(nextRKF);
+        //
+        //        std::cout << " ------------------------------------------------------ " << std::endl;
+        //        std::cout << currentBehold->friendlyName << " CurrentPosition: (" <<
+        //            currentBehold->position.x << ", " <<
+        //            currentBehold->position.y << ", " <<
+        //            currentBehold->position.z << ")" << std::endl;
+        //
+        //        std::cout << currentBehold->friendlyName << " I -> " <<
+        //            currentBehold->currentI << ", J -> " <<
+        //            currentBehold->currentJ << std::endl;
+        //
+        //        std::cout << currentBehold->friendlyName << " NextPosition: (" <<
+        //            nextPosition.x << ", " <<
+        //            nextPosition.y << ", " <<
+        //            nextPosition.z << ")" << std::endl;
+        //
+        //        std::cout << "nextTileX" << currentBeholdID << " changed" << std::endl;
+        //        std::cout << "nextTileY" << currentBeholdID << " changed" << std::endl;
+        //        std::cout << "nextTileZ" << currentBeholdID << " changed" << std::endl;
+        //
+        //        PositionKeyFrame currPKF;
+        //        currPKF.value = glm::vec3(currentBehold->position.x, currentBehold->position.y, currentBehold->position.z);
+        //        currPKF.time = 0;
+        //        currentBehold->PositionKeyFrames.push_back(currPKF);
+        //
+        //        PositionKeyFrame nextPKF;
+        //        nextPKF.value = glm::vec3(nextPosition.x, nextPosition.y, nextPosition.z);
+        //        nextPKF.time = 1;
+        //        //nextPKF.time = numTilesNext;
+        //        currentBehold->PositionKeyFrames.push_back(nextPKF);
+        //
+        //        currentBehold->CurrentTime = 0.f;
+        //        currentBehold->IsLooping = false;
+        //        currentBehold->IsPlaying = true;
+        //    }
+        //    else if (currentBehold->moving == 2 && !currentBehold->dead && currentBehold->rotating == 0) {
+        //        // Check if the animation is finished?
+        //        currentBehold->UpdateAnimation(1);
+        //        currentBehold->Speed = animationSpeed;
+        //
+        //        glm::vec3 newPosition = currentBehold->GetAnimationPosition(currentBehold->CurrentTime, animationType);
+        //        currentBehold->position.x = newPosition.x;
+        //        currentBehold->position.z = newPosition.z;
+        //    }
+        //    else if (currentBehold->moving == 1 && !currentBehold->dead && currentBehold->rotating == 1) {
+        //        currentBehold->UpdateAnimation(1);
+        //        currentBehold->Speed = animationSpeed;
+        //
+        //        glm::vec3 newRotation = currentBehold->GetAnimationRotation(currentBehold->CurrentTime, animationType);
+        //        currentBehold->rotation = newRotation;
+        //    }
+        //}
+        //
         
         { // THREAD BEHOLD UPDATE
-            //DWORD dw;
-            //int iLoop = 0;
-            //_MAZE_TILE_INFO* pMazeTileInfo = new _MAZE_TILE_INFO[NUM_THREADS];
+            DWORD dw;
+            int iLoop = 0;
+            _MAZE_TILE_INFO* pMazeTileInfo = new _MAZE_TILE_INFO;
 
-            //ahThread[iLoop] = chBEGINTHREADEX(NULL, 0, animationUpdate,
-            //    (PVOID)(&pMazeTileInfo[iLoop]),
-            //    0, &dw);
+            ahThread = chBEGINTHREADEX(NULL, 0, animationUpdate,
+                (PVOID)(&pMazeTileInfo),
+                0, &dw);
 
             //iLoop++;
             //if (iLoop >= NUM_THREADS) iLoop = 0;
 
-            //// Only waits for 64 of them, not matter how many you call.
+            // Only waits for 64 of them, not matter how many you call.
             //WaitForMultipleObjects(NUM_THREADS, ahThread, TRUE, INFINITE);
+            WaitForSingleObject(ahThread, INFINITE);
         }
 
         // Update will run any Lua script sitting in the "brain"
@@ -1785,8 +2014,9 @@ int main(int argc, char* argv[]) {
     // Clean up the mutex before exiting the program
     DeleteCriticalSection(&dataMutex);
     CloseHandle(dataSemaphore);
-    for (int iLoop = 0; iLoop < NUM_THREADS; iLoop++)
-        CloseHandle(ahThread[iLoop]);
+    CloseHandle(ahThread);
+    //for (int iLoop = 0; iLoop < NUM_THREADS; iLoop++)
+    //    CloseHandle(ahThread[iLoop]);
 
     g_GraphicScene.Shutdown();
     delete ::g_pTheLightManager;

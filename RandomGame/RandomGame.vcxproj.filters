@@ -60,6 +60,9 @@
     <Filter Include="Threads">
       <UniqueIdentifier>{3d59e70c-d514-4051-b6a6-0976b178fdf8}</UniqueIdentifier>
     </Filter>
+    <Filter Include="FBO">
+      <UniqueIdentifier>{81604788-63b7-4585-8a1c-b4e7abfa08eb}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="cVAOManager\cVAOManager.cpp">
@@ -196,6 +199,9 @@
     </ClCompile>
     <ClCompile Include="cMazeMaker_W2023_async.cpp">
       <Filter>MazeGenerator</Filter>
+    </ClCompile>
+    <ClCompile Include="cFBO.cpp">
+      <Filter>FBO</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -339,6 +345,9 @@
     </ClInclude>
     <ClInclude Include="threads.h">
       <Filter>Threads</Filter>
+    </ClInclude>
+    <ClInclude Include="cFBO.h">
+      <Filter>FBO</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

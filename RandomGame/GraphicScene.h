@@ -3,8 +3,8 @@
 #include <iostream>
 #include <vector>
 #include <map>
-#include <glm/glm.hpp>
 #include <math.h>
+
 #include "cMeshObject.h"
 #include "cVAOManager/sModelDrawInfo.h"
 #include "globalOpenGL.h"
@@ -14,11 +14,22 @@
 #include "cLightHelper.h"
 #include "cVAOManager/c3DModelFileLoader.h"
 #include "cBasicTextureManager/cBasicTextureManager.h"
+
+#include <glm/glm.hpp>
 #include <glm/vec3.hpp> 
 #include <glm/vec4.hpp>
 #include <glm/mat4x4.hpp> 
 #include <glm/gtc/matrix_transform.hpp> 
 #include <glm/gtc/type_ptr.hpp>
+
+/* Link with Win32 shared freeglut lib */
+#           if FREEGLUT_LIB_PRAGMAS
+#               ifdef NDEBUG
+#                   pragma comment (lib, "freeglut.lib")
+#               else
+#                   pragma comment (lib, "freeglutd.lib")
+#               endif
+#           endif
 
 class GraphicScene {
 public:
