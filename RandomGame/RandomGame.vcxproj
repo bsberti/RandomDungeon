@@ -71,12 +71,12 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>$(ProjectDir)include;$(VC_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
-    <LibraryPath>$(ProjectDir)lib/Debug_x64;$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64)</LibraryPath>
+    <IncludePath>$(SolutionDir)dev/include;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
+    <LibraryPath>$(SolutionDir)dev/libraries/Debug;$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <IncludePath>$(ProjectDir)include;$(VC_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
-    <LibraryPath>$(ProjectDir)lib/Release_x64;$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64)</LibraryPath>
+    <IncludePath>$(SolutionDir)dev/include;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
+    <LibraryPath>$(SolutionDir)dev/libraries/Release;$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -153,6 +153,7 @@
     <ClCompile Include="cMazeMaker_W2023.cpp" />
     <ClCompile Include="cMazeMaker_W2023_async.cpp" />
     <ClCompile Include="cMeshObject.cpp" />
+    <ClCompile Include="cModel.cpp" />
     <ClCompile Include="cRandomUI.cpp" />
     <ClCompile Include="DrawObject_function.cpp" />
     <ClCompile Include="EntityLoaderManager.cpp" />
@@ -201,6 +202,7 @@
     <ClInclude Include="cLightManager.h" />
     <ClInclude Include="cLuaBrain.h" />
     <ClInclude Include="cMazeMaker_W2023.h" />
+    <ClInclude Include="cModel.h" />
     <ClInclude Include="cRandomUI.h" />
     <ClInclude Include="EntityLoaderManager.h" />
     <ClInclude Include="FModManager.h" />

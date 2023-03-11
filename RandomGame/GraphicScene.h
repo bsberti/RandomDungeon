@@ -14,6 +14,7 @@
 #include "cLightHelper.h"
 #include "cVAOManager/c3DModelFileLoader.h"
 #include "cBasicTextureManager/cBasicTextureManager.h"
+#include "cFBO.h"
 
 #include <glm/glm.hpp>
 #include <glm/vec3.hpp> 
@@ -21,6 +22,7 @@
 #include <glm/mat4x4.hpp> 
 #include <glm/gtc/matrix_transform.hpp> 
 #include <glm/gtc/type_ptr.hpp>
+#include <algorithm>
 
 /* Link with Win32 shared freeglut lib */
 #           if FREEGLUT_LIB_PRAGMAS
@@ -43,6 +45,7 @@ public:
 	void LoadTextures();
 	int PrepareScene();
 	void DrawScene(GLFWwindow* window, glm::vec3 g_cameraEye, glm::vec3 g_cameraTarget);
+	void DrawMapView(GLFWwindow* window, glm::vec3 g_cameraEye, glm::vec3 g_cameraTarget);
 	void CalculateSceneExtension(glm::vec3 g_cameraEye, glm::vec3 g_cameraTarget);
 	void Shutdown();
 
@@ -95,8 +98,13 @@ public:
 	glm::vec3 maxExt;
 	float ratio;
 	int width, height;
+	int mapWidth, mapHeigth;
 
 	cMeshObject* pSkyBox;
+
+	// Frame Buffer Object
+	// (This is global so the windows resize callback can "see" it)
+	cFBO* g_pFBO_01 = NULL;
 private:
 	
 };

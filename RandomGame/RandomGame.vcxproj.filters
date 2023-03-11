@@ -63,6 +63,9 @@
     <Filter Include="FBO">
       <UniqueIdentifier>{81604788-63b7-4585-8a1c-b4e7abfa08eb}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Model">
+      <UniqueIdentifier>{b85faf76-4947-4a71-93e6-f3ba83923f84}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="cVAOManager\cVAOManager.cpp">
@@ -202,6 +205,9 @@
     </ClCompile>
     <ClCompile Include="cFBO.cpp">
       <Filter>FBO</Filter>
+    </ClCompile>
+    <ClCompile Include="cModel.cpp">
+      <Filter>Model</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -348,6 +354,9 @@
     </ClInclude>
     <ClInclude Include="cFBO.h">
       <Filter>FBO</Filter>
+    </ClInclude>
+    <ClInclude Include="cModel.h">
+      <Filter>Model</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

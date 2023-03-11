@@ -228,6 +228,7 @@ void GraphicScene::cleanMazeView() {
 
 void GraphicScene::DrawScene(GLFWwindow* window, glm::vec3 g_cameraEye, glm::vec3 g_cameraTarget) {
     
+    glLoadIdentity();
     // Making the fire impostor "move"
     for (int i = 0; i < vec_torchFlames.size(); i++) {
         cMeshObject* torchFire = vec_torchFlames[i];
@@ -239,7 +240,15 @@ void GraphicScene::DrawScene(GLFWwindow* window, glm::vec3 g_cameraEye, glm::vec
     glfwGetFramebufferSize(window, &width, &height);
     ratio = width / (float)height;
     glViewport(0, 0, width, height);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    //glEnable(GL_SCISSOR_TEST);
+    //glScissor(0, 0, width, height);
+
+    // Draw the second part of the scene
+    // Make sure to set the depth value to a high value
+    // to ensure that it is drawn behind the first part of the scene
+    //glClearDepth(1.0f);
+    //glDepthFunc(GL_LESS);
 
     glm::vec3 upVector = glm::vec3(0.0f, 1.0f, 0.0f);
     matView = glm::lookAt(g_cameraEye,
@@ -261,22 +270,6 @@ void GraphicScene::DrawScene(GLFWwindow* window, glm::vec3 g_cameraEye, glm::vec
     glUniformMatrix4fv(mView_location, 1, GL_FALSE, glm::value_ptr(matView));
     glUniformMatrix4fv(mProjection_location, 1, GL_FALSE, glm::value_ptr(matProjection));
 
-    //CalculateSceneExtension(g_cameraEye, g_cameraTarget);
-
-    //float invWidth = 1.f / width;
-    //float invHeight = 1.f / height;
-
-    //for (std::vector< cMeshObject* >::iterator itCurrentMesh = vec_pMeshObjects.begin();
-    //    itCurrentMesh != vec_pMeshObjects.end();
-    //    itCurrentMesh++)
-    //{
-    //    cMeshObject* pCurrentMeshObject = *itCurrentMesh;
-    //    bool intersects = SATIntersectionTest(pCurrentMeshObject, frustumMatrix);
-    //    if (intersects) {
-    //        vec_pMeshObjects.push_back(pCurrentMeshObject);
-    //    }
-    //}
-
     //    ____  _             _            __                           
     //   / ___|| |_ __ _ _ __| |_    ___  / _|  ___  ___ ___ _ __   ___ 
     //   \___ \| __/ _` | '__| __|  / _ \| |_  / __|/ __/ _ \ '_ \ / _ \
@@ -293,6 +286,9 @@ void GraphicScene::DrawScene(GLFWwindow* window, glm::vec3 g_cameraEye, glm::vec
         cMeshObject* pCurrentMeshObject = *itCurrentMesh;
 
         if (!pCurrentMeshObject->bIsVisible)
+            continue;
+
+        if (pCurrentMeshObject->friendlyName == "Plane_Floor")
             continue;
 
         // The parent's model matrix is set to the identity
@@ -343,13 +339,128 @@ void GraphicScene::DrawScene(GLFWwindow* window, glm::vec3 g_cameraEye, glm::vec
 
         glUniform1f(bIsSkyboxObject_UL, (GLfloat)GL_FALSE);
     }
-    // --------------- Draw the skybox -----------------------------
 
     //    _____           _          __                           
     //   | ____|_ __   __| |   ___  / _|  ___  ___ ___ _ __   ___ 
     //   |  _| | '_ \ / _` |  / _ \| |_  / __|/ __/ _ \ '_ \ / _ \
     //   | |___| | | | (_| | | (_) |  _| \__ \ (_|  __/ | | |  __/
     //   |_____|_| |_|\__,_|  \___/|_|   |___/\___\___|_| |_|\___|
+    
+    //glDisable(GL_SCISSOR_TEST);
+    //glfwSwapBuffers(window);
+
+    // Disable blending
+    //glDisable(GL_BLEND);
+}
+
+void GraphicScene::DrawMapView(GLFWwindow* window, glm::vec3 g_cameraEye, glm::vec3 g_cameraTarget) {
+
+    // Enable depth testing
+    glEnable(GL_DEPTH_TEST);
+
+    // Enable blending
+    //glEnable(GL_BLEND);
+    //glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    // Clear color and depth buffer
+    //glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    
+    glLoadIdentity();
+
+    mapWidth = 200;
+    mapHeigth = 200;
+    
+    ratio = mapWidth / (float)mapHeigth;
+    glViewport(0, 0, mapWidth, mapHeigth);
+
+    glEnable(GL_SCISSOR_TEST);
+    glScissor(0, 0, mapWidth, mapHeigth);
+
+    // Draw the first part of the scene
+    // Make sure to set the depth value to a low value
+    // to ensure that it is drawn in front of the second part of the scene
+    //glClearDepth(1.0f);
+    //glDepthFunc(GL_GREATER);
+
+    glm::vec3 upVector = glm::vec3(0.0f, 1.0f, 0.0f);
+    matView = glm::lookAt(g_cameraEye,
+        g_cameraTarget,
+        upVector);
+
+    // Pass eye location to the shader
+    GLint eyeLocation_UniLoc = glGetUniformLocation(shaderID, "eyeLocation");
+    glUniform4f(eyeLocation_UniLoc,
+        g_cameraEye.x, g_cameraEye.y, g_cameraEye.z, 1.0f);
+
+    matProjection = glm::perspective(
+        0.6f,           // Field of view (in degress, more or less 180)
+        ratio,
+        0.1f,           // Near plane (make this as LARGE as possible)
+        10000.0f);      // Far plane (make this as SMALL as possible)
+    // 6-8 digits of precision
+
+    glUniformMatrix4fv(mView_location, 1, GL_FALSE, glm::value_ptr(matView));
+    glUniformMatrix4fv(mProjection_location, 1, GL_FALSE, glm::value_ptr(matProjection));
+
+    //    ____  _             _            __                           
+    //   / ___|| |_ __ _ _ __| |_    ___  / _|  ___  ___ ___ _ __   ___ 
+    //   \___ \| __/ _` | '__| __|  / _ \| |_  / __|/ __/ _ \ '_ \ / _ \
+    //    ___) | || (_| | |  | |_  | (_) |  _| \__ \ (_|  __/ | | |  __/
+    //   |____/ \__\__,_|_|   \__|  \___/|_|   |___/\___\___|_| |_|\___|
+
+    // We draw everything in our "vec_pMeshCurrentMaze"
+    // In other words, go throug the vec_pMeshObjects container
+    //  and draw each one of the objects
+    for (std::vector< cMeshObject* >::iterator itCurrentMesh = vec_pMeshCurrentMaze.begin();
+        itCurrentMesh != vec_pMeshCurrentMaze.end();
+        itCurrentMesh++)
+    {
+        cMeshObject* pCurrentMeshObject = *itCurrentMesh;
+
+        if (!pCurrentMeshObject->bIsVisible)
+            continue;
+
+        // The parent's model matrix is set to the identity
+        glm::mat4x4 matModel = glm::mat4x4(1.0f);
+
+        DrawObject(pCurrentMeshObject,
+            matModel,
+            shaderID, g_pTextureManager,
+            pVAOManager, mModel_location, mModelInverseTransform_location);
+    }
+
+    for (std::map< std::string, cMeshObject*>::iterator itBeholds =
+        map_beholds->begin(); itBeholds != map_beholds->end();
+        itBeholds++)
+    {
+        cMeshObject* pCurrentMeshObject = itBeholds->second;
+
+        if (!pCurrentMeshObject->bIsVisible)
+            continue;
+
+        // The parent's model matrix is set to the identity
+        glm::mat4x4 matModel = glm::mat4x4(1.0f);
+
+        float distance = glm::distance(pCurrentMeshObject->position, g_cameraTarget);
+        float range = drawFog * 50.f; //GLOBAL_MAP_OFFSET
+        if (distance < range) {
+            DrawObject(pCurrentMeshObject,
+                matModel,
+                shaderID, g_pTextureManager,
+                pVAOManager, mModel_location, mModelInverseTransform_location);
+        }
+    }
+
+    //    _____           _          __                           
+    //   | ____|_ __   __| |   ___  / _|  ___  ___ ___ _ __   ___ 
+    //   |  _| | '_ \ / _` |  / _ \| |_  / __|/ __/ _ \ '_ \ / _ \
+    //   | |___| | | | (_| | | (_) |  _| \__ \ (_|  __/ | | |  __/
+    //   |_____|_| |_|\__,_|  \___/|_|   |___/\___\___|_| |_|\___|
+    
+    glDisable(GL_SCISSOR_TEST);
+    // Set the blending function for the second part of the scene
+    //glBlendFunc(GL_SRC_ALPHA, GL_ONE);
 }
 
 bool GraphicScene::SATIntersectionTest(cMeshObject* mesh, glm::mat4 frustum) {

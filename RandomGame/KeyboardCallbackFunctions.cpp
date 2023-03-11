@@ -14,6 +14,11 @@
 // These are defined in theMainFunction.cpp
 extern glm::vec3 g_cameraEye;// = glm::vec3(0.0, 0.0, -25.0f);
 extern glm::vec3 g_cameraTarget;// = glm::vec3(0.0f, 0.0f, 0.0f);
+
+extern glm::vec3 g_MapCameraEye;
+extern glm::vec3 g_MapCameraTarget;
+
+
 extern GraphicScene g_GraphicScene;
 extern SimulationView* simView;
 extern std::map< std::string, cMeshObject*>::iterator itBeholdsToFollow;

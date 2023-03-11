@@ -26,10 +26,11 @@
 
 #include "threads.h"
 
-#include "cFBO.h"
-
 glm::vec3 g_cameraEye = glm::vec3(0.0f, 0.0f, 0.0f);
 glm::vec3 g_cameraTarget = glm::vec3(0.0f, 0.0f, 0.0f);
+
+glm::vec3 g_MapCameraEye = glm::vec3(0.0f, 0.0f, 0.0f);
+glm::vec3 g_MapCameraTarget = glm::vec3(0.0f, 0.0f, 0.0f);
 
 GraphicScene g_GraphicScene;
 ParticleSystem g_ParticleSystem;
@@ -75,17 +76,14 @@ HANDLE ahThread;
 
 // Main Character Objects
 cMeshObject* mainChar;
-cCharacter   playabledCharacter;
+cMeshObject* planeFloor;
+cCharacter playabledCharacter;
 
 // Entity Loader using JSON
 EntityLoaderManager* entityLoaderManager = EntityLoaderManager::GetInstance();
 
 // String used for error feedback for methods call
 std::string errorMessage;
-
-// Frame Buffer Object
-// (This is global so the windows resize callback can "see" it)
-cFBO* g_pFBO_01 = NULL;
 
 // Call back signatures here
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
@@ -116,11 +114,11 @@ void DrawConcentricDebugLightObjects(int currentLight);
 void updateCurrentMazeView(int newI, int newJ);
 
 // HACK: These are the light spheres we will use for debug lighting
-cMeshObject* pDebugSphere_1 = NULL;// = new cMeshObject();
-cMeshObject* pDebugSphere_2 = NULL;// = new cMeshObject();
-cMeshObject* pDebugSphere_3 = NULL;// = new cMeshObject();
-cMeshObject* pDebugSphere_4 = NULL;// = new cMeshObject();
-cMeshObject* pDebugSphere_5 = NULL;// = new cMeshObject();
+cMeshObject* pDebugSphere_1 = NULL; // = new cMeshObject();
+cMeshObject* pDebugSphere_2 = NULL; // = new cMeshObject();
+cMeshObject* pDebugSphere_3 = NULL; // = new cMeshObject();
+cMeshObject* pDebugSphere_4 = NULL; // = new cMeshObject();
+cMeshObject* pDebugSphere_5 = NULL; // = new cMeshObject();
 
 // Creation and positioning of the lights
 void lightning(GLuint shaderID) {
@@ -1359,6 +1357,7 @@ void updateCurrentMazeView(int newI, int newJ) {
     
     g_GraphicScene.cleanMazeView();
     g_GraphicScene.vec_pMeshCurrentMaze.push_back(mainChar);
+    g_GraphicScene.vec_pMeshCurrentMaze.push_back(planeFloor);
 
     mainChar->currentI = newI;
     mainChar->currentJ = newJ;
@@ -1448,44 +1447,15 @@ void updateCurrentMazeView(int newI, int newJ) {
     float mainCharX = (newJ * GLOBAL_MAP_OFFSET) - (GLOBAL_MAP_OFFSET / 2);
     float mainCharZ = (newI * GLOBAL_MAP_OFFSET) - (GLOBAL_MAP_OFFSET / 2);
     mainChar->position = glm::vec3(mainCharX, 25.f, mainCharZ);
-
-    int breakpoint = g_GraphicScene.vec_pMeshCurrentMaze.size();
+    planeFloor->position.x = mainChar->position.x;
+    planeFloor->position.y = -5.f;
+    planeFloor->position.z = mainChar->position.z;
 
     g_cameraTarget = mainChar->position;
-    g_cameraEye = glm::vec3(mainChar->position.x, (g_GraphicScene.drawFog * 160.f), mainChar->position.z + 2.f);
-}
+    g_cameraEye = glm::vec3(mainChar->position.x, 300.f, mainChar->position.z + 50.f);
 
-void displayMap(void)
-{
-    // Set up the projection matrix for 2D rendering
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    glOrtho(0, 640, 0, 480, -1, 1);
-
-    // Set up the modelview matrix for 2D rendering
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
-
-    // Draw the map
-    glColor3f(1.0f, 1.0f, 1.0f);
-    glBegin(GL_LINE_LOOP);
-    glVertex2f(100, 100);
-    glVertex2f(300, 100);
-    glVertex2f(300, 300);
-    glVertex2f(100, 300);
-    glEnd();
-}
-
-static void refresh_callback(GLFWwindow* window)
-{
-    // Clear the color buffer
-    glClear(GL_COLOR_BUFFER_BIT);
-
-    // Draw the map
-    displayMap();
-
-    // Swap buffers
-    glfwSwapBuffers(window);
+    g_MapCameraTarget = mainChar->position;
+    g_MapCameraEye = glm::vec3(mainChar->position.x, (g_GraphicScene.drawFog * 160.f), mainChar->position.z + 2.f);
 }
 
 int main(int argc, char* argv[]) {
@@ -1535,6 +1505,9 @@ int main(int argc, char* argv[]) {
 
     g_cameraTarget = glm::vec3(1000.f, 0.0, 1000.f);
     g_cameraEye = glm::vec3(1000.f, 2000.f, 1010.f);
+
+    g_MapCameraTarget = glm::vec3(1000.f, 0.0, 1000.f);
+    g_MapCameraEye = glm::vec3(1000.f, 2000.f, 1010.f);
 
     // ------------------ FMOD INITIALIZATION ------------------------------------
     {
@@ -1596,64 +1569,10 @@ int main(int argc, char* argv[]) {
     gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
     glfwSwapInterval(1);
 
-    // Frame Buffer Object
-    { 
-        ::g_pFBO_01 = new cFBO();
-
-        // Matches the FBO to the screen buffer size
-        int screenWidth = 0;
-        int screenHeight = 0;
-        glfwGetFramebufferSize(window, &screenWidth, &screenHeight);
-
-        std::string FBOErrorString;
-        if (!::g_pFBO_01->init(screenWidth, screenHeight, FBOErrorString)) {
-            std::cout << "FBO error " << FBOErrorString << std::endl;
-        }
-        else {
-            std::cout << "FBO created OK." << std::endl;
-        }
-    }
-
     gameUi.fmod_manager_ = fmod_manager;
     gameUi.iniciatingUI();
 
     g_GraphicScene.PrepareScene();
-
-    // Set up the 2D map view
-    {
-        //glfwMakeContextCurrent(window);
-        //glfwSetWindowSize(window, 200, 200);
-        //glfwSetWindowPos(window, 0, 0);
-        //glfwSetWindowTitle(window, "2D Map");
-        //glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-        //glfwSetFramebufferSizeCallback(window, [](GLFWwindow*, int width, int height) {
-        //    glViewport(0, 0, width, height);
-        //    });
-        //glfwSetWindowAspectRatio(window, 1, 1);
-        //glfwSetWindowPosCallback(window, [](GLFWwindow* window, int xpos, int ypos) {
-        //    int width, height;
-        //    glfwGetWindowSize(window, &width, &height);
-        //    glfwSetWindowPos(window, 0, glfwGetVideoMode(glfwGetPrimaryMonitor())->height - height);
-        //    });
-        //glfwSetWindowAspectRatio(window, 1, 1);
-        //glfwSetWindowRefreshCallback(window, refresh_callback);
-    }
-
-    // Frame Buffer Object
-    {
-        // redirect the output to the frame buffer
-        glBindFramebuffer(GL_FRAMEBUFFER, ::g_pFBO_01->ID);
-
-        // Points the output to the default frame buffer
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-        // We are drawing to the FBO, so need the FBO's size
-        glViewport(0, 0, ::g_pFBO_01->width, ::g_pFBO_01->height);
-        //glViewport(0, 0, width, height);
-
-        // We need to clear the offscreen FBO buffer, not the actual screen buffer
-        ::g_pFBO_01->clearBuffers(true, true);
-    }
 
     // Setting the lights
     lightning(g_GraphicScene.shaderID);
@@ -1718,6 +1637,17 @@ int main(int argc, char* argv[]) {
         mainChar->currentI = mainChar->position.z / GLOBAL_MAP_OFFSET;
         mainChar->currentJ = mainChar->position.x / GLOBAL_MAP_OFFSET;
         //std::cout << "i: " << theMM.getStartAxis() << " - j: " << theMM.getStartSide() << std::endl;
+    }
+
+    // ------------------ CREATING FLOOR --------------------
+    {
+        sModelDrawInfo drawingInformation;
+        drawingInformation = g_GraphicScene.returnDrawInformation("Plane_Floor");
+        planeFloor = g_GraphicScene.CreateGameObjectByType("Plane_Floor", glm::vec3(0.f), drawingInformation);
+        planeFloor->bUse_RGBA_colour = true;
+        planeFloor->RGBA_colour = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
+        planeFloor->position = mainChar->position;
+        planeFloor->SetUniformScale(10.0f);
     }
 
     debugLightSpheres();
@@ -1802,7 +1732,9 @@ int main(int argc, char* argv[]) {
         ::g_pTheLightManager->CopyLightInformationToShader(g_GraphicScene.shaderID);
 
         DrawConcentricDebugLightObjects(gameUi.listbox_lights_current);        
-        
+
+        g_GraphicScene.DrawMapView(window, ::g_MapCameraEye, ::g_MapCameraTarget);
+
         g_GraphicScene.DrawScene(window, ::g_cameraEye, ::g_cameraTarget);
 
         glfwPollEvents();
