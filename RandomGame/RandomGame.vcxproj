@@ -137,6 +137,9 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>lua5.4.4-static.lib;pugixml.lib;fmodL_vc.lib;glfw3.lib;freeglut.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <PostBuildEvent>
+      <Command>python "$(SolutionDir)dev\tools\texture-pipeline.py" "$(ProjectDir)assets/textures"</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="BlocksLoader.cpp" />
