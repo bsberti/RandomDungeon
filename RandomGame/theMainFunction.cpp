@@ -12,10 +12,7 @@
 #include "imgui/imgui_impl_glfw.h"
 #include "imgui/imgui_impl_opengl3.h"
 
-#include "ParticleSystem.h"
-#include "Particle.h"
 #include "cRandomUI.h"
-#include "SimulationView.h"
 #include "FModManager.h"
 #include "BlocksLoader.h"
 #include "cLuaBrain.h"
@@ -26,6 +23,14 @@
 
 #include "threads.h"
 
+// Physics Includes
+
+#include "PhysicsEngine/Shapes.h"
+#include "PhysicsEngine/PhysicsObject.h"
+#include "PhysicsEngine/PhysicsSystem.h"
+
+PhysicsSystem* g_PhysicsSystem;
+
 glm::vec3 g_cameraEye = glm::vec3(0.0f, 0.0f, 0.0f);
 glm::vec3 g_cameraTarget = glm::vec3(0.0f, 0.0f, 0.0f);
 
@@ -33,7 +38,7 @@ glm::vec3 g_MapCameraEye = glm::vec3(0.0f, 0.0f, 0.0f);
 glm::vec3 g_MapCameraTarget = glm::vec3(0.0f, 0.0f, 0.0f);
 
 GraphicScene g_GraphicScene;
-ParticleSystem g_ParticleSystem;
+//ParticleSystem g_ParticleSystem;
 cLuaBrain* pBrain;
 cMazeMaker_W2023 theMM;
 BlocksLoader* m_blocksLoader;
@@ -42,7 +47,7 @@ cRandomUI gameUi;
 FModManager* fmod_manager;
 FMOD::Channel* _channel;
 constexpr int max_channels = 255;
-SimulationView* simView = new SimulationView();
+//SimulationView* simView = new SimulationView();
 int animationType;
 float animationSpeed;
 
@@ -54,6 +59,7 @@ std::map< std::string, cMeshObject*>::iterator itBeholdsToFollow;
 #define NUMBER_OF_TAGS 10
 #define MAP_WIDTH 100
 #define MAP_HEIGHT 100
+#define BEHOLDERS_NUMBER 100
 #define GLOBAL_MAP_OFFSET 50
 #define SMALLEST_DISTANCE 0.1
 #define CAMERA_OFFSET 50.0
@@ -128,6 +134,90 @@ void lightning(GLuint shaderID) {
     ::g_pTheLightManager->CreateBasicDirecLight(shaderID, glm::vec4(250.0f, 900.0f, 250.0f, 0.0f));
 }
 
+void rotateMinMax(glm::vec3& minPoint, glm::vec3& maxPoint) {
+
+    // Calculate the center point of the AABB object
+    glm::vec3 centerPoint = (minPoint + maxPoint) / 2.0f;
+
+    // Calculate the rotation matrix for a 90-degree rotation around the y-axis
+    glm::mat4 rotationMatrix = glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+
+    // Apply the rotation matrix to each corner point of the AABB object
+    glm::vec4 rotatedMinPoint = rotationMatrix * glm::vec4(minPoint - centerPoint, 1.0f);
+    glm::vec4 rotatedMaxPoint = rotationMatrix * glm::vec4(maxPoint - centerPoint, 1.0f);
+
+    // Calculate the new minimum and maximum x, y, and z values of the rotated AABB
+    float rotatedMinX = min(rotatedMinPoint.x, rotatedMaxPoint.x) + centerPoint.x;
+    float rotatedMaxX = max(rotatedMinPoint.x, rotatedMaxPoint.x) + centerPoint.x;
+    float rotatedMinY = min(rotatedMinPoint.y, rotatedMaxPoint.y) + centerPoint.y;
+    float rotatedMaxY = max(rotatedMinPoint.y, rotatedMaxPoint.y) + centerPoint.y;
+    float rotatedMinZ = min(rotatedMinPoint.z, rotatedMaxPoint.z) + centerPoint.z;
+    float rotatedMaxZ = max(rotatedMinPoint.z, rotatedMaxPoint.z) + centerPoint.z;
+
+    // Print the new minimum and maximum points of the rotated AABB object
+    //std::cout << "Rotated AABB minimum point: (" << rotatedMinX << ", " << rotatedMinY << ", " << rotatedMinZ << ")" << std::endl;
+    //std::cout << "Rotated AABB maximum point: (" << rotatedMaxX << ", " << rotatedMaxY << ", " << rotatedMaxZ << ")" << std::endl;
+
+    minPoint.x = rotatedMinX;
+    minPoint.y = rotatedMinY;
+    minPoint.z = rotatedMinZ;
+    
+    maxPoint.x = rotatedMaxX;
+    maxPoint.y = rotatedMaxY;
+    maxPoint.z = rotatedMaxZ;
+}
+
+void setStaticPhysObjectAABB(cMeshObject* mesh, bool rotated) {
+    //cMeshObject* pmesh;
+    iShape* paabb = nullptr;
+    PhysicsObject* pphysObj = nullptr;
+
+    // Cone AABB
+    //pmesh = g_GraphicScene.GetObjectByName(friendlyName, false);
+    sModelDrawInfo drawingInfo = g_GraphicScene.returnDrawInformation(mesh->meshName);
+
+    // Creates the AABB structure for the Terrain
+    float min[3] = { mesh->position.x + drawingInfo.minX,
+                     mesh->position.y + drawingInfo.minY,
+                     mesh->position.z + drawingInfo.minZ };
+    float max[3] = { mesh->position.x + drawingInfo.maxX,
+                     mesh->position.y + drawingInfo.maxY,
+                     mesh->position.z + drawingInfo.maxZ };
+
+    glm::vec3 minPoint;
+    minPoint.x = min[0];
+    minPoint.y = min[1];
+    minPoint.z = min[2];
+
+    glm::vec3 maxPoint;
+    maxPoint.x = max[0];
+    maxPoint.y = max[1];
+    maxPoint.z = max[2];
+
+    if (rotated) {
+        rotateMinMax(minPoint, maxPoint);
+
+        min[0] = minPoint.x;
+        min[1] = minPoint.y;
+        min[2] = minPoint.z;
+
+        max[0] = maxPoint.x;
+        max[1] = maxPoint.y;
+        max[2] = maxPoint.z;
+    }
+
+    paabb = new AABB(min, max);
+
+    Vector3 position;
+    position.x = mesh->position.x;
+    position.y = mesh->position.y;
+    position.z = mesh->position.z;
+
+    // Adds the AABB to the Physics System
+    pphysObj = g_PhysicsSystem->CreatePhysicsObject(mesh->meshName, position, paabb);
+    pphysObj->SetMass(-1.0f);
+}
+
 // Function called inside creatingModels for the wall object creation
 void createWall(unsigned int line, unsigned int column, float x, float z, bool horizontal, std::string orientation) {
     sModelDrawInfo drawingInformation;
@@ -146,6 +236,8 @@ void createWall(unsigned int line, unsigned int column, float x, float z, bool h
         //wall->setRotationFromEuler(glm::vec3(0.0f, 1.575f, 0.0f));
         wall->rotation.y = 1.575f;
     }
+
+    setStaticPhysObjectAABB(wall, !horizontal);
 
     g_GraphicScene.vec_pMeshCurrentMaze.push_back(wall);
 }
@@ -1364,6 +1456,8 @@ void updateCurrentMazeView(int newI, int newJ) {
 
     m_blocksLoader->cleanPairs();
 
+    g_PhysicsSystem->RemoveWalls();
+
     _MAZE_TILE_INFO* pMazeTileInfo = new _MAZE_TILE_INFO[NUM_THREADS];
     DWORD dw;
 
@@ -1447,15 +1541,41 @@ void updateCurrentMazeView(int newI, int newJ) {
     float mainCharX = (newJ * GLOBAL_MAP_OFFSET) - (GLOBAL_MAP_OFFSET / 2);
     float mainCharZ = (newI * GLOBAL_MAP_OFFSET) - (GLOBAL_MAP_OFFSET / 2);
     mainChar->position = glm::vec3(mainCharX, 25.f, mainCharZ);
+
     planeFloor->position.x = mainChar->position.x;
     planeFloor->position.y = -5.f;
     planeFloor->position.z = mainChar->position.z;
 
     g_cameraTarget = mainChar->position;
-    g_cameraEye = glm::vec3(mainChar->position.x, 300.f, mainChar->position.z + 50.f);
+    g_cameraEye = glm::vec3(mainChar->position.x, 500.f, mainChar->position.z + 50.f);
 
     g_MapCameraTarget = mainChar->position;
     g_MapCameraEye = glm::vec3(mainChar->position.x, (g_GraphicScene.drawFog * 160.f), mainChar->position.z + 2.f);
+}
+
+void setStaticPlane() {
+    cMeshObject* pmesh = new cMeshObject();
+    pmesh->meshName = "Plane_Floor";
+    iShape* paabb = nullptr;
+    PhysicsObject* pphysObj = nullptr;
+
+    // Creates the AABB structure for the Terrain
+    float min[3] = { 0.f,
+                     0.f,
+                     0.f };
+    float max[3] = { 10000.f,
+                     10.f,
+                     10000.f };
+    paabb = new AABB(min, max);
+
+    Vector3 position;
+    position.x = 0.f;
+    position.y = 0.f;
+    position.z = 0.f;
+
+    // Adds the AABB to the Physics System
+    pphysObj = g_PhysicsSystem->CreatePhysicsObject(pmesh->meshName, position, paabb);
+    pphysObj->SetMass(-1.0f);
 }
 
 int main(int argc, char* argv[]) {
@@ -1466,6 +1586,8 @@ int main(int argc, char* argv[]) {
 
     animationType = 0;
     animationSpeed = 0.01;
+
+    g_PhysicsSystem = new PhysicsSystem();
 
     // ---------------------------- Creating the Maze -----------------------------
     { 
@@ -1578,7 +1700,7 @@ int main(int argc, char* argv[]) {
     lightning(g_GraphicScene.shaderID);
 
     // Creating Beholders
-    for (int i = 0; i < 100; i++) {
+    for (int i = 0; i < BEHOLDERS_NUMBER; i++) {
         std::string randomPos;
         randomPos = m_blocksLoader->getRandomValidPosition();
         int pos = randomPos.find('.');
@@ -1614,41 +1736,6 @@ int main(int argc, char* argv[]) {
     }
 
     itBeholdsToFollow = g_GraphicScene.map_beholds->begin();
-
-    // ---------------- MAIN CHAR CREATION ------------------
-    {
-        bool loaderReturn = entityLoaderManager->LoadCharacter(MAIN_CHAR_JSON_INFO, playabledCharacter, errorMessage);
-
-        if (!loaderReturn) {
-            std::cout << "Error loading playable character: " << errorMessage << std::endl;
-        }
-
-        sModelDrawInfo drawingInformation;
-        drawingInformation = g_GraphicScene.returnDrawInformation(playabledCharacter.mFriendlyName);
-        glm::vec3 mainCharacterPosition(playabledCharacter.mPosition[0], playabledCharacter.mPosition[1], playabledCharacter.mPosition[2]);
-        mainChar = g_GraphicScene.CreateGameObjectByType(playabledCharacter.mFriendlyName, mainCharacterPosition, drawingInformation);
-        //mainChar = g_GraphicScene.GetObjectByName(playabledCharacter.mFriendlyName, false);
-        mainChar->friendlyName = "MainChar";
-        mainChar->bUse_RGBA_colour = true;
-        mainChar->RGBA_colour = glm::vec4(1.0f, 0.0f, 0.0f, 1.0f);
-        playabledCharacter.mFriendlyName = mainChar->friendlyName;
-        mainChar->SetUniformScale(10.0f);
-
-        mainChar->currentI = mainChar->position.z / GLOBAL_MAP_OFFSET;
-        mainChar->currentJ = mainChar->position.x / GLOBAL_MAP_OFFSET;
-        //std::cout << "i: " << theMM.getStartAxis() << " - j: " << theMM.getStartSide() << std::endl;
-    }
-
-    // ------------------ CREATING FLOOR --------------------
-    {
-        sModelDrawInfo drawingInformation;
-        drawingInformation = g_GraphicScene.returnDrawInformation("Plane_Floor");
-        planeFloor = g_GraphicScene.CreateGameObjectByType("Plane_Floor", glm::vec3(0.f), drawingInformation);
-        planeFloor->bUse_RGBA_colour = true;
-        planeFloor->RGBA_colour = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
-        planeFloor->position = mainChar->position;
-        planeFloor->SetUniformScale(10.0f);
-    }
 
     debugLightSpheres();
 
@@ -1719,6 +1806,42 @@ int main(int argc, char* argv[]) {
         }
     } // ---------------- LUA  ----------------------------------------------
 
+    // ---------------- MAIN CHAR CREATION ------------------
+    {
+        bool loaderReturn = entityLoaderManager->LoadCharacter(MAIN_CHAR_JSON_INFO, playabledCharacter, errorMessage);
+
+        if (!loaderReturn) {
+            std::cout << "Error loading playable character: " << errorMessage << std::endl;
+        }
+
+        sModelDrawInfo drawingInformation;
+        drawingInformation = g_GraphicScene.returnDrawInformation(playabledCharacter.mFriendlyName);
+        glm::vec3 mainCharacterPosition(playabledCharacter.mPosition[0], playabledCharacter.mPosition[1], playabledCharacter.mPosition[2]);
+        mainChar = g_GraphicScene.CreateGameObjectByType(playabledCharacter.mFriendlyName, mainCharacterPosition, drawingInformation);
+        //mainChar = g_GraphicScene.GetObjectByName(playabledCharacter.mFriendlyName, false);
+        mainChar->friendlyName = "MainChar";
+        mainChar->bUse_RGBA_colour = true;
+        mainChar->RGBA_colour = glm::vec4(1.0f, 0.0f, 0.0f, 1.0f);
+        playabledCharacter.mFriendlyName = mainChar->friendlyName;
+        mainChar->SetUniformScale(10.0f);
+
+        mainChar->currentI = mainChar->position.z / GLOBAL_MAP_OFFSET;
+        mainChar->currentJ = mainChar->position.x / GLOBAL_MAP_OFFSET;
+    }
+
+    // ------------------ CREATING FLOOR --------------------
+    {
+        sModelDrawInfo drawingInformation;
+        drawingInformation = g_GraphicScene.returnDrawInformation("Plane_Floor");
+        planeFloor = g_GraphicScene.CreateGameObjectByType("Plane_Floor", glm::vec3(0.f), drawingInformation);
+        planeFloor->bUse_RGBA_colour = true;
+        planeFloor->RGBA_colour = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
+        planeFloor->position = mainChar->position;
+        planeFloor->SetUniformScale(10.0f);
+
+        setStaticPlane();
+    }
+
     std::string randomPos;
     randomPos = m_blocksLoader->getRandomValidPosition();
     int pos = randomPos.find('.');
@@ -1726,6 +1849,19 @@ int main(int argc, char* argv[]) {
     int randomJ = stoi(randomPos.substr(pos + 1));
 
     updateCurrentMazeView(randomI, randomJ);
+
+    iShape* ball;
+    PhysicsObject* physObj;
+    ball = new Sphere(Point(0.0f, 0.0f, 0.0f), 2.f);
+
+    // Adds the sphere to the Physics System
+    Vector3 position;
+    position.x = mainChar->position.x;
+    position.y = mainChar->position.y;
+    position.z = mainChar->position.z;
+    physObj = g_PhysicsSystem->CreatePhysicsObject(mainChar->friendlyName, position, ball);
+    mainChar->physObj = physObj;
+    //std::cout << mainChar->position.x << ", " << mainChar->position.y << ", " << mainChar->position.z << std::endl;
 
     // ---------------- GAME LOOP START -----------------------------------------------
     while (!glfwWindowShouldClose(window)) {
@@ -1755,7 +1891,12 @@ int main(int argc, char* argv[]) {
         std::string theText = ssTitle.str();
 
         // Physics Update
-        //simView->m_PhysicsSystem.UpdateStep(0.1f);
+        g_PhysicsSystem->UpdateStep(1.f);
+
+        for (int i = 0; i < g_PhysicsSystem->m_PhysicsObjects.size(); i++) {
+            if (g_PhysicsSystem->m_PhysicsObjects[i]->meshName == "MainChar")
+                mainChar->position = g_PhysicsSystem->m_PhysicsObjects[i]->GetPosition().GetGLM();
+        }
 
         // Animation Update
         //for (std::map< std::string, cMeshObject*>::iterator itBeholds =

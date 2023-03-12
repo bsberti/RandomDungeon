@@ -30,9 +30,6 @@
     <Filter Include="ShaderManager">
       <UniqueIdentifier>{f54636df-4ef6-4c46-9a1d-890d440ab76a}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Physics">
-      <UniqueIdentifier>{16f26662-29c8-4b28-a790-8e8ba61891d9}</UniqueIdentifier>
-    </Filter>
     <Filter Include="UI">
       <UniqueIdentifier>{0847f5ed-8d39-4dcd-98bd-68fe94482ec4}</UniqueIdentifier>
     </Filter>
@@ -63,8 +60,8 @@
     <Filter Include="FBO">
       <UniqueIdentifier>{81604788-63b7-4585-8a1c-b4e7abfa08eb}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Model">
-      <UniqueIdentifier>{b85faf76-4947-4a71-93e6-f3ba83923f84}</UniqueIdentifier>
+    <Filter Include="PhysicsEngine">
+      <UniqueIdentifier>{7d5bfc2e-2a5b-42ab-a1dd-f2d8238a32ef}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -131,42 +128,6 @@
     <ClCompile Include="cRandomUI.cpp">
       <Filter>UI</Filter>
     </ClCompile>
-    <ClCompile Include="Particle.cpp">
-      <Filter>Physics</Filter>
-    </ClCompile>
-    <ClCompile Include="ParticleSystem.cpp">
-      <Filter>Physics</Filter>
-    </ClCompile>
-    <ClCompile Include="PhysicsDebugRenderer.cpp">
-      <Filter>Physics</Filter>
-    </ClCompile>
-    <ClCompile Include="PhysicsMath.cpp">
-      <Filter>Physics</Filter>
-    </ClCompile>
-    <ClCompile Include="PhysicsObject.cpp">
-      <Filter>Physics</Filter>
-    </ClCompile>
-    <ClCompile Include="PhysicsSystem.cpp">
-      <Filter>Physics</Filter>
-    </ClCompile>
-    <ClCompile Include="PhysicsUtils.cpp">
-      <Filter>Physics</Filter>
-    </ClCompile>
-    <ClCompile Include="Shapes.cpp">
-      <Filter>Physics</Filter>
-    </ClCompile>
-    <ClCompile Include="SimulationView.cpp">
-      <Filter>Physics</Filter>
-    </ClCompile>
-    <ClCompile Include="Time.cpp">
-      <Filter>Physics</Filter>
-    </ClCompile>
-    <ClCompile Include="Vector3.cpp">
-      <Filter>Physics</Filter>
-    </ClCompile>
-    <ClCompile Include="Spring.cpp">
-      <Filter>Physics</Filter>
-    </ClCompile>
     <ClCompile Include="FModManager.cpp">
       <Filter>FMod</Filter>
     </ClCompile>
@@ -206,8 +167,35 @@
     <ClCompile Include="cFBO.cpp">
       <Filter>FBO</Filter>
     </ClCompile>
-    <ClCompile Include="cModel.cpp">
-      <Filter>Model</Filter>
+    <ClCompile Include="PhysicsEngine\CollisionManager.cpp">
+      <Filter>PhysicsEngine</Filter>
+    </ClCompile>
+    <ClCompile Include="PhysicsEngine\cParticle.cpp">
+      <Filter>PhysicsEngine</Filter>
+    </ClCompile>
+    <ClCompile Include="PhysicsEngine\cParticleSystem.cpp">
+      <Filter>PhysicsEngine</Filter>
+    </ClCompile>
+    <ClCompile Include="PhysicsEngine\PhysicsMath.cpp">
+      <Filter>PhysicsEngine</Filter>
+    </ClCompile>
+    <ClCompile Include="PhysicsEngine\PhysicsObject.cpp">
+      <Filter>PhysicsEngine</Filter>
+    </ClCompile>
+    <ClCompile Include="PhysicsEngine\PhysicsSystem.cpp">
+      <Filter>PhysicsEngine</Filter>
+    </ClCompile>
+    <ClCompile Include="PhysicsEngine\PhysicsUtils.cpp">
+      <Filter>PhysicsEngine</Filter>
+    </ClCompile>
+    <ClCompile Include="PhysicsEngine\Shapes.cpp">
+      <Filter>PhysicsEngine</Filter>
+    </ClCompile>
+    <ClCompile Include="PhysicsEngine\Spring.cpp">
+      <Filter>PhysicsEngine</Filter>
+    </ClCompile>
+    <ClCompile Include="PhysicsEngine\Vector3.cpp">
+      <Filter>PhysicsEngine</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -277,48 +265,6 @@
     <ClInclude Include="imgui\imgui.h">
       <Filter>imgui</Filter>
     </ClInclude>
-    <ClInclude Include="Particle.h">
-      <Filter>Physics</Filter>
-    </ClInclude>
-    <ClInclude Include="ParticleSystem.h">
-      <Filter>Physics</Filter>
-    </ClInclude>
-    <ClInclude Include="PhysicsDebugRenderer.h">
-      <Filter>Physics</Filter>
-    </ClInclude>
-    <ClInclude Include="PhysicsMath.h">
-      <Filter>Physics</Filter>
-    </ClInclude>
-    <ClInclude Include="PhysicsObject.h">
-      <Filter>Physics</Filter>
-    </ClInclude>
-    <ClInclude Include="PhysicsSystem.h">
-      <Filter>Physics</Filter>
-    </ClInclude>
-    <ClInclude Include="PhysicsUtils.h">
-      <Filter>Physics</Filter>
-    </ClInclude>
-    <ClInclude Include="Shapes.h">
-      <Filter>Physics</Filter>
-    </ClInclude>
-    <ClInclude Include="SimulationView.h">
-      <Filter>Physics</Filter>
-    </ClInclude>
-    <ClInclude Include="Time.h">
-      <Filter>Physics</Filter>
-    </ClInclude>
-    <ClInclude Include="Vector3.h">
-      <Filter>Physics</Filter>
-    </ClInclude>
-    <ClInclude Include="Ball.h">
-      <Filter>Physics</Filter>
-    </ClInclude>
-    <ClInclude Include="BoundingBox.h">
-      <Filter>Physics</Filter>
-    </ClInclude>
-    <ClInclude Include="Spring.h">
-      <Filter>Physics</Filter>
-    </ClInclude>
     <ClInclude Include="FModManager.h">
       <Filter>FMod</Filter>
     </ClInclude>
@@ -355,8 +301,38 @@
     <ClInclude Include="cFBO.h">
       <Filter>FBO</Filter>
     </ClInclude>
-    <ClInclude Include="cModel.h">
-      <Filter>Model</Filter>
+    <ClInclude Include="PhysicsEngine\BoundingBox.h">
+      <Filter>PhysicsEngine</Filter>
+    </ClInclude>
+    <ClInclude Include="PhysicsEngine\CollisionManager.h">
+      <Filter>PhysicsEngine</Filter>
+    </ClInclude>
+    <ClInclude Include="PhysicsEngine\cParticle.h">
+      <Filter>PhysicsEngine</Filter>
+    </ClInclude>
+    <ClInclude Include="PhysicsEngine\cParticleSystem.h">
+      <Filter>PhysicsEngine</Filter>
+    </ClInclude>
+    <ClInclude Include="PhysicsEngine\PhysicsMath.h">
+      <Filter>PhysicsEngine</Filter>
+    </ClInclude>
+    <ClInclude Include="PhysicsEngine\PhysicsObject.h">
+      <Filter>PhysicsEngine</Filter>
+    </ClInclude>
+    <ClInclude Include="PhysicsEngine\PhysicsSystem.h">
+      <Filter>PhysicsEngine</Filter>
+    </ClInclude>
+    <ClInclude Include="PhysicsEngine\PhysicsUtils.h">
+      <Filter>PhysicsEngine</Filter>
+    </ClInclude>
+    <ClInclude Include="PhysicsEngine\Shapes.h">
+      <Filter>PhysicsEngine</Filter>
+    </ClInclude>
+    <ClInclude Include="PhysicsEngine\Spring.h">
+      <Filter>PhysicsEngine</Filter>
+    </ClInclude>
+    <ClInclude Include="PhysicsEngine\Vector3.h">
+      <Filter>PhysicsEngine</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

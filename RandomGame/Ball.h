@@ -1,10 +1,10 @@
 #pragma once
 
-#include "PhysicsObject.h"
+//#include "PhysicsObject.h"
 #include "cMeshObject.h"
 
 class Ball {
 public:
-	PhysicsObject* physicsObject;
+	//PhysicsObject* physicsObject;
 	cMeshObject* gameObject;
 };

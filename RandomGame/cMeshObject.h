@@ -13,6 +13,8 @@
 #include <glm/gtx/norm.hpp>
 #include <vector>
 
+#include "PhysicsEngine/PhysicsObject.h"
+
 struct PositionKeyFrame
 {
 	glm::vec3 value;
@@ -45,6 +47,7 @@ public:
 
 	// Human friendly name for this particular instance of the mesh
 	std::string friendlyName;
+	PhysicsObject* physObj;
 
 	glm::vec3 position;     // 0,0,0 (origin)
 	// Euler angles
