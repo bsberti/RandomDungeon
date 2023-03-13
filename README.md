@@ -1,9 +1,6 @@
-# Game Component Integration - Sprint 1
+# Game Component Integration - Sprint 2
 
 Title: Multiverse Cursed Village
-
-Developers: Bruno de Souza Berti
-			Diego Lima Bastos
 
 This solution was created using Visual Studio Community 2022 Version 17 Toolset v143.
 
@@ -17,8 +14,12 @@ The user inputs expected when using the application are:
 - D rotates the Player to the right
 - A rotates the Player to the left
 
-To read from JSON File we are using RapidJSON.
-
-Our entity loader class responsible to read and save JSON information on memory is: EntityLoaderManager.h
-
-The project UML is located on this folder, alongside with the README: Multiverse Cursed Village UML.pdf
+The Texture Content Pipeline requires five programs to be defined on the System Environment Variables to run properly.
+These are:
+- Phyton
+- Magick
+- Pngquant
+- Optipng
+- PVRTexToolCLI
+The Script that runs the content pipeline can be found on the folder ./dev/tools/texture-pipeline.py
+It's defined to be run as a Post-Build Event of the Project "RandomGame"
