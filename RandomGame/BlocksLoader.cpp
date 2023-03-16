@@ -102,3 +102,84 @@ bool BlocksLoader::readFile(std::string filePath) {
 	return true;
 }
 
+bool isSimilarTo(float x, float y) {
+	float tolerance = 0.9; // adjust this value for desired tolerance
+	return abs(x - y) <= tolerance;
+}
+
+
+void BlocksLoader::BitmapReading()
+{
+	std::ifstream bitmapStream;
+	bitmapStream.open("assets/Dungeon1.bmp");
+	if (!bitmapStream.is_open()) {
+		bitmapStream.close();
+		return;
+	}
+
+	bitmapStream.seekg(0);
+
+	BitmapFileHeader fileHeader;
+	
+	int size = sizeof(fileHeader);
+	bitmapStream.read((char*)&fileHeader.headerField, size);
+	bitmapStream.seekg(fileHeader.dataOffset[0]);
+
+	this->blocks_height = fileHeader.height[0];
+	this->blocks_width = fileHeader.width[0];
+
+	int mapSize = fileHeader.width[0] * fileHeader.height[0];
+	g_BMPblockMap = new std::vector<std::vector<std::string>>(fileHeader.height[0], std::vector<std::string>(fileHeader.width[0]));
+
+	Color color;
+	int i = fileHeader.height[0] - 1;
+	int j = 0;
+	float r = 0.0f;
+	float g = 0.0f;
+	float b = 0.0f;
+	for (int x = 0; x < mapSize; x++) {
+		bitmapStream.read((char*)&color, 3);
+
+		//printf("%d %d %d\n", color.r, color.g, color.b);
+		r = color.r / 255.0f;
+		g = color.g / 255.0f;
+		b = color.b / 255.0f;
+
+		if (r != 0.0f && r != 1.0f)
+			int breakpoint = 1;
+
+		if (r == 0.0f && g == 0.0f && b == 0.0f) {
+			g_BMPblockMap->at(i).at(j) = ".";
+		}
+		else if (r == 1.0f && g == 1.0f && b == 1.0f) {
+			g_BMPblockMap->at(i).at(j) = "X";
+		}
+		else if (isSimilarTo(r, 1.0f) && isSimilarTo(g, 0.0f) && isSimilarTo(b, 0.0f)) {
+			// RED
+			g_BMPblockMap->at(i).at(j) = "X";
+			endingPosition = new std::pair<int, int>(i, j);
+		}
+		else if (isSimilarTo(r, 0.0f) && isSimilarTo(g, 1.0f) && isSimilarTo(b, 0.0f)) {
+			// GREEN
+			g_BMPblockMap->at(i).at(j) = "X";
+			startingPosition = new std::pair<int, int>(i, j);
+		}
+		else {
+			g_BMPblockMap->at(i).at(j) = ".";
+		}
+
+		j++;
+		if (j >= fileHeader.width[0]) {
+			j = 0;
+
+			i--;
+			if (i < 0) {
+				i = fileHeader.height[0] - 1;
+			}
+		}
+
+	}
+
+	bitmapStream.close();
+}
+

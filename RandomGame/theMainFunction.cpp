@@ -446,8 +446,8 @@ void createMazeTile(int i, int j) {
 
     if (i > 0) northString = m_blocksLoader->g_blockMap->at(i - 1).at(j);
     if (j > 0) westString = m_blocksLoader->g_blockMap->at(i).at(j - 1);
-    if (j < m_blocksLoader->g_blockMap->at(i).size()) eastString = m_blocksLoader->g_blockMap->at(i).at(j + 1);
-    if (i < m_blocksLoader->g_blockMap->size()) southString = m_blocksLoader->g_blockMap->at(i + 1).at(j);
+    if (j < m_blocksLoader->g_blockMap->at(i).size() - 1) eastString = m_blocksLoader->g_blockMap->at(i).at(j + 1);
+    if (i < m_blocksLoader->g_blockMap->size() - 1) southString = m_blocksLoader->g_blockMap->at(i + 1).at(j);
 
     float x = (j * GLOBAL_MAP_OFFSET);
     float z = (i * GLOBAL_MAP_OFFSET);
@@ -1124,7 +1124,7 @@ bool checkEast(float& newPosition, int& newI, int& newJ, int& numTiles) {
     int j = newJ;
 
     std::string eastString;
-    if (j < m_blocksLoader->g_blockMap->at(i).size()) {
+    if (j < m_blocksLoader->g_blockMap->at(i).size() - 1) {
         eastString = m_blocksLoader->g_blockMap->at(i).at(j + 1);
     }
     else {
@@ -1149,7 +1149,7 @@ bool checkSouth(float& newPosition, int& newI, int& newJ, int& numTiles) {
     int j = newJ;
 
     std::string southString;
-    if (i < m_blocksLoader->g_blockMap->size()) {
+    if (i < m_blocksLoader->g_blockMap->size() - 1) {
         southString = m_blocksLoader->g_blockMap->at(i + 1).at(j);
     }
     else {
@@ -1184,8 +1184,8 @@ bool calculateNextPosition(cMeshObject* currentBehold, glm::vec3& nextPosition, 
 
     if (i > 0) northString = m_blocksLoader->g_blockMap->at(i - 1).at(j);
     if (j > 0) westString = m_blocksLoader->g_blockMap->at(i).at(j - 1);
-    if (j < m_blocksLoader->g_blockMap->at(i).size()) eastString = m_blocksLoader->g_blockMap->at(i).at(j + 1);
-    if (i < m_blocksLoader->g_blockMap->size()) southString = m_blocksLoader->g_blockMap->at(i + 1).at(j);
+    if (j < m_blocksLoader->g_blockMap->at(i).size() - 1) eastString = m_blocksLoader->g_blockMap->at(i).at(j + 1);
+    if (i < m_blocksLoader->g_blockMap->size() - 1) southString = m_blocksLoader->g_blockMap->at(i + 1).at(j);
 
     glm::vec3 returnVec;
     returnVec = currentBehold->position;
@@ -1624,6 +1624,10 @@ int main(int argc, char* argv[]) {
     g_GraphicScene.map_beholds = new std::map<std::string, cMeshObject*>();
 
     m_blocksLoader = new BlocksLoader(MAP_HEIGHT, MAP_WIDTH);
+    m_blocksLoader->BitmapReading();
+
+    // ---------------------------- TESTING BMP READER ---------------------------- 
+    m_blocksLoader->g_blockMap = m_blocksLoader->g_BMPblockMap;
 
     g_cameraTarget = glm::vec3(1000.f, 0.0, 1000.f);
     g_cameraEye = glm::vec3(1000.f, 2000.f, 1010.f);
@@ -1700,40 +1704,41 @@ int main(int argc, char* argv[]) {
     lightning(g_GraphicScene.shaderID);
 
     // Creating Beholders
-    for (int i = 0; i < BEHOLDERS_NUMBER; i++) {
-        std::string randomPos;
-        randomPos = m_blocksLoader->getRandomValidPosition();
-        int pos = randomPos.find('.');
-        int randomI = stoi(randomPos.substr(0, pos));
-        int randomJ = stoi(randomPos.substr(pos + 1));
-
-        float x = (randomJ * GLOBAL_MAP_OFFSET);
-        float z = (randomI * GLOBAL_MAP_OFFSET);
-
-        sModelDrawInfo drawingInformation;
-        drawingInformation = g_GraphicScene.returnDrawInformation("Beholder");
-        cMeshObject* beholder = g_GraphicScene.CreateGameObjectByType("Beholder", 
-            glm::vec3(x - (GLOBAL_MAP_OFFSET / 2), 25.0f, z - (GLOBAL_MAP_OFFSET / 2)), drawingInformation);
-        //beholder = g_GraphicScene.GetObjectByName("Beholder", false);
-        std::string beholderName = "B" + std::to_string(randomI) + "_" + std::to_string(randomJ);
-        beholder->friendlyName = beholderName;
-        beholder->textures[0] = "Beholder_Base_color.bmp";
-        beholder->textureRatios[0] = 1.0f;
-        beholder->SetUniformScale(10.0f);
-
-        cMeshObject* cone = new cMeshObject();
-        cone->meshName = "Beholder_Vision";
-        cone->friendlyName = "Beholder_Vision" + std::to_string(randomI) + "_" + std::to_string(randomJ);
-        cone->bUse_RGBA_colour = true;
-        cone->RGBA_colour = glm::vec4(1.0f, 1.0f, 1.0f, 0.5f);
-        cone->bDoNotLight = true;
-        beholder->vecChildMeshes.push_back(cone);
-
-        beholder->currentI = randomI;
-        beholder->currentJ = randomJ;
-
-        g_GraphicScene.map_beholds->try_emplace(beholderName, beholder);
-    }
+    
+    //for (int i = 0; i < BEHOLDERS_NUMBER; i++) {
+    //    std::string randomPos;
+    //    randomPos = m_blocksLoader->getRandomValidPosition();
+    //    int pos = randomPos.find('.');
+    //    int randomI = stoi(randomPos.substr(0, pos));
+    //    int randomJ = stoi(randomPos.substr(pos + 1));
+    //
+    //    float x = (randomJ * GLOBAL_MAP_OFFSET);
+    //    float z = (randomI * GLOBAL_MAP_OFFSET);
+    //
+    //    sModelDrawInfo drawingInformation;
+    //    drawingInformation = g_GraphicScene.returnDrawInformation("Beholder");
+    //    cMeshObject* beholder = g_GraphicScene.CreateGameObjectByType("Beholder", 
+    //        glm::vec3(x - (GLOBAL_MAP_OFFSET / 2), 25.0f, z - (GLOBAL_MAP_OFFSET / 2)), drawingInformation);
+    //    //beholder = g_GraphicScene.GetObjectByName("Beholder", false);
+    //    std::string beholderName = "B" + std::to_string(randomI) + "_" + std::to_string(randomJ);
+    //    beholder->friendlyName = beholderName;
+    //    beholder->textures[0] = "Beholder_Base_color.bmp";
+    //    beholder->textureRatios[0] = 1.0f;
+    //    beholder->SetUniformScale(10.0f);
+    //
+    //    cMeshObject* cone = new cMeshObject();
+    //    cone->meshName = "Beholder_Vision";
+    //    cone->friendlyName = "Beholder_Vision" + std::to_string(randomI) + "_" + std::to_string(randomJ);
+    //    cone->bUse_RGBA_colour = true;
+    //    cone->RGBA_colour = glm::vec4(1.0f, 1.0f, 1.0f, 0.5f);
+    //    cone->bDoNotLight = true;
+    //    beholder->vecChildMeshes.push_back(cone);
+    //
+    //    beholder->currentI = randomI;
+    //    beholder->currentJ = randomJ;
+    //
+    //    g_GraphicScene.map_beholds->try_emplace(beholderName, beholder);
+    //}
 
     itBeholdsToFollow = g_GraphicScene.map_beholds->begin();
 

@@ -5,7 +5,7 @@
 GraphicScene::GraphicScene() {
 	cameraFollowing = false;
 	cameraTransitioning = false;
-    drawFog = 10;
+    drawFog = 64;
 }
 
 GraphicScene::~GraphicScene() {
