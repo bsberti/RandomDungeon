@@ -107,7 +107,6 @@ bool isSimilarTo(float x, float y) {
 	return abs(x - y) <= tolerance;
 }
 
-
 void BlocksLoader::BitmapReading()
 {
 	std::ifstream bitmapStream;
@@ -127,6 +126,8 @@ void BlocksLoader::BitmapReading()
 
 	this->blocks_height = fileHeader.height[0];
 	this->blocks_width = fileHeader.width[0];
+
+	nodeGrid = new Grid(fileHeader.width[0], fileHeader.height[0]);
 
 	int mapSize = fileHeader.width[0] * fileHeader.height[0];
 	g_BMPblockMap = new std::vector<std::vector<std::string>>(fileHeader.height[0], std::vector<std::string>(fileHeader.width[0]));
@@ -150,6 +151,7 @@ void BlocksLoader::BitmapReading()
 
 		if (r == 0.0f && g == 0.0f && b == 0.0f) {
 			g_BMPblockMap->at(i).at(j) = ".";
+			nodeGrid->get_node(i, j)->is_obstacle = true;
 		}
 		else if (r == 1.0f && g == 1.0f && b == 1.0f) {
 			g_BMPblockMap->at(i).at(j) = "X";
@@ -158,14 +160,17 @@ void BlocksLoader::BitmapReading()
 			// RED
 			g_BMPblockMap->at(i).at(j) = "X";
 			endingPosition = new std::pair<int, int>(i, j);
+			endNode = nodeGrid->get_node(i, j);
 		}
 		else if (isSimilarTo(r, 0.0f) && isSimilarTo(g, 1.0f) && isSimilarTo(b, 0.0f)) {
 			// GREEN
 			g_BMPblockMap->at(i).at(j) = "X";
 			startingPosition = new std::pair<int, int>(i, j);
+			startNode = nodeGrid->get_node(i, j);
 		}
 		else {
 			g_BMPblockMap->at(i).at(j) = ".";
+			nodeGrid->get_node(i, j)->is_obstacle = true;
 		}
 
 		j++;
@@ -183,3 +188,47 @@ void BlocksLoader::BitmapReading()
 	bitmapStream.close();
 }
 
+std::vector<Node*> BlocksLoader::AStar() {
+	// Initialize start node
+	startNode->g = 0;
+	startNode->h = sqrt(pow(endNode->x - startNode->x, 2) + pow(endNode->y - startNode->y, 2));
+	startNode->f = startNode->g + startNode->h;
+	startNode->is_visited = true;
+	std::priority_queue<Node*, std::vector<Node*>, CompareNodes> open_list;
+	open_list.push(startNode);
+
+	// Search for end node
+	while (!open_list.empty()) {
+		Node* current = open_list.top();
+		open_list.pop();
+		if (current == endNode) {
+			// Path found, return path
+			std::vector<Node*> path;
+			while (current) {
+				path.push_back(current);
+				current = current->parent;
+			}
+			reverse(path.begin(), path.end());
+			return path;
+		}
+		// Explore neighbors of current node
+		for (auto neighbor : current->neighbors) {
+			if (neighbor->is_obstacle || neighbor->is_visited) {
+				continue;
+			}
+			double g = current->g + sqrt(pow(neighbor->x - current->x, 2) + pow(neighbor->y - current->y, 2));
+			double h = sqrt(pow(endNode->x - neighbor->x, 2) + pow(endNode->y - neighbor->y, 2));
+			double f = g + h;
+			if (neighbor->f == 0 || f < neighbor->f) {
+				neighbor->g = g;
+				neighbor->h = h;
+				neighbor->f = f;
+				neighbor->parent = current;
+				neighbor->is_visited = true;
+				open_list.push(neighbor);
+			}
+		}
+	}
+	// No path found
+	return {};
+}

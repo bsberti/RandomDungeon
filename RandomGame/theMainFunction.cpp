@@ -589,15 +589,14 @@ void createMazeTile(int i, int j) {
         Example: If the north tile is empty (.), creates a wall object in the north direction of the tile with the right rotation. */
 void creatingModels() {
     sModelDrawInfo drawingInformation; 
-    //pVAOManager->FindDrawInfoByModelName("Moon", drawingInformation);
-    drawingInformation = g_GraphicScene.returnDrawInformation("Moon");
-    g_GraphicScene.CreateGameObjectByType("Moon", glm::vec3(0.0f, 100.0f, 0.0f), drawingInformation);
-    cMeshObject* moon;
-    moon = g_GraphicScene.GetObjectByName("Moon", false);
-    moon->bDoNotLight = true;
-    moon->SetUniformScale(100.f);
-    moon->textures[0] = "lroc_color_poles_4k.bmp";
-    moon->textureRatios[0] = 1.0f;
+    ////pVAOManager->FindDrawInfoByModelName("Moon", drawingInformation);
+    //drawingInformation = g_GraphicScene.returnDrawInformation("Moon");
+    //cMeshObject* moon = g_GraphicScene.CreateGameObjectByType("Moon", glm::vec3(0.0f, 100.0f, 0.0f), drawingInformation);
+    ////moon = g_GraphicScene.GetObjectByName("Moon", false);
+    //moon->bDoNotLight = true;
+    //moon->SetUniformScale(100.f);
+    //moon->textures[0] = "lroc_color_poles_4k.bmp";
+    //moon->textureRatios[0] = 1.0f;
 
     for (int i = 0; i < m_blocksLoader->g_blockMap->size(); i++) {
         for (int j = 0; j < m_blocksLoader->g_blockMap->at(i).size(); j++) {
@@ -611,16 +610,15 @@ void creatingModels() {
 
                     if (i > 0) northString = m_blocksLoader->g_blockMap->at(i - 1).at(j);
                     if (j > 0) westString = m_blocksLoader->g_blockMap->at(i).at(j - 1);
-                    if (j < m_blocksLoader->g_blockMap->at(i).size()) eastString = m_blocksLoader->g_blockMap->at(i).at(j + 1);
-                    if (i < m_blocksLoader->g_blockMap->size()) southString = m_blocksLoader->g_blockMap->at(i + 1).at(j);
+                    if (j < m_blocksLoader->g_blockMap->at(i).size() - 1) eastString = m_blocksLoader->g_blockMap->at(i).at(j + 1);
+                    if (i < m_blocksLoader->g_blockMap->size() - 1) southString = m_blocksLoader->g_blockMap->at(i + 1).at(j);
                     
                     float x = (j * GLOBAL_MAP_OFFSET);
                     float z = (i * GLOBAL_MAP_OFFSET);
                     //pVAOManager->FindDrawInfoByModelName("Floor", drawingInformation);
                     drawingInformation = g_GraphicScene.returnDrawInformation("Floor");
-                    g_GraphicScene.CreateGameObjectByType("Floor", glm::vec3(x, 0.0f, z), drawingInformation);
-                    cMeshObject* currentObject;
-                    currentObject = g_GraphicScene.GetObjectByName("Floor", false);
+                    cMeshObject* currentObject = g_GraphicScene.CreateGameObjectByType("Floor", glm::vec3(x, 0.0f, z), drawingInformation);
+                    //currentObject = g_GraphicScene.GetObjectByName("Floor", false);
                     std::string floorName = "Floor" + std::to_string(i) + "_" + std::to_string(j);
                     currentObject->currentI = i;
                     currentObject->currentJ = j;
@@ -971,6 +969,8 @@ void creatingModels() {
                             }
                         }
                     }
+
+                    g_GraphicScene.vec_pMeshCurrentMaze.push_back(currentObject);
                 }
             }
         }
@@ -1628,12 +1628,16 @@ int main(int argc, char* argv[]) {
 
     // ---------------------------- TESTING BMP READER ---------------------------- 
     m_blocksLoader->g_blockMap = m_blocksLoader->g_BMPblockMap;
+    std::vector<Node*> AStarPath = m_blocksLoader->AStar();
 
-    g_cameraTarget = glm::vec3(1000.f, 0.0, 1000.f);
-    g_cameraEye = glm::vec3(1000.f, 2000.f, 1010.f);
+    float gridCameraX = (m_blocksLoader->nodeGrid->height / 2) * GLOBAL_MAP_OFFSET;
+    float gridCameraZ = (m_blocksLoader->nodeGrid->width / 2) * GLOBAL_MAP_OFFSET;
+
+    g_cameraTarget = glm::vec3(gridCameraX, 0.0f, gridCameraZ);
+    g_cameraEye = glm::vec3(gridCameraX, 6000.f, gridCameraZ + 5.f);
 
     g_MapCameraTarget = glm::vec3(1000.f, 0.0, 1000.f);
-    g_MapCameraEye = glm::vec3(1000.f, 2000.f, 1010.f);
+    g_MapCameraEye = glm::vec3(1000.f, 6000.f, 1010.f);
 
     // ------------------ FMOD INITIALIZATION ------------------------------------
     {
@@ -1853,7 +1857,37 @@ int main(int argc, char* argv[]) {
     int randomI = stoi(randomPos.substr(0, pos));
     int randomJ = stoi(randomPos.substr(pos + 1));
 
-    updateCurrentMazeView(randomI, randomJ);
+    // ------------------ BMP READING START --------------------
+    int startI = m_blocksLoader->startingPosition->first;
+    int startJ = m_blocksLoader->startingPosition->second;
+
+    mainChar->currentI = startI;
+    mainChar->currentJ = startJ;
+
+    float mainCharX = (startJ * GLOBAL_MAP_OFFSET) - (GLOBAL_MAP_OFFSET / 2);
+    float mainCharZ = (startI * GLOBAL_MAP_OFFSET) - (GLOBAL_MAP_OFFSET / 2);
+    mainChar->position = glm::vec3(mainCharX, 25.f, mainCharZ);
+
+    planeFloor->position.x = mainChar->position.x;
+    planeFloor->position.y = -5.f;
+    planeFloor->position.z = mainChar->position.z;
+
+    g_GraphicScene.vec_pMeshCurrentMaze.push_back(mainChar);
+    //g_GraphicScene.vec_pMeshCurrentMaze.push_back(planeFloor);
+
+    //updateCurrentMazeView(randomI, randomJ);
+    //updateCurrentMazeView(startI, startJ);
+    creatingModels();
+
+    for (int index = 0; index < AStarPath.size(); index++) {
+
+        Node* currentNode = AStarPath[index];
+        cMeshObject* currentFloor = 
+            g_GraphicScene.GetObjectByGridPosition(currentNode->x, currentNode->y);
+
+        currentFloor->bUse_RGBA_colour = true;
+        currentFloor->RGBA_colour = glm::vec4(1.0f, 0.0f, 0.0f, 1.0f);
+    }
 
     iShape* ball;
     PhysicsObject* physObj;

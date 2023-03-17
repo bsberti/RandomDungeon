@@ -639,3 +639,21 @@ cMeshObject* GraphicScene::GetObjectByName(std::string name, bool bSearchChildre
 
 	return nullptr;
 }
+
+cMeshObject* GraphicScene::GetObjectByGridPosition(int i, int j) {
+
+    cMeshObject* returnObject;
+    for (int x = 0; x < vec_pMeshCurrentMaze.size(); x++) {
+        returnObject = vec_pMeshCurrentMaze[x];
+
+        size_t index = returnObject->friendlyName.find("Floor");
+        if (index == std::string::npos) continue;
+
+        if (vec_pMeshCurrentMaze[x]->currentI == i &&
+            vec_pMeshCurrentMaze[x]->currentJ == j) {
+            return returnObject;
+        }
+    }
+
+    return nullptr;
+}
