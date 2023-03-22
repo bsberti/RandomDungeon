@@ -28,8 +28,14 @@
 #include "PhysicsEngine/Shapes.h"
 #include "PhysicsEngine/PhysicsObject.h"
 #include "PhysicsEngine/PhysicsSystem.h"
+#include "PhysicsEngine/PhysicsFactory.h"
+#include "PhysicsEngine/iPhysicsFactory.h"
+#include "PhysicsEngine/PhysicsWorld.h"
 
 PhysicsSystem* g_PhysicsSystem;
+physics::iPhysicsFactory* physicsFactory;
+physics::iPhysicsWorld* world;
+CollisionListener* collisionListener;
 
 glm::vec3 g_cameraEye = glm::vec3(0.0f, 0.0f, 0.0f);
 glm::vec3 g_cameraTarget = glm::vec3(0.0f, 0.0f, 0.0f);
@@ -1624,22 +1630,23 @@ int main(int argc, char* argv[]) {
     g_GraphicScene.map_beholds = new std::map<std::string, cMeshObject*>();
 
     m_blocksLoader = new BlocksLoader(MAP_HEIGHT, MAP_WIDTH);
-    m_blocksLoader->BitmapReading();
+    //m_blocksLoader->BitmapReading();
 
-    // ---------------------------- TESTING BMP READER ---------------------------- 
-    m_blocksLoader->g_blockMap = m_blocksLoader->g_BMPblockMap;
-    std::vector<Node*> AStarPath = m_blocksLoader->AStar();
-
-    float gridCameraX = (m_blocksLoader->nodeGrid->height / 2) * GLOBAL_MAP_OFFSET;
-    float gridCameraZ = (m_blocksLoader->nodeGrid->width / 2) * GLOBAL_MAP_OFFSET;
-
-    g_cameraTarget = glm::vec3(gridCameraX, 0.0f, gridCameraZ);
-    g_cameraEye = glm::vec3(gridCameraX, 6000.f, gridCameraZ + 5.f);
+    // --------------- TESTING BMP READER -------------------
+    
+    //m_blocksLoader->g_blockMap = m_blocksLoader->g_BMPblockMap;
+    //std::vector<Node*> AStarPath = m_blocksLoader->AStar();
+    //
+    //float gridCameraX = (m_blocksLoader->nodeGrid->height / 2) * GLOBAL_MAP_OFFSET;
+    //float gridCameraZ = (m_blocksLoader->nodeGrid->width / 2) * GLOBAL_MAP_OFFSET;
+    //
+    //g_cameraTarget = glm::vec3(gridCameraX, 0.0f, gridCameraZ);
+    //g_cameraEye = glm::vec3(gridCameraX, 6000.f, gridCameraZ + 5.f);
 
     g_MapCameraTarget = glm::vec3(1000.f, 0.0, 1000.f);
     g_MapCameraEye = glm::vec3(1000.f, 6000.f, 1010.f);
 
-    // ------------------ FMOD INITIALIZATION ------------------------------------
+    // ------------------ FMOD INITIALIZATION ---------------
     {
     //initialize fmod with max channels
         fmod_manager = new FModManager();
@@ -1748,10 +1755,10 @@ int main(int argc, char* argv[]) {
 
     debugLightSpheres();
 
-    // ---------------- LOADING TEXTURES ----------------------------------------------
+    // ---------------- LOADING TEXTURES --------------------
     g_GraphicScene.LoadTextures();
 
-    // ---------------- LUA  ----------------------------------------------
+    // ---------------- LUA  --------------------------------
     { 
         std::string moveScriptTowardsDestinationFUNCTION =
             "function moveObjectTowardsDestination( objectID, xDest, yDest, zDest )										    \n"	\
@@ -1857,37 +1864,38 @@ int main(int argc, char* argv[]) {
     int randomI = stoi(randomPos.substr(0, pos));
     int randomJ = stoi(randomPos.substr(pos + 1));
 
-    // ------------------ BMP READING START --------------------
-    int startI = m_blocksLoader->startingPosition->first;
-    int startJ = m_blocksLoader->startingPosition->second;
-
-    mainChar->currentI = startI;
-    mainChar->currentJ = startJ;
-
-    float mainCharX = (startJ * GLOBAL_MAP_OFFSET) - (GLOBAL_MAP_OFFSET / 2);
-    float mainCharZ = (startI * GLOBAL_MAP_OFFSET) - (GLOBAL_MAP_OFFSET / 2);
-    mainChar->position = glm::vec3(mainCharX, 25.f, mainCharZ);
-
-    planeFloor->position.x = mainChar->position.x;
-    planeFloor->position.y = -5.f;
-    planeFloor->position.z = mainChar->position.z;
-
-    g_GraphicScene.vec_pMeshCurrentMaze.push_back(mainChar);
+    // ------------------ BMP READING START -----------------
+    
+    //int startI = m_blocksLoader->startingPosition->first;
+    //int startJ = m_blocksLoader->startingPosition->second;
+    //
+    //mainChar->currentI = startI;
+    //mainChar->currentJ = startJ;
+    //
+    //float mainCharX = (startJ * GLOBAL_MAP_OFFSET) - (GLOBAL_MAP_OFFSET / 2);
+    //float mainCharZ = (startI * GLOBAL_MAP_OFFSET) - (GLOBAL_MAP_OFFSET / 2);
+    //mainChar->position = glm::vec3(mainCharX, 25.f, mainCharZ);
+    //
+    //planeFloor->position.x = mainChar->position.x;
+    //planeFloor->position.y = -5.f;
+    //planeFloor->position.z = mainChar->position.z;
+    //
+    //g_GraphicScene.vec_pMeshCurrentMaze.push_back(mainChar);
     //g_GraphicScene.vec_pMeshCurrentMaze.push_back(planeFloor);
 
-    //updateCurrentMazeView(randomI, randomJ);
+    updateCurrentMazeView(randomI, randomJ);
     //updateCurrentMazeView(startI, startJ);
-    creatingModels();
+    //creatingModels();
 
-    for (int index = 0; index < AStarPath.size(); index++) {
-
-        Node* currentNode = AStarPath[index];
-        cMeshObject* currentFloor = 
-            g_GraphicScene.GetObjectByGridPosition(currentNode->x, currentNode->y);
-
-        currentFloor->bUse_RGBA_colour = true;
-        currentFloor->RGBA_colour = glm::vec4(1.0f, 0.0f, 0.0f, 1.0f);
-    }
+    //for (int index = 0; index < AStarPath.size(); index++) {
+    //
+    //    Node* currentNode = AStarPath[index];
+    //    cMeshObject* currentFloor = 
+    //        g_GraphicScene.GetObjectByGridPosition(currentNode->x, currentNode->y);
+    //
+    //    currentFloor->bUse_RGBA_colour = true;
+    //    currentFloor->RGBA_colour = glm::vec4(1.0f, 0.0f, 0.0f, 1.0f);
+    //}
 
     iShape* ball;
     PhysicsObject* physObj;
@@ -1908,9 +1916,9 @@ int main(int argc, char* argv[]) {
 
         DrawConcentricDebugLightObjects(gameUi.listbox_lights_current);        
 
-        g_GraphicScene.DrawMapView(window, ::g_MapCameraEye, ::g_MapCameraTarget);
-
         g_GraphicScene.DrawScene(window, ::g_cameraEye, ::g_cameraTarget);
+
+        g_GraphicScene.DrawMapView(window, ::g_MapCameraEye, ::g_MapCameraTarget);
 
         glfwPollEvents();
 
@@ -2079,6 +2087,9 @@ int main(int argc, char* argv[]) {
 
         // Update will run any Lua script sitting in the "brain"
         pBrain->Update(1);
+
+        g_cameraTarget = mainChar->position;
+        g_cameraEye = glm::vec3(mainChar->position.x, 500.f, mainChar->position.z + 50.f);
 
         if (g_GraphicScene.cameraFollowing && !g_GraphicScene.cameraTransitioning) {
             cMeshObject* currentBehold = itBeholdsToFollow->second;

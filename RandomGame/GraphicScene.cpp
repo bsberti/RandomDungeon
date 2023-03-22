@@ -5,7 +5,7 @@
 GraphicScene::GraphicScene() {
 	cameraFollowing = false;
 	cameraTransitioning = false;
-    drawFog = 64;
+    drawFog = 10;
 }
 
 GraphicScene::~GraphicScene() {
@@ -228,14 +228,20 @@ void GraphicScene::cleanMazeView() {
 
 void GraphicScene::DrawScene(GLFWwindow* window, glm::vec3 g_cameraEye, glm::vec3 g_cameraTarget) {
     
-    glLoadIdentity();
+
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    // Enable depth testing
+    glEnable(GL_DEPTH_TEST);
+
+    //glLoadIdentity();
     // Making the fire impostor "move"
-    for (int i = 0; i < vec_torchFlames.size(); i++) {
-        cMeshObject* torchFire = vec_torchFlames[i];
-        if (torchFire) {
-            torchFire->scaleXYZ.y += RandomFloatGraphic(-0.1f, 0.1f);
-        }
-    }
+    //for (int i = 0; i < vec_torchFlames.size(); i++) {
+    //    cMeshObject* torchFire = vec_torchFlames[i];
+    //    if (torchFire) {
+    //        torchFire->scaleXYZ.y += RandomFloatGraphic(-0.1f, 0.1f);
+    //    }
+    //}
 
     glfwGetFramebufferSize(window, &width, &height);
     ratio = width / (float)height;
@@ -355,18 +361,16 @@ void GraphicScene::DrawScene(GLFWwindow* window, glm::vec3 g_cameraEye, glm::vec
 
 void GraphicScene::DrawMapView(GLFWwindow* window, glm::vec3 g_cameraEye, glm::vec3 g_cameraTarget) {
 
-    // Enable depth testing
-    glEnable(GL_DEPTH_TEST);
-
     // Enable blending
     //glEnable(GL_BLEND);
     //glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glDisable(GL_DEPTH_TEST);
 
     // Clear color and depth buffer
     //glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glClear(GL_DEPTH_BUFFER_BIT);
     
-    glLoadIdentity();
+    //glLoadIdentity();
 
     mapWidth = 200;
     mapHeigth = 200;
@@ -459,6 +463,7 @@ void GraphicScene::DrawMapView(GLFWwindow* window, glm::vec3 g_cameraEye, glm::v
     //   |_____|_| |_|\__,_|  \___/|_|   |___/\___\___|_| |_|\___|
     
     glDisable(GL_SCISSOR_TEST);
+    glEnable(GL_DEPTH_TEST);
     // Set the blending function for the second part of the scene
     //glBlendFunc(GL_SRC_ALPHA, GL_ONE);
 }

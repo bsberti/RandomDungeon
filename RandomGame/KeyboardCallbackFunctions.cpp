@@ -335,7 +335,7 @@ void key_callback(GLFWwindow* window,
             nextTileI = (mainChar->position.z + (GLOBAL_MAP_OFFSET / 2)) / GLOBAL_MAP_OFFSET;
             nextTileJ = (mainChar->position.x + (GLOBAL_MAP_OFFSET / 2)) / GLOBAL_MAP_OFFSET;
 
-            //updateCurrentMazeView(nextTileI, nextTileJ);
+            updateCurrentMazeView(nextTileI, nextTileJ);
         }
 
         //if (nextTileI != mainChar->currentI && nextTileJ != mainChar->currentJ)
