@@ -144,10 +144,12 @@ namespace physics
 		// Step #2 : Verlet
 		// velocity += acceleration * (dt/2)
 		for (int i = 0; i < rigidBodyCount; i++) {
-			m_RigidBodies[i]->VerletStep2(dt);
-			m_RigidBodies[i]->ApplyDamping(dt / 2.f);
-			m_RigidBodies[i]->KillForces();
-
+			if (!m_RigidBodies[i]->IsStatic())
+			{
+				m_RigidBodies[i]->VerletStep2(dt);
+				m_RigidBodies[i]->ApplyDamping(dt / 2.f);
+				m_RigidBodies[i]->KillForces();
+			}
 			// Update all listeners for rigid body positions
 		}
 

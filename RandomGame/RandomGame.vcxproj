@@ -71,8 +71,9 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>$(SolutionDir)dev/include;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
-    <LibraryPath>$(SolutionDir)dev/libraries/Debug;$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64)</LibraryPath>
+    <IncludePath>$(SolutionDir)BulletPhysics;$(SolutionDir)PhysicsInterface;$(SolutionDir)dev/include;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
+    <LibraryPath>$(SolutionDir)x64\$(Configuration);$(SolutionDir)dev/libraries/Debug;$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64)</LibraryPath>
+    <ExcludePath>$(SolutionDir)BulletPhysics;$(SolutionDir)PhysicsInterface;$(ExcludePath)</ExcludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <IncludePath>$(SolutionDir)dev/include;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
@@ -233,6 +234,7 @@
     <ClInclude Include="imgui\imstb_textedit.h" />
     <ClInclude Include="imgui\imstb_truetype.h" />
     <ClInclude Include="iObject.h" />
+    <ClInclude Include="physics.h" />
     <ClInclude Include="PhysicsEngine\AABBShape.h" />
     <ClInclude Include="PhysicsEngine\BodyType.h" />
     <ClInclude Include="PhysicsEngine\BoundingBox.h" />

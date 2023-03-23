@@ -4,6 +4,21 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 VisualStudioVersion = 17.3.32929.385
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "RandomGame", "RandomGame\RandomGame.vcxproj", "{A0B9B2DB-B67E-476A-854A-B61107C8E199}"
+	ProjectSection(ProjectDependencies) = postProject
+		{4E92B502-DC6D-413E-B929-EE8E9EC7F78B} = {4E92B502-DC6D-413E-B929-EE8E9EC7F78B}
+		{CCE9B6DF-EC35-4244-A583-06C074F274F5} = {CCE9B6DF-EC35-4244-A583-06C074F274F5}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "BulletPhysics", "BulletPhysics\BulletPhysics.vcxproj", "{CCE9B6DF-EC35-4244-A583-06C074F274F5}"
+	ProjectSection(ProjectDependencies) = postProject
+		{4E92B502-DC6D-413E-B929-EE8E9EC7F78B} = {4E92B502-DC6D-413E-B929-EE8E9EC7F78B}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "PhysicsInterface", "PhysicsInterface\PhysicsInterface.vcxproj", "{4E92B502-DC6D-413E-B929-EE8E9EC7F78B}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Graphics", "Graphics", "{C5146098-4B7D-4219-A8F4-959987176029}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Physics", "Physics", "{F3533480-8445-4034-A4AD-C812D20D2F0A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,9 +36,30 @@ Global
 		{A0B9B2DB-B67E-476A-854A-B61107C8E199}.Release|x64.Build.0 = Release|x64
 		{A0B9B2DB-B67E-476A-854A-B61107C8E199}.Release|x86.ActiveCfg = Release|Win32
 		{A0B9B2DB-B67E-476A-854A-B61107C8E199}.Release|x86.Build.0 = Release|Win32
+		{CCE9B6DF-EC35-4244-A583-06C074F274F5}.Debug|x64.ActiveCfg = Debug|x64
+		{CCE9B6DF-EC35-4244-A583-06C074F274F5}.Debug|x64.Build.0 = Debug|x64
+		{CCE9B6DF-EC35-4244-A583-06C074F274F5}.Debug|x86.ActiveCfg = Debug|Win32
+		{CCE9B6DF-EC35-4244-A583-06C074F274F5}.Debug|x86.Build.0 = Debug|Win32
+		{CCE9B6DF-EC35-4244-A583-06C074F274F5}.Release|x64.ActiveCfg = Release|x64
+		{CCE9B6DF-EC35-4244-A583-06C074F274F5}.Release|x64.Build.0 = Release|x64
+		{CCE9B6DF-EC35-4244-A583-06C074F274F5}.Release|x86.ActiveCfg = Release|Win32
+		{CCE9B6DF-EC35-4244-A583-06C074F274F5}.Release|x86.Build.0 = Release|Win32
+		{4E92B502-DC6D-413E-B929-EE8E9EC7F78B}.Debug|x64.ActiveCfg = Debug|x64
+		{4E92B502-DC6D-413E-B929-EE8E9EC7F78B}.Debug|x64.Build.0 = Debug|x64
+		{4E92B502-DC6D-413E-B929-EE8E9EC7F78B}.Debug|x86.ActiveCfg = Debug|Win32
+		{4E92B502-DC6D-413E-B929-EE8E9EC7F78B}.Debug|x86.Build.0 = Debug|Win32
+		{4E92B502-DC6D-413E-B929-EE8E9EC7F78B}.Release|x64.ActiveCfg = Release|x64
+		{4E92B502-DC6D-413E-B929-EE8E9EC7F78B}.Release|x64.Build.0 = Release|x64
+		{4E92B502-DC6D-413E-B929-EE8E9EC7F78B}.Release|x86.ActiveCfg = Release|Win32
+		{4E92B502-DC6D-413E-B929-EE8E9EC7F78B}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{A0B9B2DB-B67E-476A-854A-B61107C8E199} = {C5146098-4B7D-4219-A8F4-959987176029}
+		{CCE9B6DF-EC35-4244-A583-06C074F274F5} = {F3533480-8445-4034-A4AD-C812D20D2F0A}
+		{4E92B502-DC6D-413E-B929-EE8E9EC7F78B} = {F3533480-8445-4034-A4AD-C812D20D2F0A}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {1B5608D8-C03A-4A11-A888-106AE4687032}

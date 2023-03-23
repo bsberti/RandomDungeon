@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include <fstream>
 #include <sstream>
+#include <chrono>
 
 #include "GraphicScene.h"
 
@@ -19,7 +20,6 @@
 #include "EntityLoaderManager.h"
 
 #include "cMazeMaker_W2023.h"
-#include <chrono>
 
 #include "threads.h"
 
@@ -35,7 +35,7 @@
 PhysicsSystem* g_PhysicsSystem;
 physics::iPhysicsFactory* physicsFactory;
 physics::iPhysicsWorld* world;
-CollisionListener* collisionListener;
+physics::iCollisionListener* collisionListener;
 
 glm::vec3 g_cameraEye = glm::vec3(0.0f, 0.0f, 0.0f);
 glm::vec3 g_cameraTarget = glm::vec3(0.0f, 0.0f, 0.0f);
@@ -1559,6 +1559,16 @@ void updateCurrentMazeView(int newI, int newJ) {
     g_MapCameraEye = glm::vec3(mainChar->position.x, (g_GraphicScene.drawFog * 160.f), mainChar->position.z + 2.f);
 }
 
+// Creates a Description for a Rigid Body
+physics::RigidBodyDesc createRigidBodyDesc(bool isStatic, float mass, Vector3 position, Vector3 linearVelocity) {
+    physics::RigidBodyDesc desc;
+    desc.isStatic = isStatic;
+    desc.mass = mass;
+    desc.position = position;
+    desc.linearVelocity = linearVelocity;
+    return desc;
+}
+
 void setStaticPlane() {
     cMeshObject* pmesh = new cMeshObject();
     pmesh->meshName = "Plane_Floor";
@@ -1582,6 +1592,13 @@ void setStaticPlane() {
     // Adds the AABB to the Physics System
     pphysObj = g_PhysicsSystem->CreatePhysicsObject(pmesh->meshName, position, paabb);
     pphysObj->SetMass(-1.0f);
+
+    //----------------------------- PHYSICS WORLD PART -----------------------------
+    physics::iShape* theAABBShape = new physics::AABBShape(min, max, Vector3(0.f, 1.f, 0.f));
+
+    // Adds the AABB to the Physics World
+    physics::RigidBodyDesc AABBDesc = createRigidBodyDesc(true, 1.f, pmesh->position, glm::vec3(0.f));
+    world->AddBody(physicsFactory->CreateRigidBody(AABBDesc, theAABBShape));
 }
 
 int main(int argc, char* argv[]) {
@@ -1590,12 +1607,26 @@ int main(int argc, char* argv[]) {
     GLint vpos_location = 0;
     GLint vcol_location = 0;
 
+    int updateCount = 0;
+
     animationType = 0;
     animationSpeed = 0.01;
+    
+    // ------------------ PHYSICS STUFFS --------------------
+    {
+        g_PhysicsSystem = new PhysicsSystem();
+        // Initialize a Physics Factory
+        physicsFactory = new physics::PhysicsFactory();
+        // Create Physics World
+        world = physicsFactory->CreateWorld();
+        world->SetGravity(Vector3(0.0f, -0.98f, 0.0f));
+        // Create CollisionListener
+        collisionListener = physicsFactory->CreateCollisionListener();
+        // Register it to the World
+        world->RegisterCollisionListener(collisionListener);
+    }
 
-    g_PhysicsSystem = new PhysicsSystem();
-
-    // ---------------------------- Creating the Maze -----------------------------
+    // ---------------- Creating the Maze -------------------
     { 
         srand(time(NULL));
 
@@ -1624,7 +1655,6 @@ int main(int argc, char* argv[]) {
         theMM.PrintMaze();
     } // ---------------------------- Creating the Maze -----------------------------
 
-    int updateCount = 0;
     pBrain = new cLuaBrain();
 
     g_GraphicScene.map_beholds = new std::map<std::string, cMeshObject*>();
@@ -1683,28 +1713,31 @@ int main(int argc, char* argv[]) {
             return -4;
     }
 
-    glfwSetErrorCallback(error_callback);
-
-    if (!glfwInit())
-        exit(EXIT_FAILURE);
-
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 2);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
-
-    window = glfwCreateWindow(1024, 768, "Random Game", NULL, NULL);
-    if (!window)
+    // ------------------ glfw THINGS -----------------------
     {
-        glfwTerminate();
-        exit(EXIT_FAILURE);
+        glfwSetErrorCallback(error_callback);
+
+        if (!glfwInit())
+            exit(EXIT_FAILURE);
+
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 2);
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
+
+        window = glfwCreateWindow(1024, 768, "Random Game", NULL, NULL);
+        if (!window)
+        {
+            glfwTerminate();
+            exit(EXIT_FAILURE);
+        }
+
+        std::cout << "Window created." << std::endl;
+
+        glfwSetKeyCallback(window, key_callback);
+
+        glfwMakeContextCurrent(window);
+        gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
+        glfwSwapInterval(1);
     }
-
-    std::cout << "Window created." << std::endl;
-
-    glfwSetKeyCallback(window, key_callback);
-
-    glfwMakeContextCurrent(window);
-    gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
-    glfwSwapInterval(1);
 
     gameUi.fmod_manager_ = fmod_manager;
     gameUi.iniciatingUI();
@@ -1887,6 +1920,8 @@ int main(int argc, char* argv[]) {
     //updateCurrentMazeView(startI, startJ);
     //creatingModels();
 
+    // ------------------ AStarPath PAINTING -----------------
+
     //for (int index = 0; index < AStarPath.size(); index++) {
     //
     //    Node* currentNode = AStarPath[index];
@@ -1897,18 +1932,27 @@ int main(int argc, char* argv[]) {
     //    currentFloor->RGBA_colour = glm::vec4(1.0f, 0.0f, 0.0f, 1.0f);
     //}
 
-    iShape* ball;
-    PhysicsObject* physObj;
-    ball = new Sphere(Point(0.0f, 0.0f, 0.0f), 2.f);
+    // ------------------ PHYSICS STUFFS --------------------
+    {
+        iShape* ball;
+        PhysicsObject* physObj;
+        ball = new Sphere(Point(0.0f, 0.0f, 0.0f), 2.f);
 
-    // Adds the sphere to the Physics System
-    Vector3 position;
-    position.x = mainChar->position.x;
-    position.y = mainChar->position.y;
-    position.z = mainChar->position.z;
-    physObj = g_PhysicsSystem->CreatePhysicsObject(mainChar->friendlyName, position, ball);
-    mainChar->physObj = physObj;
-    //std::cout << mainChar->position.x << ", " << mainChar->position.y << ", " << mainChar->position.z << std::endl;
+        // Adds the sphere to the Physics System
+        Vector3 position;
+        position.x = mainChar->position.x;
+        position.y = mainChar->position.y;
+        position.z = mainChar->position.z;
+        physObj = g_PhysicsSystem->CreatePhysicsObject(mainChar->friendlyName, position, ball);
+        mainChar->physObj = physObj;
+        //std::cout << mainChar->position.x << ", " << mainChar->position.y << ", " << mainChar->position.z << std::endl;
+        
+        physics::iShape* playerBallShape = new physics::SphereShape(1.0f);
+        physics::RigidBodyDesc PlayerDesc = createRigidBodyDesc(false, 1.f, mainChar->position, glm::vec3(0.f));
+        mainChar->physicsBody = physicsFactory->CreateRigidBody(PlayerDesc, playerBallShape);
+        world->AddBody(mainChar->physicsBody);
+        
+    }
 
     // ---------------- GAME LOOP START -----------------------------------------------
     while (!glfwWindowShouldClose(window)) {
@@ -1938,12 +1982,22 @@ int main(int argc, char* argv[]) {
         std::string theText = ssTitle.str();
 
         // Physics Update
-        g_PhysicsSystem->UpdateStep(1.f);
+        //g_PhysicsSystem->UpdateStep(1.f);
+        world->TimeStep(1.f);
 
-        for (int i = 0; i < g_PhysicsSystem->m_PhysicsObjects.size(); i++) {
-            if (g_PhysicsSystem->m_PhysicsObjects[i]->meshName == "MainChar")
-                mainChar->position = g_PhysicsSystem->m_PhysicsObjects[i]->GetPosition().GetGLM();
-        }
+        //for (int i = 0; i < g_PhysicsSystem->m_PhysicsObjects.size(); i++) {
+        //    if (g_PhysicsSystem->m_PhysicsObjects[i]->meshName == "MainChar")
+        //        mainChar->position = g_PhysicsSystem->m_PhysicsObjects[i]->GetPosition().GetGLM();
+        //}
+
+        Vector3 newPositionVector;
+        mainChar->physicsBody->GetPosition(newPositionVector);
+        glm::vec3 newPosition = glm::vec3(newPositionVector.x, newPositionVector.y, newPositionVector.z);
+        mainChar->position = newPosition;
+
+        glm::quat newRotation;
+        mainChar->physicsBody->GetRotation(newRotation);
+        mainChar->qRotation = newRotation;
 
         // Animation Update
         //for (std::map< std::string, cMeshObject*>::iterator itBeholds =

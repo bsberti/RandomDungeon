@@ -1,0 +1,51 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="physics">
+      <UniqueIdentifier>{68f51fb0-2af9-41f3-b98a-de1f01608e79}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="physics\bullet">
+      <UniqueIdentifier>{79e35e91-d568-488e-b0a5-de0ac5e42d2b}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="physics\bullet\PhysicsFactory.cpp">
+      <Filter>physics\bullet</Filter>
+    </ClCompile>
+    <ClCompile Include="physics\bullet\PhysicsWorld.cpp">
+      <Filter>physics\bullet</Filter>
+    </ClCompile>
+    <ClCompile Include="physics\bullet\RigidBody.cpp">
+      <Filter>physics\bullet</Filter>
+    </ClCompile>
+    <ClCompile Include="physics\bullet\SoftBody.cpp">
+      <Filter>physics\bullet</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="physics\bullet\PhysicsFactory.h">
+      <Filter>physics\bullet</Filter>
+    </ClInclude>
+    <ClInclude Include="physics\bullet\PhysicsWorld.h">
+      <Filter>physics\bullet</Filter>
+    </ClInclude>
+    <ClInclude Include="physics\bullet\RigidBody.h">
+      <Filter>physics\bullet</Filter>
+    </ClInclude>
+    <ClInclude Include="physics\bullet\SoftBody.h">
+      <Filter>physics\bullet</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>

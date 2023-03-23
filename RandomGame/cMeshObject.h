@@ -14,6 +14,7 @@
 #include <vector>
 
 #include "PhysicsEngine/PhysicsObject.h"
+#include "PhysicsEngine/RigidBody.h"
 
 struct PositionKeyFrame
 {
@@ -48,6 +49,7 @@ public:
 	// Human friendly name for this particular instance of the mesh
 	std::string friendlyName;
 	PhysicsObject* physObj;
+	physics::iRigidBody* physicsBody;
 
 	glm::vec3 position;     // 0,0,0 (origin)
 	// Euler angles
