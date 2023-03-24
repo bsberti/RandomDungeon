@@ -24,15 +24,15 @@
 #include "threads.h"
 
 // Physics Includes
+#include "physics.h"
+//#include "PhysicsEngine/Shapes.h"
+//#include "PhysicsEngine/PhysicsObject.h"
+//#include "PhysicsEngine/PhysicsSystem.h"
+//#include "PhysicsEngine/PhysicsFactory.h"
+//#include "PhysicsEngine/iPhysicsFactory.h"
+//#include "PhysicsEngine/PhysicsWorld.h"
 
-#include "PhysicsEngine/Shapes.h"
-#include "PhysicsEngine/PhysicsObject.h"
-#include "PhysicsEngine/PhysicsSystem.h"
-#include "PhysicsEngine/PhysicsFactory.h"
-#include "PhysicsEngine/iPhysicsFactory.h"
-#include "PhysicsEngine/PhysicsWorld.h"
-
-PhysicsSystem* g_PhysicsSystem;
+//PhysicsSystem* g_PhysicsSystem;
 physics::iPhysicsFactory* physicsFactory;
 physics::iPhysicsWorld* world;
 physics::iCollisionListener* collisionListener;
@@ -175,53 +175,53 @@ void rotateMinMax(glm::vec3& minPoint, glm::vec3& maxPoint) {
 
 void setStaticPhysObjectAABB(cMeshObject* mesh, bool rotated) {
     //cMeshObject* pmesh;
-    iShape* paabb = nullptr;
-    PhysicsObject* pphysObj = nullptr;
+    //iShape* paabb = nullptr;
+    //PhysicsObject* pphysObj = nullptr;
 
     // Cone AABB
     //pmesh = g_GraphicScene.GetObjectByName(friendlyName, false);
     sModelDrawInfo drawingInfo = g_GraphicScene.returnDrawInformation(mesh->meshName);
 
     // Creates the AABB structure for the Terrain
-    float min[3] = { mesh->position.x + drawingInfo.minX,
-                     mesh->position.y + drawingInfo.minY,
-                     mesh->position.z + drawingInfo.minZ };
-    float max[3] = { mesh->position.x + drawingInfo.maxX,
-                     mesh->position.y + drawingInfo.maxY,
-                     mesh->position.z + drawingInfo.maxZ };
+    //float min[3] = { mesh->position.x + drawingInfo.minX,
+    //                 mesh->position.y + drawingInfo.minY,
+    //                 mesh->position.z + drawingInfo.minZ };
+    //float max[3] = { mesh->position.x + drawingInfo.maxX,
+    //                 mesh->position.y + drawingInfo.maxY,
+    //                 mesh->position.z + drawingInfo.maxZ };
 
-    glm::vec3 minPoint;
-    minPoint.x = min[0];
-    minPoint.y = min[1];
-    minPoint.z = min[2];
+    //glm::vec3 minPoint;
+    //minPoint.x = min[0];
+    //minPoint.y = min[1];
+    //minPoint.z = min[2];
 
-    glm::vec3 maxPoint;
-    maxPoint.x = max[0];
-    maxPoint.y = max[1];
-    maxPoint.z = max[2];
+    //glm::vec3 maxPoint;
+    //maxPoint.x = max[0];
+    //maxPoint.y = max[1];
+    //maxPoint.z = max[2];
 
-    if (rotated) {
-        rotateMinMax(minPoint, maxPoint);
+    //if (rotated) {
+    //    rotateMinMax(minPoint, maxPoint);
 
-        min[0] = minPoint.x;
-        min[1] = minPoint.y;
-        min[2] = minPoint.z;
+    //    min[0] = minPoint.x;
+    //    min[1] = minPoint.y;
+    //    min[2] = minPoint.z;
 
-        max[0] = maxPoint.x;
-        max[1] = maxPoint.y;
-        max[2] = maxPoint.z;
-    }
+    //    max[0] = maxPoint.x;
+    //    max[1] = maxPoint.y;
+    //    max[2] = maxPoint.z;
+    //}
 
-    paabb = new AABB(min, max);
+    //paabb = new AABB(min, max);
 
-    Vector3 position;
-    position.x = mesh->position.x;
-    position.y = mesh->position.y;
-    position.z = mesh->position.z;
+    //Vector3 position;
+    //position.x = mesh->position.x;
+    //position.y = mesh->position.y;
+    //position.z = mesh->position.z;
 
     // Adds the AABB to the Physics System
-    pphysObj = g_PhysicsSystem->CreatePhysicsObject(mesh->meshName, position, paabb);
-    pphysObj->SetMass(-1.0f);
+    //pphysObj = g_PhysicsSystem->CreatePhysicsObject(mesh->meshName, position, paabb);
+    //pphysObj->SetMass(-1.0f);
 }
 
 // Function called inside creatingModels for the wall object creation
@@ -1462,7 +1462,7 @@ void updateCurrentMazeView(int newI, int newJ) {
 
     m_blocksLoader->cleanPairs();
 
-    g_PhysicsSystem->RemoveWalls();
+    //g_PhysicsSystem->RemoveWalls();
 
     _MAZE_TILE_INFO* pMazeTileInfo = new _MAZE_TILE_INFO[NUM_THREADS];
     DWORD dw;
@@ -1560,45 +1560,45 @@ void updateCurrentMazeView(int newI, int newJ) {
 }
 
 // Creates a Description for a Rigid Body
-physics::RigidBodyDesc createRigidBodyDesc(bool isStatic, float mass, Vector3 position, Vector3 linearVelocity) {
-    physics::RigidBodyDesc desc;
-    desc.isStatic = isStatic;
-    desc.mass = mass;
-    desc.position = position;
-    desc.linearVelocity = linearVelocity;
-    return desc;
-}
+//physics::RigidBodyDesc createRigidBodyDesc(bool isStatic, float mass, Vector3 position, Vector3 linearVelocity) {
+//    physics::RigidBodyDesc desc;
+//    desc.isStatic = isStatic;
+//    desc.mass = mass;
+//    desc.position = position;
+//    desc.linearVelocity = linearVelocity;
+//    return desc;
+//}
 
 void setStaticPlane() {
-    cMeshObject* pmesh = new cMeshObject();
-    pmesh->meshName = "Plane_Floor";
-    iShape* paabb = nullptr;
-    PhysicsObject* pphysObj = nullptr;
+    //cMeshObject* pmesh = new cMeshObject();
+    //pmesh->meshName = "Plane_Floor";
+    //iShape* paabb = nullptr;
+    //PhysicsObject* pphysObj = nullptr;
 
-    // Creates the AABB structure for the Terrain
-    float min[3] = { 0.f,
-                     0.f,
-                     0.f };
-    float max[3] = { 10000.f,
-                     10.f,
-                     10000.f };
-    paabb = new AABB(min, max);
+    //// Creates the AABB structure for the Terrain
+    //float min[3] = { 0.f,
+    //                 0.f,
+    //                 0.f };
+    //float max[3] = { 10000.f,
+    //                 10.f,
+    //                 10000.f };
+    //paabb = new AABB(min, max);
 
-    Vector3 position;
-    position.x = 0.f;
-    position.y = 0.f;
-    position.z = 0.f;
+    //Vector3 position;
+    //position.x = 0.f;
+    //position.y = 0.f;
+    //position.z = 0.f;
 
     // Adds the AABB to the Physics System
-    pphysObj = g_PhysicsSystem->CreatePhysicsObject(pmesh->meshName, position, paabb);
-    pphysObj->SetMass(-1.0f);
+    //pphysObj = g_PhysicsSystem->CreatePhysicsObject(pmesh->meshName, position, paabb);
+    //pphysObj->SetMass(-1.0f);
 
-    //----------------------------- PHYSICS WORLD PART -----------------------------
-    physics::iShape* theAABBShape = new physics::AABBShape(min, max, Vector3(0.f, 1.f, 0.f));
+    ////----------------------------- PHYSICS WORLD PART -----------------------------
+    //physics::iShape* theAABBShape = new physics::AABBShape(min, max, Vector3(0.f, 1.f, 0.f));
 
-    // Adds the AABB to the Physics World
-    physics::RigidBodyDesc AABBDesc = createRigidBodyDesc(true, 1.f, pmesh->position, glm::vec3(0.f));
-    world->AddBody(physicsFactory->CreateRigidBody(AABBDesc, theAABBShape));
+    //// Adds the AABB to the Physics World
+    //physics::RigidBodyDesc AABBDesc = createRigidBodyDesc(true, 1.f, pmesh->position, glm::vec3(0.f));
+    //world->AddBody(physicsFactory->CreateRigidBody(AABBDesc, theAABBShape));
 }
 
 int main(int argc, char* argv[]) {
@@ -1614,14 +1614,14 @@ int main(int argc, char* argv[]) {
     
     // ------------------ PHYSICS STUFFS --------------------
     {
-        g_PhysicsSystem = new PhysicsSystem();
+        // g_PhysicsSystem = new PhysicsSystem();
         // Initialize a Physics Factory
         physicsFactory = new physics::PhysicsFactory();
         // Create Physics World
         world = physicsFactory->CreateWorld();
-        world->SetGravity(Vector3(0.0f, -0.98f, 0.0f));
+        //world->SetGravity(Vector3(0.0f, -0.98f, 0.0f));
         // Create CollisionListener
-        collisionListener = physicsFactory->CreateCollisionListener();
+        //collisionListener = physicsFactory->CreateCollisionListener();
         // Register it to the World
         world->RegisterCollisionListener(collisionListener);
     }
@@ -1934,23 +1934,23 @@ int main(int argc, char* argv[]) {
 
     // ------------------ PHYSICS STUFFS --------------------
     {
-        iShape* ball;
-        PhysicsObject* physObj;
-        ball = new Sphere(Point(0.0f, 0.0f, 0.0f), 2.f);
+        //iShape* ball;
+        //PhysicsObject* physObj;
+        //ball = new Sphere(Point(0.0f, 0.0f, 0.0f), 2.f);
 
         // Adds the sphere to the Physics System
-        Vector3 position;
-        position.x = mainChar->position.x;
-        position.y = mainChar->position.y;
-        position.z = mainChar->position.z;
-        physObj = g_PhysicsSystem->CreatePhysicsObject(mainChar->friendlyName, position, ball);
-        mainChar->physObj = physObj;
+        //Vector3 position;
+        //position.x = mainChar->position.x;
+        //position.y = mainChar->position.y;
+        //position.z = mainChar->position.z;
+        //physObj = g_PhysicsSystem->CreatePhysicsObject(mainChar->friendlyName, position, ball);
+        //mainChar->physObj = physObj;
         //std::cout << mainChar->position.x << ", " << mainChar->position.y << ", " << mainChar->position.z << std::endl;
         
-        physics::iShape* playerBallShape = new physics::SphereShape(1.0f);
-        physics::RigidBodyDesc PlayerDesc = createRigidBodyDesc(false, 1.f, mainChar->position, glm::vec3(0.f));
-        mainChar->physicsBody = physicsFactory->CreateRigidBody(PlayerDesc, playerBallShape);
-        world->AddBody(mainChar->physicsBody);
+        //physics::iShape* playerBallShape = new physics::SphereShape(1.0f);
+        //physics::RigidBodyDesc PlayerDesc = createRigidBodyDesc(false, 1.f, mainChar->position, glm::vec3(0.f));
+        //mainChar->physicsBody = physicsFactory->CreateRigidBody(PlayerDesc, playerBallShape);
+        //world->AddBody(mainChar->physicsBody);
         
     }
 
@@ -1990,14 +1990,14 @@ int main(int argc, char* argv[]) {
         //        mainChar->position = g_PhysicsSystem->m_PhysicsObjects[i]->GetPosition().GetGLM();
         //}
 
-        Vector3 newPositionVector;
-        mainChar->physicsBody->GetPosition(newPositionVector);
-        glm::vec3 newPosition = glm::vec3(newPositionVector.x, newPositionVector.y, newPositionVector.z);
-        mainChar->position = newPosition;
+        //Vector3 newPositionVector;
+        //mainChar->physicsBody->GetPosition(newPositionVector);
+        //glm::vec3 newPosition = glm::vec3(newPositionVector.x, newPositionVector.y, newPositionVector.z);
+        //mainChar->position = newPosition;
 
-        glm::quat newRotation;
-        mainChar->physicsBody->GetRotation(newRotation);
-        mainChar->qRotation = newRotation;
+        //glm::quat newRotation;
+        //mainChar->physicsBody->GetRotation(newRotation);
+        //mainChar->qRotation = newRotation;
 
         // Animation Update
         //for (std::map< std::string, cMeshObject*>::iterator itBeholds =

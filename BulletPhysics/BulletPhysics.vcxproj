@@ -19,12 +19,18 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="physics\bullet\CheckGLError.cpp" />
+    <ClCompile Include="physics\bullet\Conversion.cpp" />
+    <ClCompile Include="physics\bullet\DebugDrawer.cpp" />
     <ClCompile Include="physics\bullet\PhysicsFactory.cpp" />
     <ClCompile Include="physics\bullet\PhysicsWorld.cpp" />
     <ClCompile Include="physics\bullet\RigidBody.cpp" />
     <ClCompile Include="physics\bullet\SoftBody.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="physics\bullet\CheckGLError.h" />
+    <ClInclude Include="physics\bullet\Conversion.h" />
+    <ClInclude Include="physics\bullet\DebugDrawer.h" />
     <ClInclude Include="physics\bullet\PhysicsFactory.h" />
     <ClInclude Include="physics\bullet\PhysicsWorld.h" />
     <ClInclude Include="physics\bullet\RigidBody.h" />
@@ -83,8 +89,8 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>$(SolutionDir)dev\include;$(SolutionDir)PhysicsInterface;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
-    <SourcePath>$(SolutionDir)PhysicsInterface;$(VC_SourcePath)</SourcePath>
+    <IncludePath>$(SolutionDir)external\bullet3\src\extern\bullet;$(SolutionDir)dev\include;$(SolutionDir)PhysicsInterface;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
+    <SourcePath>$(SolutionDir)external\bullet3\src\extern\bullet;$(SolutionDir)PhysicsInterface;$(VC_SourcePath);$(SourcePath)</SourcePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>

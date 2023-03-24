@@ -318,7 +318,7 @@ void key_callback(GLFWwindow* window,
             direction.z += 1;
         }
 
-        mainChar->physObj->ApplyForce(direction* force);
+        //mainChar->physObj->ApplyForce(direction* force);
        
         float mainCharX = (mainChar->currentJ * GLOBAL_MAP_OFFSET) - (GLOBAL_MAP_OFFSET / 2);
         float mainCharZ = (mainChar->currentI * GLOBAL_MAP_OFFSET) - (GLOBAL_MAP_OFFSET / 2);
@@ -328,15 +328,15 @@ void key_callback(GLFWwindow* window,
         oldPosition.y = mainChar->position.y;
         oldPosition.z = mainCharZ;
 
-        if (mainChar->physObj->GetVelocity().GetGLM() != glm::vec3(0.f))
-        {
-            int breakpoint = 5;
+        //if (mainChar->physObj->GetVelocity().GetGLM() != glm::vec3(0.f))
+        //{
+        //    int breakpoint = 5;
 
-            nextTileI = (mainChar->position.z + (GLOBAL_MAP_OFFSET / 2)) / GLOBAL_MAP_OFFSET;
-            nextTileJ = (mainChar->position.x + (GLOBAL_MAP_OFFSET / 2)) / GLOBAL_MAP_OFFSET;
+        //    nextTileI = (mainChar->position.z + (GLOBAL_MAP_OFFSET / 2)) / GLOBAL_MAP_OFFSET;
+        //    nextTileJ = (mainChar->position.x + (GLOBAL_MAP_OFFSET / 2)) / GLOBAL_MAP_OFFSET;
 
-            updateCurrentMazeView(nextTileI, nextTileJ);
-        }
+        //    updateCurrentMazeView(nextTileI, nextTileJ);
+        //}
 
         //if (nextTileI != mainChar->currentI && nextTileJ != mainChar->currentJ)
         //{

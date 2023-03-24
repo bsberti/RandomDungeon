@@ -4,7 +4,7 @@
 #include <physics/interfaces/RigidBodyDesc.h>
 #include <physics/interfaces/iShape.h>
 
-//#include <bullet/btBulletDynamicsCommon.h>
+#include <btBulletDynamicsCommon.h>
 
 namespace physics
 {
@@ -31,10 +31,10 @@ namespace physics
 		virtual void ApplyTorque(const Vector3& torque) override;
 		virtual void ApplyTorqueImpulse(const Vector3& torqueImpulse) override;
 
-		//btRigidBody* GetBulletBody(void) { return m_BulletRigidBody; }
+		btRigidBody* GetBulletBody(void) { return m_BulletRigidBody; }
 	private:
 
-		//btRigidBody* m_BulletRigidBody;
+		btRigidBody* m_BulletRigidBody;
 
 		RigidBody(const RigidBody&) { }
 		RigidBody& operator=(const RigidBody&) {

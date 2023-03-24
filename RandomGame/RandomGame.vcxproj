@@ -71,9 +71,9 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>$(SolutionDir)BulletPhysics;$(SolutionDir)PhysicsInterface;$(SolutionDir)dev/include;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
-    <LibraryPath>$(SolutionDir)x64\$(Configuration);$(SolutionDir)dev/libraries/Debug;$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64)</LibraryPath>
-    <ExcludePath>$(SolutionDir)BulletPhysics;$(SolutionDir)PhysicsInterface;$(ExcludePath)</ExcludePath>
+    <IncludePath>$(SolutionDir)external\bullet3\src\extern\bullet;$(SolutionDir)BulletPhysics;$(SolutionDir)PhysicsInterface;$(SolutionDir)dev/include;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
+    <LibraryPath>$(SolutionDir)x64\$(Configuration);$(SolutionDir)dev\libraries\$(Configuration);$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64)</LibraryPath>
+    <SourcePath>$(SolutionDir)external\bullet3\src\extern\bullet;$(SolutionDir)BulletPhysics;$(SolutionDir)PhysicsInterface;$(VC_SourcePath)</SourcePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <IncludePath>$(SolutionDir)dev/include;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
@@ -118,7 +118,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>lua5.4.4-static.lib;pugixml_d.lib;fmod_vc.lib;glfw3.lib;freeglutd.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>lua5.4.4-static.lib;pugixml_d.lib;fmod_vc.lib;glfw3.lib;freeglutd.lib;PhysicsInterface.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
       <Command>python "$(SolutionDir)dev\tools\texture-pipeline.py" "$(ProjectDir)assets/textures"</Command>
@@ -179,25 +179,6 @@
     <ClCompile Include="cVAOManager\c3DModelFileLoader.cpp" />
     <ClCompile Include="cVAOManager\cVAOManager.cpp" />
     <ClCompile Include="GraphicScene.cpp" />
-    <ClCompile Include="PhysicsEngine\AABBShape.cpp" />
-    <ClCompile Include="PhysicsEngine\CollisionHandler.cpp" />
-    <ClCompile Include="PhysicsEngine\CollisionListener.cpp" />
-    <ClCompile Include="PhysicsEngine\CollisionManager.cpp" />
-    <ClCompile Include="PhysicsEngine\cParticle.cpp" />
-    <ClCompile Include="PhysicsEngine\cParticleSystem.cpp" />
-    <ClCompile Include="PhysicsEngine\PhysicsFactory.cpp" />
-    <ClCompile Include="PhysicsEngine\PhysicsMath.cpp" />
-    <ClCompile Include="PhysicsEngine\PhysicsObject.cpp" />
-    <ClCompile Include="PhysicsEngine\PhysicsSystem.cpp" />
-    <ClCompile Include="PhysicsEngine\PhysicsUtils.cpp" />
-    <ClCompile Include="PhysicsEngine\PhysicsWorld.cpp" />
-    <ClCompile Include="PhysicsEngine\PlaneShape.cpp" />
-    <ClCompile Include="PhysicsEngine\RigidBody.cpp" />
-    <ClCompile Include="PhysicsEngine\Shapes.cpp" />
-    <ClCompile Include="PhysicsEngine\SoftBody.cpp" />
-    <ClCompile Include="PhysicsEngine\SphereShape.cpp" />
-    <ClCompile Include="PhysicsEngine\Spring.cpp" />
-    <ClCompile Include="PhysicsEngine\Vector3.cpp" />
     <ClCompile Include="theMainFunction.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -235,36 +216,6 @@
     <ClInclude Include="imgui\imstb_truetype.h" />
     <ClInclude Include="iObject.h" />
     <ClInclude Include="physics.h" />
-    <ClInclude Include="PhysicsEngine\AABBShape.h" />
-    <ClInclude Include="PhysicsEngine\BodyType.h" />
-    <ClInclude Include="PhysicsEngine\BoundingBox.h" />
-    <ClInclude Include="PhysicsEngine\CollisionHandler.h" />
-    <ClInclude Include="PhysicsEngine\CollisionListener.h" />
-    <ClInclude Include="PhysicsEngine\CollisionManager.h" />
-    <ClInclude Include="PhysicsEngine\cParticle.h" />
-    <ClInclude Include="PhysicsEngine\cParticleSystem.h" />
-    <ClInclude Include="PhysicsEngine\iCollisionBody.h" />
-    <ClInclude Include="PhysicsEngine\iPhysicsFactory.h" />
-    <ClInclude Include="PhysicsEngine\iPhysicsWorld.h" />
-    <ClInclude Include="PhysicsEngine\iRigidBody.h" />
-    <ClInclude Include="PhysicsEngine\iShape.h" />
-    <ClInclude Include="PhysicsEngine\iSoftBody.h" />
-    <ClInclude Include="PhysicsEngine\PhysicsFactory.h" />
-    <ClInclude Include="PhysicsEngine\PhysicsMath.h" />
-    <ClInclude Include="PhysicsEngine\PhysicsObject.h" />
-    <ClInclude Include="PhysicsEngine\PhysicsSystem.h" />
-    <ClInclude Include="PhysicsEngine\PhysicsUtils.h" />
-    <ClInclude Include="PhysicsEngine\PhysicsWorld.h" />
-    <ClInclude Include="PhysicsEngine\PlaneShape.h" />
-    <ClInclude Include="PhysicsEngine\RigidBody.h" />
-    <ClInclude Include="PhysicsEngine\RigidBodyDesc.h" />
-    <ClInclude Include="PhysicsEngine\Shapes.h" />
-    <ClInclude Include="PhysicsEngine\ShapeType.h" />
-    <ClInclude Include="PhysicsEngine\SoftBody.h" />
-    <ClInclude Include="PhysicsEngine\SoftBodyDesc.h" />
-    <ClInclude Include="PhysicsEngine\SphereShape.h" />
-    <ClInclude Include="PhysicsEngine\Spring.h" />
-    <ClInclude Include="PhysicsEngine\Vector3.h" />
     <ClInclude Include="threads.h" />
   </ItemGroup>
   <ItemGroup>

@@ -7,7 +7,7 @@
 
 #include <vector>
 
-//#include <btBulletDynamicsCommon.h>
+#include <btBulletDynamicsCommon.h>
 
 namespace physics
 {
@@ -28,11 +28,11 @@ namespace physics
 		virtual void RegisterCollisionListener(iCollisionListener* listener) override {}
 
 	private:
-		//btDefaultCollisionConfiguration* m_CollisionConfiguration;
-		//btCollisionDispatcher* m_Dispatcher;
-		//btBroadphaseInterface* m_OverlappingPairCache;
-		//btSequentialImpulseConstraintSolver* m_Solver;
-		//btDiscreteDynamicsWorld* m_DynamicsWorld;
+		btDefaultCollisionConfiguration* m_CollisionConfiguration;
+		btCollisionDispatcher* m_Dispatcher;
+		btBroadphaseInterface* m_OverlappingPairCache;
+		btSequentialImpulseConstraintSolver* m_Solver;
+		btDiscreteDynamicsWorld* m_DynamicsWorld;
 
 		//btIDebugDraw* m_DebugDrawer;
 
