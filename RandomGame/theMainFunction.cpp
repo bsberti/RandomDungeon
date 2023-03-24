@@ -1560,14 +1560,14 @@ void updateCurrentMazeView(int newI, int newJ) {
 }
 
 // Creates a Description for a Rigid Body
-//physics::RigidBodyDesc createRigidBodyDesc(bool isStatic, float mass, Vector3 position, Vector3 linearVelocity) {
-//    physics::RigidBodyDesc desc;
-//    desc.isStatic = isStatic;
-//    desc.mass = mass;
-//    desc.position = position;
-//    desc.linearVelocity = linearVelocity;
-//    return desc;
-//}
+physics::RigidBodyDesc createRigidBodyDesc(bool isStatic, float mass, physics::Vector3 position, physics::Vector3 linearVelocity) {
+    physics::RigidBodyDesc desc;
+    desc.isStatic = isStatic;
+    desc.mass = mass;
+    desc.position = position;
+    desc.linearVelocity = linearVelocity;
+    return desc;
+}
 
 void setStaticPlane() {
     //cMeshObject* pmesh = new cMeshObject();
@@ -1947,11 +1947,10 @@ int main(int argc, char* argv[]) {
         //mainChar->physObj = physObj;
         //std::cout << mainChar->position.x << ", " << mainChar->position.y << ", " << mainChar->position.z << std::endl;
         
-        //physics::iShape* playerBallShape = new physics::SphereShape(1.0f);
-        //physics::RigidBodyDesc PlayerDesc = createRigidBodyDesc(false, 1.f, mainChar->position, glm::vec3(0.f));
-        //mainChar->physicsBody = physicsFactory->CreateRigidBody(PlayerDesc, playerBallShape);
-        //world->AddBody(mainChar->physicsBody);
-        
+        physics::iShape* playerBallShape = new physics::SphereShape(1.0f);
+        physics::RigidBodyDesc PlayerDesc = createRigidBodyDesc(false, 1.f, mainChar->position, glm::vec3(0.f));
+        mainChar->physicsBody = physicsFactory->CreateRigidBody(PlayerDesc, playerBallShape);
+        world->AddBody(mainChar->physicsBody);
     }
 
     // ---------------- GAME LOOP START -----------------------------------------------
