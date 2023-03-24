@@ -13,8 +13,7 @@
 #include <glm/gtx/norm.hpp>
 #include <vector>
 
-//#include "PhysicsEngine/PhysicsObject.h"
-//#include "PhysicsEngine/RigidBody.h"
+#include "physics.h"
 
 struct PositionKeyFrame
 {
@@ -48,7 +47,8 @@ public:
 
 	// Human friendly name for this particular instance of the mesh
 	std::string friendlyName;
-	//PhysicsObject* physObj;
+
+	// Physics Rigid Body that represents the physics part of the mesh in the world
 	physics::iRigidBody* physicsBody;
 
 	glm::vec3 position;     // 0,0,0 (origin)

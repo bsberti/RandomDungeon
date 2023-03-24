@@ -25,43 +25,33 @@
 
 // Physics Includes
 #include "physics.h"
-//#include "PhysicsEngine/Shapes.h"
-//#include "PhysicsEngine/PhysicsObject.h"
-//#include "PhysicsEngine/PhysicsSystem.h"
-//#include "PhysicsEngine/PhysicsFactory.h"
-//#include "PhysicsEngine/iPhysicsFactory.h"
-//#include "PhysicsEngine/PhysicsWorld.h"
 
-//PhysicsSystem* g_PhysicsSystem;
+// Physics GLOBAL Variables
 physics::iPhysicsFactory* physicsFactory;
 physics::iPhysicsWorld* world;
 physics::iCollisionListener* collisionListener;
 
+// Camera GLOBAL Variables
 glm::vec3 g_cameraEye = glm::vec3(0.0f, 0.0f, 0.0f);
 glm::vec3 g_cameraTarget = glm::vec3(0.0f, 0.0f, 0.0f);
-
 glm::vec3 g_MapCameraEye = glm::vec3(0.0f, 0.0f, 0.0f);
 glm::vec3 g_MapCameraTarget = glm::vec3(0.0f, 0.0f, 0.0f);
 
 GraphicScene g_GraphicScene;
-//ParticleSystem g_ParticleSystem;
 cLuaBrain* pBrain;
 cMazeMaker_W2023 theMM;
 BlocksLoader* m_blocksLoader;
-
 cRandomUI gameUi;
 FModManager* fmod_manager;
 FMOD::Channel* _channel;
 constexpr int max_channels = 255;
-//SimulationView* simView = new SimulationView();
 int animationType;
 float animationSpeed;
-
 GLFWwindow* window;
-
 float NinetyDegrees = 1.575f;
 std::map< std::string, cMeshObject*>::iterator itBeholdsToFollow;
 
+// GLOBAL DEFINITIONS
 #define NUMBER_OF_TAGS 10
 #define MAP_WIDTH 100
 #define MAP_HEIGHT 100
@@ -70,23 +60,22 @@ std::map< std::string, cMeshObject*>::iterator itBeholdsToFollow;
 #define SMALLEST_DISTANCE 0.1
 #define CAMERA_OFFSET 50.0
 #define MAIN_CHAR_JSON_INFO "MainCharacter.json"
+#define NUM_THREADS 64
+#define NUM_ELEMENTS_TO_INIT 10000
 
+// Beholder GLOBAL Variables
+cMeshObject* currentBehold;
 RotationKeyFrame nextRKF;
 RotationKeyFrame currRKF;
-
-cMeshObject* currentBehold;
-
 PositionKeyFrame nextPKF;
 PositionKeyFrame currPKF;
 
-#define NUM_THREADS 64
-#define NUM_ELEMENTS_TO_INIT 10000
+// Thread GLOBAL Variables
 CRITICAL_SECTION dataMutex; 
 HANDLE dataSemaphore;
-//HANDLE ahThread[NUM_THREADS];
 HANDLE ahThread;
 
-// Main Character Objects
+// Main Character GLOBAL Variables
 cMeshObject* mainChar;
 cMeshObject* planeFloor;
 cCharacter playabledCharacter;
@@ -443,6 +432,7 @@ void createDeadbody(unsigned int line, unsigned int column, glm::vec3 pos, glm::
 //    return 0;
 //}
 
+// Same as creatingModewls, but creates only one tile in the i and j position required
 void createMazeTile(int i, int j) {
     sModelDrawInfo drawingInformation;
     std::string northString = "";
@@ -1305,6 +1295,8 @@ bool calculateNextPosition(cMeshObject* currentBehold, glm::vec3& nextPosition, 
     return true;
 }
 
+/* Update all Beholders animation key frames ->
+This functions is called in a new Thread. */
 DWORD WINAPI animationUpdate(PVOID pvParam) {
     for (std::map< std::string, cMeshObject*>::iterator itBeholds =
         g_GraphicScene.map_beholds->begin(); itBeholds != g_GraphicScene.map_beholds->end();
@@ -1332,100 +1324,45 @@ DWORD WINAPI animationUpdate(PVOID pvParam) {
             currentBehold->PositionKeyFrames.clear();
             currentBehold->RotationKeyFrames.clear();
 
-            //std::string currentBeholdNextTileXScript =
-            //    "nextTileX" + std::to_string(currentBeholdID) + " = " +
-            //    std::to_string(nextPosition.x);
-            //std::string currentBeholdNextTileYScript =
-            //    "nextTileY" + std::to_string(currentBeholdID) + " = " +
-            //    std::to_string(nextPosition.y);
-            //std::string currentBeholdNextTileZScript =
-            //    "nextTileZ" + std::to_string(currentBeholdID) + "  = " +
-            //    std::to_string(nextPosition.z);
-
             currRKF.value = currentBehold->rotation;
             currRKF.time = 0;
             currRKF.useSlerp = false;
 
-            // Lock the mutex to prevent other threads from accessing the vector
-            //EnterCriticalSection(&dataMutex);
-
             currentBehold->RotationKeyFrames.push_back(currRKF);
-            
-            // Unlock the mutex to allow other threads to access the vector
-            //LeaveCriticalSection(&dataMutex);
 
             nextRKF.time = 1;
             nextRKF.useSlerp = false;
 
             // Setting rotation
-            if (nextPosition.x < currentBehold->position.x) {// Going WEST
+            if (nextPosition.x < currentBehold->position.x) { // Going WEST
                 //currentBehold->setRotationFromEuler(glm::vec3(0.0f, NinetyDegrees, 0.0f));
                 nextRKF.value = glm::vec3(0.0f, NinetyDegrees, 0.0f);
             }
 
-            if (nextPosition.x > currentBehold->position.x) {// Going EAST
+            if (nextPosition.x > currentBehold->position.x) { // Going EAST
                 //currentBehold->setRotationFromEuler(glm::vec3(0.0f, -NinetyDegrees, 0.0f));
                 nextRKF.value = glm::vec3(0.0f, -NinetyDegrees, 0.0f);
             }
 
-            if (nextPosition.z < currentBehold->position.z) {// Going NORTH
+            if (nextPosition.z < currentBehold->position.z) { // Going NORTH
                 //currentBehold->setRotationFromEuler(glm::vec3(0.0f, 0.0, 0.0f));
                 nextRKF.value = glm::vec3(0.0f, 0.0, 0.0f);
             }
 
-            if (nextPosition.z > currentBehold->position.z) {// Going SOUTH
+            if (nextPosition.z > currentBehold->position.z) { // Going SOUTH
                 //currentBehold->setRotationFromEuler(glm::vec3(0.0f, NinetyDegrees * 2, 0.0f));
                 nextRKF.value = glm::vec3(0.0f, NinetyDegrees * 2, 0.0f);
             }
 
-            // Lock the mutex to prevent other threads from accessing the vector
-            //EnterCriticalSection(&dataMutex);
-
             currentBehold->RotationKeyFrames.push_back(nextRKF);
-
-            // Unlock the mutex to allow other threads to access the vector
-            //LeaveCriticalSection(&dataMutex);
-
-            //std::cout << " ------------------------------------------------------ " << std::endl;
-            //std::cout << currentBehold->friendlyName << " CurrentPosition: (" <<
-            //    currentBehold->position.x << ", " <<
-            //    currentBehold->position.y << ", " <<
-            //    currentBehold->position.z << ")" << std::endl;
-
-            //std::cout << currentBehold->friendlyName << " I -> " <<
-            //    currentBehold->currentI << ", J -> " <<
-            //    currentBehold->currentJ << std::endl;
-
-            //std::cout << currentBehold->friendlyName << " NextPosition: (" <<
-            //    nextPosition.x << ", " <<
-            //    nextPosition.y << ", " <<
-            //    nextPosition.z << ")" << std::endl;
-
-            //std::cout << "nextTileX" << currentBeholdID << " changed" << std::endl;
-            //std::cout << "nextTileY" << currentBeholdID << " changed" << std::endl;
-            //std::cout << "nextTileZ" << currentBeholdID << " changed" << std::endl;
 
             currPKF.value = glm::vec3(currentBehold->position.x, currentBehold->position.y, currentBehold->position.z);
             currPKF.time = 0;
-
-            // Lock the mutex to prevent other threads from accessing the vector
-            //EnterCriticalSection(&dataMutex);
-
             currentBehold->PositionKeyFrames.push_back(currPKF);
-
-            // Unlock the mutex to allow other threads to access the vector
-            //LeaveCriticalSection(&dataMutex);
 
             nextPKF.value = glm::vec3(nextPosition.x, nextPosition.y, nextPosition.z);
             nextPKF.time = 1;
-
-            // Lock the mutex to prevent other threads from accessing the vector
-            //EnterCriticalSection(&dataMutex);
-
             currentBehold->PositionKeyFrames.push_back(nextPKF);
-
-            // Unlock the mutex to allow other threads to access the vector
-            //LeaveCriticalSection(&dataMutex);
 
             currentBehold->CurrentTime = 0.f;
             currentBehold->IsLooping = false;
@@ -1451,6 +1388,8 @@ DWORD WINAPI animationUpdate(PVOID pvParam) {
     return 0;
 }
 
+/* Function that update the current Maze View ->
+Populate the vector of objects around the main char position */
 void updateCurrentMazeView(int newI, int newJ) {
     
     g_GraphicScene.cleanMazeView();
@@ -1569,36 +1508,14 @@ physics::RigidBodyDesc createRigidBodyDesc(bool isStatic, float mass, physics::V
     return desc;
 }
 
+// Creates a BOX that defines a plane in the game
 void setStaticPlane() {
-    //cMeshObject* pmesh = new cMeshObject();
-    //pmesh->meshName = "Plane_Floor";
-    //iShape* paabb = nullptr;
-    //PhysicsObject* pphysObj = nullptr;
+    // Creates the Shape that defines the Rigid Body so it can be added to the World
+    physics::iShape* theAABBShape = new physics::BoxShape(physics::Vector3(5000.f, 5.f, 5000.f));
 
-    //// Creates the AABB structure for the Terrain
-    //float min[3] = { 0.f,
-    //                 0.f,
-    //                 0.f };
-    //float max[3] = { 10000.f,
-    //                 10.f,
-    //                 10000.f };
-    //paabb = new AABB(min, max);
-
-    //Vector3 position;
-    //position.x = 0.f;
-    //position.y = 0.f;
-    //position.z = 0.f;
-
-    // Adds the AABB to the Physics System
-    //pphysObj = g_PhysicsSystem->CreatePhysicsObject(pmesh->meshName, position, paabb);
-    //pphysObj->SetMass(-1.0f);
-
-    ////----------------------------- PHYSICS WORLD PART -----------------------------
-    //physics::iShape* theAABBShape = new physics::AABBShape(min, max, Vector3(0.f, 1.f, 0.f));
-
-    //// Adds the AABB to the Physics World
-    //physics::RigidBodyDesc AABBDesc = createRigidBodyDesc(true, 1.f, pmesh->position, glm::vec3(0.f));
-    //world->AddBody(physicsFactory->CreateRigidBody(AABBDesc, theAABBShape));
+    // Adds the BOX to the Physics World
+    physics::RigidBodyDesc AABBDesc = createRigidBodyDesc(true, 1.f, glm::vec3(0.f), glm::vec3(0.f));
+    world->AddBody(physicsFactory->CreateRigidBody(AABBDesc, theAABBShape));
 }
 
 int main(int argc, char* argv[]) {
@@ -1611,23 +1528,27 @@ int main(int argc, char* argv[]) {
 
     animationType = 0;
     animationSpeed = 0.01;
-    
-    // ------------------ PHYSICS STUFFS --------------------
+
+    // ------------------ PHYSICS INITIALIZATION --------------------
+
     {
-        // g_PhysicsSystem = new PhysicsSystem();
         // Initialize a Physics Factory
         physicsFactory = new physics::PhysicsFactory();
+
         // Create Physics World
         world = physicsFactory->CreateWorld();
         //world->SetGravity(Vector3(0.0f, -0.98f, 0.0f));
+
         // Create CollisionListener
         //collisionListener = physicsFactory->CreateCollisionListener();
+
         // Register it to the World
         world->RegisterCollisionListener(collisionListener);
     }
 
-    // ---------------- Creating the Maze -------------------
-    { 
+    // ---------------------- MAZE CREATION -------------------------
+
+    {
         srand(time(NULL));
 
         std::chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();
@@ -1653,17 +1574,15 @@ int main(int argc, char* argv[]) {
         std::cout << "\t" << deltaMemoryUsed / (1024 * 1024 * 1024) << " G" << std::endl;
 
         theMM.PrintMaze();
-    } // ---------------------------- Creating the Maze -----------------------------
 
-    pBrain = new cLuaBrain();
+        g_GraphicScene.map_beholds = new std::map<std::string, cMeshObject*>();
 
-    g_GraphicScene.map_beholds = new std::map<std::string, cMeshObject*>();
+        m_blocksLoader = new BlocksLoader(MAP_HEIGHT, MAP_WIDTH);
+        //m_blocksLoader->BitmapReading();
+    }
 
-    m_blocksLoader = new BlocksLoader(MAP_HEIGHT, MAP_WIDTH);
-    //m_blocksLoader->BitmapReading();
+    // ------------------- ASTAR PATH CREATION -----------------------
 
-    // --------------- TESTING BMP READER -------------------
-    
     //m_blocksLoader->g_blockMap = m_blocksLoader->g_BMPblockMap;
     //std::vector<Node*> AStarPath = m_blocksLoader->AStar();
     //
@@ -1676,9 +1595,10 @@ int main(int argc, char* argv[]) {
     g_MapCameraTarget = glm::vec3(1000.f, 0.0, 1000.f);
     g_MapCameraEye = glm::vec3(1000.f, 6000.f, 1010.f);
 
-    // ------------------ FMOD INITIALIZATION ---------------
+    // ------------------- FMOD INITIALIZATION -----------------------
+
     {
-    //initialize fmod with max channels
+        //initialize fmod with max channels
         fmod_manager = new FModManager();
         if (!fmod_manager->Initialize(max_channels, FMOD_INIT_NORMAL)) {
             std::cout << "Failed to initialize FMod" << std::endl;
@@ -1713,7 +1633,8 @@ int main(int argc, char* argv[]) {
             return -4;
     }
 
-    // ------------------ glfw THINGS -----------------------
+    // ----------------------- glfw THINGS ---------------------------
+
     {
         glfwSetErrorCallback(error_callback);
 
@@ -1739,16 +1660,24 @@ int main(int argc, char* argv[]) {
         glfwSwapInterval(1);
     }
 
-    gameUi.fmod_manager_ = fmod_manager;
-    gameUi.iniciatingUI();
+    // -------------------- SCECNE PREPARATION -----------------------
 
-    g_GraphicScene.PrepareScene();
+    {
+        gameUi.fmod_manager_ = fmod_manager;
+        gameUi.iniciatingUI();
 
-    // Setting the lights
-    lightning(g_GraphicScene.shaderID);
+        g_GraphicScene.PrepareScene();
 
-    // Creating Beholders
-    
+        // Setting the lights
+        lightning(g_GraphicScene.shaderID);
+
+        debugLightSpheres();
+
+        g_GraphicScene.LoadTextures();
+    }
+        
+    // -------------------- BEHOLDERS CREATION -----------------------
+
     //for (int i = 0; i < BEHOLDERS_NUMBER; i++) {
     //    std::string randomPos;
     //    randomPos = m_blocksLoader->getRandomValidPosition();
@@ -1786,13 +1715,11 @@ int main(int argc, char* argv[]) {
 
     itBeholdsToFollow = g_GraphicScene.map_beholds->begin();
 
-    debugLightSpheres();
+    // --------------------------- LUA  ------------------------------
 
-    // ---------------- LOADING TEXTURES --------------------
-    g_GraphicScene.LoadTextures();
+    {
+        pBrain = new cLuaBrain();
 
-    // ---------------- LUA  --------------------------------
-    { 
         std::string moveScriptTowardsDestinationFUNCTION =
             "function moveObjectTowardsDestination( objectID, xDest, yDest, zDest )										    \n"	\
             "	isValidObj, xObj, yObj, zObj, vxObj, vyObj, vzObj, moving = getObjectState( objectID )		\n"	\
@@ -1855,7 +1782,8 @@ int main(int argc, char* argv[]) {
         }
     } // ---------------- LUA  ----------------------------------------------
 
-    // ---------------- MAIN CHAR CREATION ------------------
+    // --------------------- MAIN CHAR CREATION ----------------------
+
     {
         bool loaderReturn = entityLoaderManager->LoadCharacter(MAIN_CHAR_JSON_INFO, playabledCharacter, errorMessage);
 
@@ -1867,7 +1795,6 @@ int main(int argc, char* argv[]) {
         drawingInformation = g_GraphicScene.returnDrawInformation(playabledCharacter.mFriendlyName);
         glm::vec3 mainCharacterPosition(playabledCharacter.mPosition[0], playabledCharacter.mPosition[1], playabledCharacter.mPosition[2]);
         mainChar = g_GraphicScene.CreateGameObjectByType(playabledCharacter.mFriendlyName, mainCharacterPosition, drawingInformation);
-        //mainChar = g_GraphicScene.GetObjectByName(playabledCharacter.mFriendlyName, false);
         mainChar->friendlyName = "MainChar";
         mainChar->bUse_RGBA_colour = true;
         mainChar->RGBA_colour = glm::vec4(1.0f, 0.0f, 0.0f, 1.0f);
@@ -1878,7 +1805,8 @@ int main(int argc, char* argv[]) {
         mainChar->currentJ = mainChar->position.x / GLOBAL_MAP_OFFSET;
     }
 
-    // ------------------ CREATING FLOOR --------------------
+    // ----------------------- CREATING FLOOR ------------------------
+
     {
         sModelDrawInfo drawingInformation;
         drawingInformation = g_GraphicScene.returnDrawInformation("Plane_Floor");
@@ -1897,7 +1825,7 @@ int main(int argc, char* argv[]) {
     int randomI = stoi(randomPos.substr(0, pos));
     int randomJ = stoi(randomPos.substr(pos + 1));
 
-    // ------------------ BMP READING START -----------------
+    // ---------------------- BMP READING START ----------------------
     
     //int startI = m_blocksLoader->startingPosition->first;
     //int startJ = m_blocksLoader->startingPosition->second;
@@ -1918,9 +1846,8 @@ int main(int argc, char* argv[]) {
 
     updateCurrentMazeView(randomI, randomJ);
     //updateCurrentMazeView(startI, startJ);
-    //creatingModels();
 
-    // ------------------ AStarPath PAINTING -----------------
+    // ---------------------- AStarPath PAINTING ---------------------
 
     //for (int index = 0; index < AStarPath.size(); index++) {
     //
@@ -1932,73 +1859,62 @@ int main(int argc, char* argv[]) {
     //    currentFloor->RGBA_colour = glm::vec4(1.0f, 0.0f, 0.0f, 1.0f);
     //}
 
-    // ------------------ PHYSICS STUFFS --------------------
-    {
-        //iShape* ball;
-        //PhysicsObject* physObj;
-        //ball = new Sphere(Point(0.0f, 0.0f, 0.0f), 2.f);
+    // ----------------------- PHYSICS STUFFS ------------------------
 
-        // Adds the sphere to the Physics System
-        //Vector3 position;
-        //position.x = mainChar->position.x;
-        //position.y = mainChar->position.y;
-        //position.z = mainChar->position.z;
-        //physObj = g_PhysicsSystem->CreatePhysicsObject(mainChar->friendlyName, position, ball);
-        //mainChar->physObj = physObj;
-        //std::cout << mainChar->position.x << ", " << mainChar->position.y << ", " << mainChar->position.z << std::endl;
-        
+    {
         physics::iShape* playerBallShape = new physics::SphereShape(1.0f);
         physics::RigidBodyDesc PlayerDesc = createRigidBodyDesc(false, 1.f, mainChar->position, glm::vec3(0.f));
         mainChar->physicsBody = physicsFactory->CreateRigidBody(PlayerDesc, playerBallShape);
         world->AddBody(mainChar->physicsBody);
     }
 
-    // ---------------- GAME LOOP START -----------------------------------------------
+    // -------------------- GAME LOOP  -----------------------
+
     while (!glfwWindowShouldClose(window)) {
-        ::g_pTheLightManager->CopyLightInformationToShader(g_GraphicScene.shaderID);
 
-        DrawConcentricDebugLightObjects(gameUi.listbox_lights_current);        
+        // ---------------------- DRAWING THE SCENE ----------------------
 
-        g_GraphicScene.DrawScene(window, ::g_cameraEye, ::g_cameraTarget);
+        {
+            ::g_pTheLightManager->CopyLightInformationToShader(g_GraphicScene.shaderID);
 
-        g_GraphicScene.DrawMapView(window, ::g_MapCameraEye, ::g_MapCameraTarget);
+            DrawConcentricDebugLightObjects(gameUi.listbox_lights_current);
 
-        glfwPollEvents();
+            g_GraphicScene.DrawScene(window, ::g_cameraEye, ::g_cameraTarget);
 
-        ImGui_ImplOpenGL3_NewFrame();
-        ImGui_ImplGlfw_NewFrame();
-        ImGui::NewFrame();
-        
-        gameUi.render(g_GraphicScene, fmod_manager, g_pTheLightManager->vecTheLights);
+            g_GraphicScene.DrawMapView(window, ::g_MapCameraEye, ::g_MapCameraTarget);
 
-        ImGui::Render();
-        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+            glfwPollEvents();
 
-        glfwSwapBuffers(window);
+            ImGui_ImplOpenGL3_NewFrame();
+            ImGui_ImplGlfw_NewFrame();
+            ImGui::NewFrame();
 
-        std::stringstream ssTitle;
-        ssTitle << "Multiverse Cursed Village";
-        std::string theText = ssTitle.str();
+            gameUi.render(g_GraphicScene, fmod_manager, g_pTheLightManager->vecTheLights);
+
+            ImGui::Render();
+            ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
+            glfwSwapBuffers(window);
+        }
 
         // Physics Update
-        //g_PhysicsSystem->UpdateStep(1.f);
         world->TimeStep(1.f);
 
-        //for (int i = 0; i < g_PhysicsSystem->m_PhysicsObjects.size(); i++) {
-        //    if (g_PhysicsSystem->m_PhysicsObjects[i]->meshName == "MainChar")
-        //        mainChar->position = g_PhysicsSystem->m_PhysicsObjects[i]->GetPosition().GetGLM();
-        //}
+        // ---------------------- MESH POSITION UPDATE ----------------------
 
-        //Vector3 newPositionVector;
-        //mainChar->physicsBody->GetPosition(newPositionVector);
-        //glm::vec3 newPosition = glm::vec3(newPositionVector.x, newPositionVector.y, newPositionVector.z);
-        //mainChar->position = newPosition;
+        {
+            physics::Vector3 newPositionVector;
+            mainChar->physicsBody->GetPosition(newPositionVector);
+            glm::vec3 newPosition = glm::vec3(newPositionVector.x, newPositionVector.y, newPositionVector.z);
+            mainChar->position = newPosition;
 
-        //glm::quat newRotation;
-        //mainChar->physicsBody->GetRotation(newRotation);
-        //mainChar->qRotation = newRotation;
+            glm::quat newRotation;
+            mainChar->physicsBody->GetRotation(newRotation);
+            mainChar->qRotation = newRotation;
+        }
 
-        // Animation Update
+        // ------------------- BEHOLDER BEHAVIOUR UPDATE --------------------
+        
         //for (std::map< std::string, cMeshObject*>::iterator itBeholds =
         //    g_GraphicScene.map_beholds->begin(); itBeholds != g_GraphicScene.map_beholds->end();
         //    itBeholds++) 
@@ -2121,7 +2037,9 @@ int main(int argc, char* argv[]) {
         //}
         //
         
-        { // THREAD BEHOLD UPDATE
+        // ---------------------- THREAD BEHOLD UPDATE ----------------------
+        
+        {
             DWORD dw;
             int iLoop = 0;
             _MAZE_TILE_INFO* pMazeTileInfo = new _MAZE_TILE_INFO;
@@ -2130,13 +2048,10 @@ int main(int argc, char* argv[]) {
                 (PVOID)(&pMazeTileInfo),
                 0, &dw);
 
-            //iLoop++;
-            //if (iLoop >= NUM_THREADS) iLoop = 0;
-
             // Only waits for 64 of them, not matter how many you call.
-            //WaitForMultipleObjects(NUM_THREADS, ahThread, TRUE, INFINITE);
             WaitForSingleObject(ahThread, INFINITE);
         }
+        
 
         // Update will run any Lua script sitting in the "brain"
         pBrain->Update(1);
@@ -2144,55 +2059,60 @@ int main(int argc, char* argv[]) {
         g_cameraTarget = mainChar->position;
         g_cameraEye = glm::vec3(mainChar->position.x, 500.f, mainChar->position.z + 50.f);
 
-        if (g_GraphicScene.cameraFollowing && !g_GraphicScene.cameraTransitioning) {
-            cMeshObject* currentBehold = itBeholdsToFollow->second;
-            g_cameraEye.x = currentBehold->position.x + CAMERA_OFFSET;
-            g_cameraEye.y = currentBehold->position.y + CAMERA_OFFSET;
-            g_cameraEye.y = currentBehold->position.z + CAMERA_OFFSET;
+        // ---------------------- CAMERA UPDATE (OLD) ----------------------
 
-            g_cameraTarget = currentBehold->position;
-        } else if (g_GraphicScene.cameraTransitioning) {
-            cMeshObject* currentBehold = itBeholdsToFollow->second;
-            float distanceCameraBehold = glm::distance(g_cameraEye, currentBehold->position);
-            
-            float xDir = currentBehold->position.x - g_cameraEye.x;
-            float yDir = currentBehold->position.y - g_cameraEye.y;
-            float zDir = currentBehold->position.z - g_cameraEye.z;
+        {
+            if (g_GraphicScene.cameraFollowing && !g_GraphicScene.cameraTransitioning) {
+                cMeshObject* currentBehold = itBeholdsToFollow->second;
+                g_cameraEye.x = currentBehold->position.x + CAMERA_OFFSET;
+                g_cameraEye.y = currentBehold->position.y + CAMERA_OFFSET;
+                g_cameraEye.y = currentBehold->position.z + CAMERA_OFFSET;
 
-            g_cameraTarget = currentBehold->position;
-
-            float mag = pow((xDir * xDir + yDir * yDir + zDir * zDir), 0.5);
-
-            if (distanceCameraBehold > CAMERA_OFFSET * 5) {
-                
-                float xStep = xDir / mag;
-                float yStep = yDir / mag;
-                float zStep = zDir / mag;
-
-                g_cameraEye.x += xStep * 15;
-                g_cameraEye.y += yStep * 15;
-                g_cameraEye.z += zStep * 15;
+                g_cameraTarget = currentBehold->position;
             }
-            else {
-                g_GraphicScene.cameraFollowing = true;
-                g_GraphicScene.cameraTransitioning = false;
+            else if (g_GraphicScene.cameraTransitioning) {
+                cMeshObject* currentBehold = itBeholdsToFollow->second;
+                float distanceCameraBehold = glm::distance(g_cameraEye, currentBehold->position);
+
+                float xDir = currentBehold->position.x - g_cameraEye.x;
+                float yDir = currentBehold->position.y - g_cameraEye.y;
+                float zDir = currentBehold->position.z - g_cameraEye.z;
+
+                g_cameraTarget = currentBehold->position;
+
+                float mag = pow((xDir * xDir + yDir * yDir + zDir * zDir), 0.5);
+
+                if (distanceCameraBehold > CAMERA_OFFSET * 5) {
+
+                    float xStep = xDir / mag;
+                    float yStep = yDir / mag;
+                    float zStep = zDir / mag;
+
+                    g_cameraEye.x += xStep * 15;
+                    g_cameraEye.y += yStep * 15;
+                    g_cameraEye.z += zStep * 15;
+                }
+                else {
+                    g_GraphicScene.cameraFollowing = true;
+                    g_GraphicScene.cameraTransitioning = false;
+                }
             }
         }
-        else {
-            //g_cameraTarget = glm::vec3(500.f, 0.0, 500.f);
-            //g_cameraEye = glm::vec3(500.f, 2000.f, 510.f);
-        }
+
+
+        std::stringstream ssTitle;
+        ssTitle << "Multiverse Cursed Village";
+        std::string theText = ssTitle.str();
 
         glfwSetWindowTitle(window, ssTitle.str().c_str());
     }
 
-    // FINISHING
+    // -------------------- FINISHING  -----------------------
+    
     // Clean up the mutex before exiting the program
     DeleteCriticalSection(&dataMutex);
     CloseHandle(dataSemaphore);
     CloseHandle(ahThread);
-    //for (int iLoop = 0; iLoop < NUM_THREADS; iLoop++)
-    //    CloseHandle(ahThread[iLoop]);
 
     g_GraphicScene.Shutdown();
     delete ::g_pTheLightManager;

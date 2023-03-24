@@ -4,7 +4,6 @@
 #include <glm/vec3.hpp>
 #include "GraphicScene.h"
 #include <iostream>
-#include "Ball.h"
 
 #include "cMazeMaker_W2023.h"
 #include "BlocksLoader.h"
