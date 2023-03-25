@@ -1485,7 +1485,7 @@ void updateCurrentMazeView(int newI, int newJ) {
 
     float mainCharX = (newJ * GLOBAL_MAP_OFFSET) - (GLOBAL_MAP_OFFSET / 2);
     float mainCharZ = (newI * GLOBAL_MAP_OFFSET) - (GLOBAL_MAP_OFFSET / 2);
-    mainChar->position = glm::vec3(mainCharX, 25.f, mainCharZ);
+    mainChar->position = glm::vec3(mainCharX, 50.f, mainCharZ);
 
     planeFloor->position.x = mainChar->position.x;
     planeFloor->position.y = -5.f;
@@ -1514,7 +1514,7 @@ void setStaticPlane() {
     physics::iShape* theAABBShape = new physics::BoxShape(physics::Vector3(5000.f, 5.f, 5000.f));
 
     // Adds the BOX to the Physics World
-    physics::RigidBodyDesc AABBDesc = createRigidBodyDesc(true, 1.f, glm::vec3(0.f), glm::vec3(0.f));
+    physics::RigidBodyDesc AABBDesc = createRigidBodyDesc(true, 0.f, glm::vec3(0.f), glm::vec3(0.f));
     world->AddBody(physicsFactory->CreateRigidBody(AABBDesc, theAABBShape));
 }
 
@@ -1537,7 +1537,7 @@ int main(int argc, char* argv[]) {
 
         // Create Physics World
         world = physicsFactory->CreateWorld();
-        //world->SetGravity(Vector3(0.0f, -0.98f, 0.0f));
+        world->SetGravity(physics::Vector3(0.0f, -981.0f, 0.0f));
 
         // Create CollisionListener
         //collisionListener = physicsFactory->CreateCollisionListener();
@@ -1862,7 +1862,7 @@ int main(int argc, char* argv[]) {
     // ----------------------- PHYSICS STUFFS ------------------------
 
     {
-        physics::iShape* playerBallShape = new physics::SphereShape(1.0f);
+        physics::iShape* playerBallShape = new physics::SphereShape(10.0f);
         physics::RigidBodyDesc PlayerDesc = createRigidBodyDesc(false, 1.f, mainChar->position, glm::vec3(0.f));
         mainChar->physicsBody = physicsFactory->CreateRigidBody(PlayerDesc, playerBallShape);
         world->AddBody(mainChar->physicsBody);
@@ -1898,7 +1898,7 @@ int main(int argc, char* argv[]) {
         }
 
         // Physics Update
-        world->TimeStep(1.f);
+        world->TimeStep(1.0f);
 
         // ---------------------- MESH POSITION UPDATE ----------------------
 
@@ -1910,7 +1910,7 @@ int main(int argc, char* argv[]) {
 
             glm::quat newRotation;
             mainChar->physicsBody->GetRotation(newRotation);
-            mainChar->qRotation = newRotation;
+            mainChar->qRotation += newRotation;
         }
 
         // ------------------- BEHOLDER BEHAVIOUR UPDATE --------------------
@@ -2057,7 +2057,7 @@ int main(int argc, char* argv[]) {
         pBrain->Update(1);
 
         g_cameraTarget = mainChar->position;
-        g_cameraEye = glm::vec3(mainChar->position.x, 500.f, mainChar->position.z + 50.f);
+        g_cameraEye = glm::vec3(mainChar->position.x, 250.f, mainChar->position.z + 100.f);
 
         // ---------------------- CAMERA UPDATE (OLD) ----------------------
 

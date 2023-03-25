@@ -294,7 +294,7 @@ void key_callback(GLFWwindow* window,
         int nextTileI;
         int nextTileJ;
         glm::vec3 direction(0.f);
-        float force = 2.f;
+        float force = 1000.f;
 
         if (key == GLFW_KEY_A)     // Tile LEFT
         {
@@ -317,7 +317,7 @@ void key_callback(GLFWwindow* window,
             direction.z += 1;
         }
 
-        //mainChar->physObj->ApplyForce(direction* force);
+        mainChar->physicsBody->ApplyForce(direction * force);
        
         float mainCharX = (mainChar->currentJ * GLOBAL_MAP_OFFSET) - (GLOBAL_MAP_OFFSET / 2);
         float mainCharZ = (mainChar->currentI * GLOBAL_MAP_OFFSET) - (GLOBAL_MAP_OFFSET / 2);
@@ -327,7 +327,7 @@ void key_callback(GLFWwindow* window,
         oldPosition.y = mainChar->position.y;
         oldPosition.z = mainCharZ;
 
-        //if (mainChar->physObj->GetVelocity().GetGLM() != glm::vec3(0.f))
+        //if (mainChar->physicsBody->GetVelocity().GetGLM() != glm::vec3(0.f))
         //{
         //    int breakpoint = 5;
 
