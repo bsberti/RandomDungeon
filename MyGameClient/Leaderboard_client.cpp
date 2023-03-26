@@ -12,7 +12,6 @@ using namespace ::apache::thrift::transport;
 
 using boost::shared_ptr;
 
-
 int main(int argc, char **argv) {
 
 	shared_ptr<TSocket> socket(new TSocket("localhost", 9090));

@@ -291,8 +291,6 @@ void key_callback(GLFWwindow* window,
 
     case MOVING_MAZE:
     {
-        int nextTileI;
-        int nextTileJ;
         glm::vec3 direction(0.f);
         float force = 1000.f;
 
@@ -318,14 +316,6 @@ void key_callback(GLFWwindow* window,
         }
 
         mainChar->physicsBody->ApplyForce(direction * force);
-       
-        float mainCharX = (mainChar->currentJ * GLOBAL_MAP_OFFSET) - (GLOBAL_MAP_OFFSET / 2);
-        float mainCharZ = (mainChar->currentI * GLOBAL_MAP_OFFSET) - (GLOBAL_MAP_OFFSET / 2);
-
-        glm::vec3 oldPosition;
-        oldPosition.x = mainCharX;
-        oldPosition.y = mainChar->position.y;
-        oldPosition.z = mainCharZ;
 
         //if (mainChar->physicsBody->GetVelocity().GetGLM() != glm::vec3(0.f))
         //{
@@ -340,6 +330,7 @@ void key_callback(GLFWwindow* window,
         //if (nextTileI != mainChar->currentI && nextTileJ != mainChar->currentJ)
         //{
         //    int breakpoint = 5;
+        //    updateCurrentMazeView(nextTileI, nextTileJ);
         //}
         
         //if (key == GLFW_KEY_A && action == GLFW_PRESS)     // Tile LEFT

@@ -167,6 +167,15 @@
     <ClCompile Include="cFBO.cpp">
       <Filter>FBO</Filter>
     </ClCompile>
+    <ClCompile Include="..\gen-cpp\Leaderboard.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gen-cpp\leaderboard_constants.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gen-cpp\leaderboard_types.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="cVAOManager\sModelDrawInfo.h">
@@ -272,6 +281,9 @@
       <Filter>FBO</Filter>
     </ClInclude>
     <ClInclude Include="physics.h" />
+    <ClInclude Include="..\gen-cpp\Leaderboard.h" />
+    <ClInclude Include="..\gen-cpp\leaderboard_constants.h" />
+    <ClInclude Include="..\gen-cpp\leaderboard_types.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="assets\shaders\fragmentShader01.glsl">

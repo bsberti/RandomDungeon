@@ -6,8 +6,6 @@
  */
 #include "Leaderboard.h"
 
-
-
 uint32_t Leaderboard_setHighScore_args::read(::apache::thrift::protocol::TProtocol* iprot) {
 
   uint32_t xfer = 0;

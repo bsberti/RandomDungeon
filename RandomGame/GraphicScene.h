@@ -70,6 +70,7 @@ public:
 	std::vector<cMeshObject*> vec_pMeshObjects;
 	std::vector<cMeshObject*> vec_pMeshFullMaze;
 	std::vector<cMeshObject*> vec_pMeshCurrentMaze;
+	std::vector<physics::iRigidBody*> vec_pWalls;
 	int drawFog;
 
 	std::map<std::string, cMeshObject*>* map_beholds;

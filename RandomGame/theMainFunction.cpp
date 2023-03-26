@@ -26,6 +26,13 @@
 // Physics Includes
 #include "physics.h"
 
+//#include "../../gen-cpp/Leaderboard.h"
+//
+//#include <thrift/transport/TSocket.h>
+//#include <thrift/transport/TServerSocket.h>
+//#include <thrift/transport/TBufferTransports.h>
+//#include <thrift/protocol/TBinaryProtocol.h>
+
 // Physics GLOBAL Variables
 physics::iPhysicsFactory* physicsFactory;
 physics::iPhysicsWorld* world;
@@ -162,55 +169,61 @@ void rotateMinMax(glm::vec3& minPoint, glm::vec3& maxPoint) {
     maxPoint.z = rotatedMaxZ;
 }
 
-void setStaticPhysObjectAABB(cMeshObject* mesh, bool rotated) {
-    //cMeshObject* pmesh;
-    //iShape* paabb = nullptr;
-    //PhysicsObject* pphysObj = nullptr;
+// Creates a Description for a Rigid Body
+physics::RigidBodyDesc createRigidBodyDesc(bool isStatic, float mass, physics::Vector3 position, physics::Vector3 linearVelocity) {
+    physics::RigidBodyDesc desc;
+    desc.isStatic = isStatic;
+    desc.mass = mass;
+    desc.position = position;
+    desc.linearVelocity = linearVelocity;
+    return desc;
+}
 
-    // Cone AABB
-    //pmesh = g_GraphicScene.GetObjectByName(friendlyName, false);
+void setStaticPhysObjectAABB(cMeshObject* mesh, bool rotated) {
     sModelDrawInfo drawingInfo = g_GraphicScene.returnDrawInformation(mesh->meshName);
 
-    // Creates the AABB structure for the Terrain
-    //float min[3] = { mesh->position.x + drawingInfo.minX,
-    //                 mesh->position.y + drawingInfo.minY,
-    //                 mesh->position.z + drawingInfo.minZ };
-    //float max[3] = { mesh->position.x + drawingInfo.maxX,
-    //                 mesh->position.y + drawingInfo.maxY,
-    //                 mesh->position.z + drawingInfo.maxZ };
+    float min[3] = { drawingInfo.minX,
+                     drawingInfo.minY,
+                     drawingInfo.minZ };
+    float max[3] = { drawingInfo.maxX,
+                     drawingInfo.maxY,
+                     drawingInfo.maxZ };
 
-    //glm::vec3 minPoint;
-    //minPoint.x = min[0];
-    //minPoint.y = min[1];
-    //minPoint.z = min[2];
+    glm::vec3 minPoint;
+    minPoint.x = min[0];
+    minPoint.y = min[1];
+    minPoint.z = min[2];
 
-    //glm::vec3 maxPoint;
-    //maxPoint.x = max[0];
-    //maxPoint.y = max[1];
-    //maxPoint.z = max[2];
+    glm::vec3 maxPoint;
+    maxPoint.x = max[0];
+    maxPoint.y = max[1];
+    maxPoint.z = max[2];
 
-    //if (rotated) {
-    //    rotateMinMax(minPoint, maxPoint);
+    if (rotated) {
+        rotateMinMax(minPoint, maxPoint);
 
-    //    min[0] = minPoint.x;
-    //    min[1] = minPoint.y;
-    //    min[2] = minPoint.z;
+        min[0] = minPoint.x;
+        min[1] = minPoint.y;
+        min[2] = minPoint.z;
 
-    //    max[0] = maxPoint.x;
-    //    max[1] = maxPoint.y;
-    //    max[2] = maxPoint.z;
-    //}
+        max[0] = maxPoint.x;
+        max[1] = maxPoint.y;
+        max[2] = maxPoint.z;
+    }
 
-    //paabb = new AABB(min, max);
+    float halfX = (glm::abs(min[0]) + max[0]) / 2.f;
+    float halfY = (glm::abs(min[1]) + max[1]) / 2.f;
+    float halfZ = (glm::abs(min[2]) + max[2]) / 2.f;
+    physics::Vector3 halfExtensions = physics::Vector3(halfX, halfY, halfZ);
 
-    //Vector3 position;
-    //position.x = mesh->position.x;
-    //position.y = mesh->position.y;
-    //position.z = mesh->position.z;
+    // Creates the Shape that defines the Rigid Body so it can be added to the World
+    physics::iShape* theAABBShape = new physics::BoxShape(halfExtensions);
 
-    // Adds the AABB to the Physics System
-    //pphysObj = g_PhysicsSystem->CreatePhysicsObject(mesh->meshName, position, paabb);
-    //pphysObj->SetMass(-1.0f);
+    // Adds the BOX to the Physics World
+    physics::RigidBodyDesc AABBDesc = createRigidBodyDesc(true, 0.f, mesh->position, glm::vec3(0.f));
+    physics::iRigidBody* currentBody = physicsFactory->CreateRigidBody(AABBDesc, theAABBShape);
+    world->AddBody(currentBody);
+    g_GraphicScene.vec_pWalls.push_back(currentBody);
 }
 
 // Function called inside creatingModels for the wall object creation
@@ -1388,6 +1401,12 @@ DWORD WINAPI animationUpdate(PVOID pvParam) {
     return 0;
 }
 
+void RemoveWalls() {
+    for (int i = g_GraphicScene.vec_pWalls.size() - 1; i >= 0; i--) {
+        world->RemoveBody(g_GraphicScene.vec_pWalls[i]);
+    }
+}
+
 /* Function that update the current Maze View ->
 Populate the vector of objects around the main char position */
 void updateCurrentMazeView(int newI, int newJ) {
@@ -1401,7 +1420,7 @@ void updateCurrentMazeView(int newI, int newJ) {
 
     m_blocksLoader->cleanPairs();
 
-    //g_PhysicsSystem->RemoveWalls();
+    RemoveWalls();
 
     _MAZE_TILE_INFO* pMazeTileInfo = new _MAZE_TILE_INFO[NUM_THREADS];
     DWORD dw;
@@ -1498,16 +1517,6 @@ void updateCurrentMazeView(int newI, int newJ) {
     g_MapCameraEye = glm::vec3(mainChar->position.x, (g_GraphicScene.drawFog * 160.f), mainChar->position.z + 2.f);
 }
 
-// Creates a Description for a Rigid Body
-physics::RigidBodyDesc createRigidBodyDesc(bool isStatic, float mass, physics::Vector3 position, physics::Vector3 linearVelocity) {
-    physics::RigidBodyDesc desc;
-    desc.isStatic = isStatic;
-    desc.mass = mass;
-    desc.position = position;
-    desc.linearVelocity = linearVelocity;
-    return desc;
-}
-
 // Creates a BOX that defines a plane in the game
 void setStaticPlane() {
     // Creates the Shape that defines the Rigid Body so it can be added to the World
@@ -1528,6 +1537,26 @@ int main(int argc, char* argv[]) {
 
     animationType = 0;
     animationSpeed = 0.01;
+    
+    // -------------- NETWORK CLIENT INITIALIZATION -----------------
+
+    //using namespace ::apache::thrift;
+    //using namespace ::apache::thrift::protocol;
+    //using namespace ::apache::thrift::transport;
+
+    //using boost::shared_ptr;
+
+    //shared_ptr<TSocket> socket(new TSocket("localhost", 9090));
+    //shared_ptr<TTransport> transport(new TBufferedTransport(socket));
+    //shared_ptr<TProtocol> protocol(new TBinaryProtocol(transport));
+
+    //LeaderboardClient client(protocol);
+    //transport->open();
+    //std::map<int32_t, int32_t> top20;
+    //client.setHighScore(20, 500);
+    //client.setHighScore(25, 1000);
+    //client.setHighScore(300, 2000);
+    //client.getTop20(top20);
 
     // ------------------ PHYSICS INITIALIZATION --------------------
 
@@ -1900,6 +1929,28 @@ int main(int argc, char* argv[]) {
         // Physics Update
         world->TimeStep(1.0f);
 
+        // ---------------------------- MAP UPDATE --------------------------
+
+        {
+            int nextTileI;
+            int nextTileJ;
+
+            float mainCharX = (mainChar->currentJ * GLOBAL_MAP_OFFSET) - (GLOBAL_MAP_OFFSET / 2);
+            float mainCharZ = (mainChar->currentI * GLOBAL_MAP_OFFSET) - (GLOBAL_MAP_OFFSET / 2);
+
+            glm::vec3 oldPosition;
+            oldPosition.x = mainCharX;
+            oldPosition.y = mainChar->position.y;
+            oldPosition.z = mainCharZ;
+
+            if (glm::distance(oldPosition, mainChar->position) > GLOBAL_MAP_OFFSET) {
+                nextTileI = (mainChar->position.z + (GLOBAL_MAP_OFFSET / 2)) / GLOBAL_MAP_OFFSET;
+                nextTileJ = (mainChar->position.x + (GLOBAL_MAP_OFFSET / 2)) / GLOBAL_MAP_OFFSET;
+
+                updateCurrentMazeView(nextTileI, nextTileJ);
+            }
+        }
+
         // ---------------------- MESH POSITION UPDATE ----------------------
 
         {
@@ -2051,13 +2102,16 @@ int main(int argc, char* argv[]) {
             // Only waits for 64 of them, not matter how many you call.
             WaitForSingleObject(ahThread, INFINITE);
         }
-        
 
         // Update will run any Lua script sitting in the "brain"
         pBrain->Update(1);
 
         g_cameraTarget = mainChar->position;
         g_cameraEye = glm::vec3(mainChar->position.x, 250.f, mainChar->position.z + 100.f);
+
+        g_MapCameraTarget = mainChar->position;
+        g_MapCameraEye = glm::vec3(mainChar->position.x, (g_GraphicScene.drawFog * 160.f), mainChar->position.z + 2.f);
+
 
         // ---------------------- CAMERA UPDATE (OLD) ----------------------
 
