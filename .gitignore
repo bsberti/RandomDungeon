@@ -18,6 +18,7 @@ mono_crash.*
 
 # Build results
 external/
+Boost/
 [Dd]ebug/
 [Dd]ebugPublic/
 [Rr]elease/
