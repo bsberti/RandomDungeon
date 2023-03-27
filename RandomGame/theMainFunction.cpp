@@ -1,3 +1,9 @@
+#include "../gen-cpp/Leaderboard.h"
+
+#include <thrift/transport/TSocket.h>
+#include <thrift/transport/TServerSocket.h>
+#include <thrift/transport/TBufferTransports.h>
+#include <thrift/protocol/TBinaryProtocol.h>
 
 #include "globalOpenGL.h"
 #include "globalThings.h"
@@ -25,13 +31,6 @@
 
 // Physics Includes
 #include "physics.h"
-
-//#include "../../gen-cpp/Leaderboard.h"
-//
-//#include <thrift/transport/TSocket.h>
-//#include <thrift/transport/TServerSocket.h>
-//#include <thrift/transport/TBufferTransports.h>
-//#include <thrift/protocol/TBinaryProtocol.h>
 
 // Physics GLOBAL Variables
 physics::iPhysicsFactory* physicsFactory;
@@ -1540,23 +1539,25 @@ int main(int argc, char* argv[]) {
     
     // -------------- NETWORK CLIENT INITIALIZATION -----------------
 
-    //using namespace ::apache::thrift;
-    //using namespace ::apache::thrift::protocol;
-    //using namespace ::apache::thrift::transport;
+    {
+        using namespace ::apache::thrift;
+        using namespace ::apache::thrift::protocol;
+        using namespace ::apache::thrift::transport;
 
-    //using boost::shared_ptr;
+        using boost::shared_ptr;
 
-    //shared_ptr<TSocket> socket(new TSocket("localhost", 9090));
-    //shared_ptr<TTransport> transport(new TBufferedTransport(socket));
-    //shared_ptr<TProtocol> protocol(new TBinaryProtocol(transport));
+        shared_ptr<TSocket> socket(new TSocket("localhost", 9090));
+        shared_ptr<TTransport> transport(new TBufferedTransport(socket));
+        shared_ptr<TProtocol> protocol(new TBinaryProtocol(transport));
 
-    //LeaderboardClient client(protocol);
-    //transport->open();
-    //std::map<int32_t, int32_t> top20;
-    //client.setHighScore(20, 500);
-    //client.setHighScore(25, 1000);
-    //client.setHighScore(300, 2000);
-    //client.getTop20(top20);
+        LeaderboardClient client(protocol);
+        transport->open();
+        std::map<int32_t, int32_t> top20;
+        client.setHighScore(20, 500);
+        client.setHighScore(25, 1000);
+        client.setHighScore(300, 2000);
+        client.getTop20(top20);
+    }
 
     // ------------------ PHYSICS INITIALIZATION --------------------
 

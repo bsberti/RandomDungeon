@@ -71,16 +71,22 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>$(SolutionDir)Thrift\thrift-0.9.1\src;$(SolutionDir)Boost\boost_1_59_0;$(SolutionDir)dev\libraries\$(Configuration);$(SolutionDir)external\bullet3\src\extern\bullet;$(SolutionDir)BulletPhysics;$(SolutionDir)PhysicsInterface;$(SolutionDir)dev/include;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
+    <IncludePath>C:\local\boost_1_59_0;C:\local\boost_1_59_0\lib64-msvc-14.0;C:\Thrift\thrift-0.9.1\src;C:\Thrift\thrift-0.9.1\$(IntDir);$(SolutionDir)dev\libraries\$(Configuration);$(SolutionDir)external\bullet3\src\extern\bullet;$(SolutionDir)BulletPhysics;$(SolutionDir)PhysicsInterface;$(SolutionDir)dev/include;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
     <LibraryPath>$(SolutionDir)Boost\boost_1_59_0\lib64-msvc-14.0;$(SolutionDir)Thrift\thrift-0.9.1\lib\$(IntDir);$(SolutionDir)x64\$(Configuration);$(SolutionDir)dev\libraries\$(Configuration);$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64)</LibraryPath>
     <SourcePath>$(SolutionDir)external\bullet3\src\extern\bullet;$(SolutionDir)BulletPhysics;$(SolutionDir)PhysicsInterface;$(VC_SourcePath)</SourcePath>
     <ExecutablePath>$(ExecutablePath)</ExecutablePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <IncludePath>$(SolutionDir)Thrift\thrift-0.9.1\src;$(SolutionDir)Boost\boost_1_59_0;$(SolutionDir)external\bullet3\src\extern\bullet;$(SolutionDir)dev\libraries\$(Configuration);$(SolutionDir)PhysicsInterface;$(SolutionDir)BulletPhysics;$(SolutionDir)dev\include;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
+    <IncludePath>C:\local\boost_1_59_0;C:\local\boost_1_59_0\lib64-msvc-14.0;C:\Thrift\thrift-0.9.1\src;C:\Thrift\thrift-0.9.1\$(IntDir);$(SolutionDir)external\bullet3\src\extern\bullet;$(SolutionDir)dev\libraries\$(Configuration);$(SolutionDir)PhysicsInterface;$(SolutionDir)BulletPhysics;$(SolutionDir)dev\include;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
     <LibraryPath>$(SolutionDir)Boost\boost_1_59_0\lib64-msvc-14.0;$(SolutionDir)Thrift\thrift-0.9.1\lib\$(IntDir);$(SolutionDir)x64\$(Configuration);$(SolutionDir)dev\libraries\$(Configuration);$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64)</LibraryPath>
     <ExecutablePath>$(ExecutablePath)</ExecutablePath>
     <SourcePath>$(SolutionDir)external\bullet3\src\extern\bullet;$(SolutionDir)BulletPhysics;$(SolutionDir)PhysicsInterface;$(VC_SourcePath);</SourcePath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <IncludePath>C:\local\boost_1_59_0;$(VC_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <IncludePath>C:\local\boost_1_59_0;$(VC_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -92,6 +98,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>libthrift.lib;libthrift.libç$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -108,6 +115,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>libthrift.lib;libthrift.libç$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -121,7 +129,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>libthrift.lib;lua5.4.4-static.lib;pugixml_d.lib;fmod_vc.lib;glfw3.lib;freeglutd.lib;PhysicsInterface.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>libthrift.lib;libboost_thread-vc140-mt-gd-1_59.lib;lua5.4.4-static.lib;pugixml_d.lib;fmod_vc.lib;glfw3.lib;freeglutd.lib;PhysicsInterface.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
       <Command>python "$(SolutionDir)dev\tools\texture-pipeline.py" "$(ProjectDir)assets/textures"</Command>
@@ -142,7 +150,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>libthrift.lib;lua5.4.4-static.lib;pugixml.lib;fmodL_vc.lib;glfw3.lib;freeglut.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>libthrift.lib;libboost_thread-vc140-mt-1_59.lib;lua5.4.4-static.lib;pugixml.lib;fmodL_vc.lib;glfw3.lib;freeglut.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
       <Command>python "$(SolutionDir)dev\tools\texture-pipeline.py" "$(ProjectDir)assets/textures"</Command>
