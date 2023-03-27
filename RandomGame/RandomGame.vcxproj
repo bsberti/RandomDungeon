@@ -72,7 +72,7 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <IncludePath>C:\local\boost_1_59_0;C:\local\boost_1_59_0\lib64-msvc-14.0;C:\Thrift\thrift-0.9.1\src;C:\Thrift\thrift-0.9.1\$(IntDir);$(SolutionDir)dev\libraries\$(Configuration);$(SolutionDir)external\bullet3\src\extern\bullet;$(SolutionDir)BulletPhysics;$(SolutionDir)PhysicsInterface;$(SolutionDir)dev/include;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
-    <LibraryPath>$(SolutionDir)Boost\boost_1_59_0\lib64-msvc-14.0;$(SolutionDir)Thrift\thrift-0.9.1\lib\$(IntDir);$(SolutionDir)x64\$(Configuration);$(SolutionDir)dev\libraries\$(Configuration);$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64)</LibraryPath>
+    <LibraryPath>C:\local\boost_1_59_0\lib64-msvc-14.0;C:\Thrift\thrift-0.9.1\lib\$(IntDir);$(SolutionDir)x64\$(Configuration);$(SolutionDir)dev\libraries\$(Configuration);$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64)</LibraryPath>
     <SourcePath>$(SolutionDir)external\bullet3\src\extern\bullet;$(SolutionDir)BulletPhysics;$(SolutionDir)PhysicsInterface;$(VC_SourcePath)</SourcePath>
     <ExecutablePath>$(ExecutablePath)</ExecutablePath>
   </PropertyGroup>

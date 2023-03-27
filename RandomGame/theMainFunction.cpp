@@ -1552,11 +1552,11 @@ int main(int argc, char* argv[]) {
 
         LeaderboardClient client(protocol);
         transport->open();
-        std::map<int32_t, int32_t> top20;
-        client.setHighScore(20, 500);
-        client.setHighScore(25, 1000);
-        client.setHighScore(300, 2000);
-        client.getTop20(top20);
+        //std::map<int32_t, int32_t> top20;
+        //client.setHighScore(20, 500);
+        //client.setHighScore(25, 1000);
+        //client.setHighScore(300, 2000);
+        //client.getTop20(top20);
     }
 
     // ------------------ PHYSICS INITIALIZATION --------------------
