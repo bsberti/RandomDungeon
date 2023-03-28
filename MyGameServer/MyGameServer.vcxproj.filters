@@ -24,6 +24,9 @@
     <ClInclude Include="..\gen-cpp\leaderboard_types.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="SQLiteDBHelper.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\gen-cpp\Leaderboard.cpp">
@@ -36,6 +39,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\gen-cpp\Leaderboard_server.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="SQLiteDBHelper.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

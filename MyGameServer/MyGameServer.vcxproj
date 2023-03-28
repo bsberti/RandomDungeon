@@ -70,7 +70,7 @@
     <LibraryPath>$(SolutionDir)Boost\boost_1_59_0\lib32-msvc-14.0;$(SolutionDir)Thrift\thrift-0.9.1\lib\$(IntDir);$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>C:\Thrift\thrift-0.9.1\src;C:\local\boost_1_59_0;$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)dev\include;C:\Thrift\thrift-0.9.1\src;C:\local\boost_1_59_0;$(IncludePath)</IncludePath>
     <LibraryPath>C:\local\boost_1_59_0\lib64-msvc-14.0;C:\Thrift\thrift-0.9.1\lib\$(IntDir);$(SolutionDir)dev\libraries\$(Configuration);$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -78,7 +78,7 @@
     <LibraryPath>$(SolutionDir)Boost\boost_1_59_0\lib32-msvc-14.0;$(SolutionDir)Thrift\thrift-0.9.1\lib\$(IntDir);$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <IncludePath>C:\Thrift\thrift-0.9.1\src;C:\local\boost_1_59_0;$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)dev\include;C:\Thrift\thrift-0.9.1\src;C:\local\boost_1_59_0;$(IncludePath)</IncludePath>
     <LibraryPath>C:\local\boost_1_59_0\lib64-msvc-14.0;C:\Thrift\thrift-0.9.1\$(IntDir);$(SolutionDir)dev\libraries\$(Configuration);$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -137,12 +137,14 @@
     <ClInclude Include="..\gen-cpp\Leaderboard.h" />
     <ClInclude Include="..\gen-cpp\leaderboard_constants.h" />
     <ClInclude Include="..\gen-cpp\leaderboard_types.h" />
+    <ClInclude Include="SQLiteDBHelper.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\gen-cpp\Leaderboard.cpp" />
     <ClCompile Include="..\gen-cpp\leaderboard_constants.cpp" />
     <ClCompile Include="..\gen-cpp\Leaderboard_server.cpp" />
     <ClCompile Include="..\gen-cpp\leaderboard_types.cpp" />
+    <ClCompile Include="SQLiteDBHelper.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
