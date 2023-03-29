@@ -1552,11 +1552,10 @@ int main(int argc, char* argv[]) {
 
         LeaderboardClient client(protocol);
         transport->open();
-        //std::map<int32_t, int32_t> top20;
-        //client.setHighScore(20, 500);
-        //client.setHighScore(25, 1000);
-        //client.setHighScore(300, 2000);
-        //client.getTop20(top20);
+        std::map<int32_t, int32_t> top20;
+        
+        client.getTop20(top20);
+        int smartPoint = 5;
     }
 
     // ------------------ PHYSICS INITIALIZATION --------------------
@@ -1621,9 +1620,9 @@ int main(int argc, char* argv[]) {
     //
     //g_cameraTarget = glm::vec3(gridCameraX, 0.0f, gridCameraZ);
     //g_cameraEye = glm::vec3(gridCameraX, 6000.f, gridCameraZ + 5.f);
-
-    g_MapCameraTarget = glm::vec3(1000.f, 0.0, 1000.f);
-    g_MapCameraEye = glm::vec3(1000.f, 6000.f, 1010.f);
+    //
+    //g_MapCameraTarget = glm::vec3(1000.f, 0.0, 1000.f);
+    //g_MapCameraEye = glm::vec3(1000.f, 6000.f, 1010.f);
 
     // ------------------- FMOD INITIALIZATION -----------------------
 
@@ -1875,7 +1874,7 @@ int main(int argc, char* argv[]) {
     //g_GraphicScene.vec_pMeshCurrentMaze.push_back(planeFloor);
 
     updateCurrentMazeView(randomI, randomJ);
-    //updateCurrentMazeView(startI, startJ);
+    //creatingModels();
 
     // ---------------------- AStarPath PAINTING ---------------------
 
@@ -2109,10 +2108,15 @@ int main(int argc, char* argv[]) {
 
         g_cameraTarget = mainChar->position;
         g_cameraEye = glm::vec3(mainChar->position.x, 250.f, mainChar->position.z + 100.f);
-
+        
         g_MapCameraTarget = mainChar->position;
         g_MapCameraEye = glm::vec3(mainChar->position.x, (g_GraphicScene.drawFog * 160.f), mainChar->position.z + 2.f);
+        
+        //g_cameraTarget = glm::vec3(gridCameraX, 0.0f, gridCameraZ);
+        //g_cameraEye = glm::vec3(gridCameraX, 6000.f, gridCameraZ + 5.f);
 
+        //g_MapCameraTarget = glm::vec3(1000.f, 0.0, 1000.f);
+        //g_MapCameraEye = glm::vec3(1000.f, 6000.f, 1010.f);
 
         // ---------------------- CAMERA UPDATE (OLD) ----------------------
 

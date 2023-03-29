@@ -137,6 +137,7 @@
     <ClInclude Include="..\gen-cpp\Leaderboard.h" />
     <ClInclude Include="..\gen-cpp\leaderboard_constants.h" />
     <ClInclude Include="..\gen-cpp\leaderboard_types.h" />
+    <ClInclude Include="sqlite3.h" />
     <ClInclude Include="SQLiteDBHelper.h" />
   </ItemGroup>
   <ItemGroup>
@@ -144,6 +145,7 @@
     <ClCompile Include="..\gen-cpp\leaderboard_constants.cpp" />
     <ClCompile Include="..\gen-cpp\Leaderboard_server.cpp" />
     <ClCompile Include="..\gen-cpp\leaderboard_types.cpp" />
+    <ClCompile Include="sqlite3.c" />
     <ClCompile Include="SQLiteDBHelper.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
