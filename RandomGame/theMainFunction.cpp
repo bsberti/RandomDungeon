@@ -5,7 +5,9 @@
 #include <thrift/transport/TBufferTransports.h>
 #include <thrift/protocol/TBinaryProtocol.h>
 
-#include "globalOpenGL.h"
+#include "Engine.h"
+
+//#include "globalOpenGL.h"
 #include "globalThings.h"
 
 #include <stdlib.h>
@@ -26,7 +28,6 @@
 #include "EntityLoaderManager.h"
 
 #include "cMazeMaker_W2023.h"
-
 #include "threads.h"
 
 // Physics Includes
@@ -83,6 +84,7 @@ HANDLE ahThread;
 
 // Main Character GLOBAL Variables
 cMeshObject* mainChar;
+cMeshObject* animatedCharacter;
 cMeshObject* planeFloor;
 cCharacter playabledCharacter;
 
@@ -91,6 +93,11 @@ EntityLoaderManager* entityLoaderManager = EntityLoaderManager::GetInstance();
 
 // String used for error feedback for methods call
 std::string errorMessage;
+
+const char* BeholderIDLE = "assets/models/animation/BeholderSketchfab.fbx";
+
+const char* ANIMATION1 = "assets/models/animation/Unarmed Idle Looking Ver. 1.fbx";
+const char* ANIMATION2 = "assets/models/animation/Unarmed Run Forward.fbx";
 
 // Call back signatures here
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
@@ -1309,96 +1316,96 @@ bool calculateNextPosition(cMeshObject* currentBehold, glm::vec3& nextPosition, 
 
 /* Update all Beholders animation key frames ->
 This functions is called in a new Thread. */
-DWORD WINAPI animationUpdate(PVOID pvParam) {
-    for (std::map< std::string, cMeshObject*>::iterator itBeholds =
-        g_GraphicScene.map_beholds->begin(); itBeholds != g_GraphicScene.map_beholds->end();
-        itBeholds++)
-    {
-        currentBehold = itBeholds->second;
-        unsigned int currentBeholdID = currentBehold->getID();
-        int numTilesNext = 0;
-
-        if (currentBehold->moving == 0 && !currentBehold->dead) {
-            glm::vec3 nextPosition = glm::vec3(0.0f);
-            if (!calculateNextPosition(currentBehold, nextPosition, numTilesNext)) {
-                // Spin and reduce;
-                currentBehold->adjustRoationAngleFromEuler(glm::vec3(0.0f, 0.2f, 0.0f));
-                currentBehold->reduceFromScale(0.99f);
-                if (currentBehold->scaleXYZ.x <= 0.01) {
-                    currentBehold->dead = true;
-                    std::cout << currentBehold->friendlyName << " is Dead :(" << std::endl;
-                }
-                continue;
-            }
-
-            currentBehold->moving = 1;
-            currentBehold->rotating = 1;
-            currentBehold->PositionKeyFrames.clear();
-            currentBehold->RotationKeyFrames.clear();
-
-            currRKF.value = currentBehold->rotation;
-            currRKF.time = 0;
-            currRKF.useSlerp = false;
-
-            currentBehold->RotationKeyFrames.push_back(currRKF);
-
-            nextRKF.time = 1;
-            nextRKF.useSlerp = false;
-
-            // Setting rotation
-            if (nextPosition.x < currentBehold->position.x) { // Going WEST
-                //currentBehold->setRotationFromEuler(glm::vec3(0.0f, NinetyDegrees, 0.0f));
-                nextRKF.value = glm::vec3(0.0f, NinetyDegrees, 0.0f);
-            }
-
-            if (nextPosition.x > currentBehold->position.x) { // Going EAST
-                //currentBehold->setRotationFromEuler(glm::vec3(0.0f, -NinetyDegrees, 0.0f));
-                nextRKF.value = glm::vec3(0.0f, -NinetyDegrees, 0.0f);
-            }
-
-            if (nextPosition.z < currentBehold->position.z) { // Going NORTH
-                //currentBehold->setRotationFromEuler(glm::vec3(0.0f, 0.0, 0.0f));
-                nextRKF.value = glm::vec3(0.0f, 0.0, 0.0f);
-            }
-
-            if (nextPosition.z > currentBehold->position.z) { // Going SOUTH
-                //currentBehold->setRotationFromEuler(glm::vec3(0.0f, NinetyDegrees * 2, 0.0f));
-                nextRKF.value = glm::vec3(0.0f, NinetyDegrees * 2, 0.0f);
-            }
-
-            currentBehold->RotationKeyFrames.push_back(nextRKF);
-
-            currPKF.value = glm::vec3(currentBehold->position.x, currentBehold->position.y, currentBehold->position.z);
-            currPKF.time = 0;
-            currentBehold->PositionKeyFrames.push_back(currPKF);
-
-            nextPKF.value = glm::vec3(nextPosition.x, nextPosition.y, nextPosition.z);
-            nextPKF.time = 1;
-            currentBehold->PositionKeyFrames.push_back(nextPKF);
-
-            currentBehold->CurrentTime = 0.f;
-            currentBehold->IsLooping = false;
-            currentBehold->IsPlaying = true;
-        }
-        else if (currentBehold->moving == 2 && !currentBehold->dead && currentBehold->rotating == 0) {
-            // Check if the animation is finished?
-            currentBehold->UpdateAnimation(1);
-            currentBehold->Speed = animationSpeed;
-
-            glm::vec3 newPosition = currentBehold->GetAnimationPosition(currentBehold->CurrentTime, animationType);
-            currentBehold->position.x = newPosition.x;
-            currentBehold->position.z = newPosition.z;
-        }
-        else if (currentBehold->moving == 1 && !currentBehold->dead && currentBehold->rotating == 1) {
-            currentBehold->UpdateAnimation(1);
-            currentBehold->Speed = animationSpeed;
-
-            glm::vec3 newRotation = currentBehold->GetAnimationRotation(currentBehold->CurrentTime, animationType);
-            currentBehold->rotation = newRotation;
-        }
-    }
-    return 0;
-}
+//DWORD WINAPI animationUpdate(PVOID pvParam) {
+//    for (std::map< std::string, cMeshObject*>::iterator itBeholds =
+//        g_GraphicScene.map_beholds->begin(); itBeholds != g_GraphicScene.map_beholds->end();
+//        itBeholds++)
+//    {
+//        currentBehold = itBeholds->second;
+//        unsigned int currentBeholdID = currentBehold->getID();
+//        int numTilesNext = 0;
+//
+//        if (currentBehold->moving == 0 && !currentBehold->dead) {
+//            glm::vec3 nextPosition = glm::vec3(0.0f);
+//            if (!calculateNextPosition(currentBehold, nextPosition, numTilesNext)) {
+//                // Spin and reduce;
+//                currentBehold->adjustRoationAngleFromEuler(glm::vec3(0.0f, 0.2f, 0.0f));
+//                currentBehold->reduceFromScale(0.99f);
+//                if (currentBehold->scaleXYZ.x <= 0.01) {
+//                    currentBehold->dead = true;
+//                    std::cout << currentBehold->friendlyName << " is Dead :(" << std::endl;
+//                }
+//                continue;
+//            }
+//
+//            currentBehold->moving = 1;
+//            currentBehold->rotating = 1;
+//            currentBehold->PositionKeyFrames.clear();
+//            currentBehold->RotationKeyFrames.clear();
+//
+//            currRKF.value = currentBehold->rotation;
+//            currRKF.time = 0;
+//            currRKF.useSlerp = false;
+//
+//            currentBehold->RotationKeyFrames.push_back(currRKF);
+//
+//            nextRKF.time = 1;
+//            nextRKF.useSlerp = false;
+//
+//            // Setting rotation
+//            if (nextPosition.x < currentBehold->position.x) { // Going WEST
+//                //currentBehold->setRotationFromEuler(glm::vec3(0.0f, NinetyDegrees, 0.0f));
+//                nextRKF.value = glm::vec3(0.0f, NinetyDegrees, 0.0f);
+//            }
+//
+//            if (nextPosition.x > currentBehold->position.x) { // Going EAST
+//                //currentBehold->setRotationFromEuler(glm::vec3(0.0f, -NinetyDegrees, 0.0f));
+//                nextRKF.value = glm::vec3(0.0f, -NinetyDegrees, 0.0f);
+//            }
+//
+//            if (nextPosition.z < currentBehold->position.z) { // Going NORTH
+//                //currentBehold->setRotationFromEuler(glm::vec3(0.0f, 0.0, 0.0f));
+//                nextRKF.value = glm::vec3(0.0f, 0.0, 0.0f);
+//            }
+//
+//            if (nextPosition.z > currentBehold->position.z) { // Going SOUTH
+//                //currentBehold->setRotationFromEuler(glm::vec3(0.0f, NinetyDegrees * 2, 0.0f));
+//                nextRKF.value = glm::vec3(0.0f, NinetyDegrees * 2, 0.0f);
+//            }
+//
+//            currentBehold->RotationKeyFrames.push_back(nextRKF);
+//
+//            currPKF.value = glm::vec3(currentBehold->position.x, currentBehold->position.y, currentBehold->position.z);
+//            currPKF.time = 0;
+//            currentBehold->PositionKeyFrames.push_back(currPKF);
+//
+//            nextPKF.value = glm::vec3(nextPosition.x, nextPosition.y, nextPosition.z);
+//            nextPKF.time = 1;
+//            currentBehold->PositionKeyFrames.push_back(nextPKF);
+//
+//            currentBehold->CurrentTime = 0.f;
+//            currentBehold->IsLooping = false;
+//            currentBehold->IsPlaying = true;
+//        }
+//        else if (currentBehold->moving == 2 && !currentBehold->dead && currentBehold->rotating == 0) {
+//            // Check if the animation is finished?
+//            currentBehold->UpdateAnimation(1);
+//            currentBehold->Speed = animationSpeed;
+//
+//            glm::vec3 newPosition = currentBehold->GetAnimationPosition(currentBehold->CurrentTime, animationType);
+//            currentBehold->position.x = newPosition.x;
+//            currentBehold->position.z = newPosition.z;
+//        }
+//        else if (currentBehold->moving == 1 && !currentBehold->dead && currentBehold->rotating == 1) {
+//            currentBehold->UpdateAnimation(1);
+//            currentBehold->Speed = animationSpeed;
+//
+//            glm::vec3 newRotation = currentBehold->GetAnimationRotation(currentBehold->CurrentTime, animationType);
+//            currentBehold->rotation = newRotation;
+//        }
+//    }
+//    return 0;
+//}
 
 void RemoveWalls() {
     for (int i = g_GraphicScene.vec_pWalls.size() - 1; i >= 0; i--) {
@@ -1412,6 +1419,7 @@ void updateCurrentMazeView(int newI, int newJ) {
     
     g_GraphicScene.cleanMazeView();
     g_GraphicScene.vec_pMeshCurrentMaze.push_back(mainChar);
+    g_GraphicScene.vec_pMeshCurrentMaze.push_back(animatedCharacter);
     g_GraphicScene.vec_pMeshCurrentMaze.push_back(planeFloor);
 
     mainChar->currentI = newI;
@@ -1553,9 +1561,11 @@ int main(int argc, char* argv[]) {
         LeaderboardClient client(protocol);
         transport->open();
         std::map<int32_t, int32_t> top20;
-        
         client.getTop20(top20);
         int smartPoint = 5;
+
+        client.setHighScore(40, 350);
+        client.setHighScore(45, 1000);
     }
 
     // ------------------ PHYSICS INITIALIZATION --------------------
@@ -1692,6 +1702,27 @@ int main(int argc, char* argv[]) {
     // -------------------- SCECNE PREPARATION -----------------------
 
     {
+        unsigned int m_CharacterModelId;
+        std::string m_AnimationName;
+        GDP_LoadFBXFile(m_CharacterModelId, m_AnimationName, ANIMATION1);
+
+        std::vector<std::string> animations;
+        animations.push_back(ANIMATION1);
+        animations.push_back(ANIMATION2);
+
+        animatedCharacter = GDP_CreateAnimatedCharacter(ANIMATION1, animations);
+        g_GraphicScene.vec_pMeshCurrentMaze.push_back(animatedCharacter);
+        animatedCharacter->friendlyName = "AnimatedChar";
+        animatedCharacter->Animation.IsCharacterAnimation = true;
+        animatedCharacter->Animation.AnimationTime = 0.f;
+        animatedCharacter->Animation.IsLooping = true;
+        animatedCharacter->Animation.IsPlaying = true;
+        animatedCharacter->Animation.AnimationType = m_AnimationName;
+        animatedCharacter->Animation.Speed = 1.f;
+        animatedCharacter->position = glm::vec3(0.f);
+        //character->Renderer.MaterialId = m_WoodMaterialId;
+        animatedCharacter->HasBones = true;
+
         gameUi.fmod_manager_ = fmod_manager;
         gameUi.iniciatingUI();
 
@@ -1832,6 +1863,8 @@ int main(int argc, char* argv[]) {
 
         mainChar->currentI = mainChar->position.z / GLOBAL_MAP_OFFSET;
         mainChar->currentJ = mainChar->position.x / GLOBAL_MAP_OFFSET;
+
+        animatedCharacter->position = mainChar->position;
     }
 
     // ----------------------- CREATING FLOOR ------------------------
@@ -1958,6 +1991,8 @@ int main(int argc, char* argv[]) {
             mainChar->physicsBody->GetPosition(newPositionVector);
             glm::vec3 newPosition = glm::vec3(newPositionVector.x, newPositionVector.y, newPositionVector.z);
             mainChar->position = newPosition;
+
+            animatedCharacter->position = mainChar->position;
 
             glm::quat newRotation;
             mainChar->physicsBody->GetRotation(newRotation);
@@ -2090,18 +2125,18 @@ int main(int argc, char* argv[]) {
         
         // ---------------------- THREAD BEHOLD UPDATE ----------------------
         
-        {
-            DWORD dw;
-            int iLoop = 0;
-            _MAZE_TILE_INFO* pMazeTileInfo = new _MAZE_TILE_INFO;
-
-            ahThread = chBEGINTHREADEX(NULL, 0, animationUpdate,
-                (PVOID)(&pMazeTileInfo),
-                0, &dw);
-
-            // Only waits for 64 of them, not matter how many you call.
-            WaitForSingleObject(ahThread, INFINITE);
-        }
+        //{
+        //    DWORD dw;
+        //    int iLoop = 0;
+        //    _MAZE_TILE_INFO* pMazeTileInfo = new _MAZE_TILE_INFO;
+        //
+        //    ahThread = chBEGINTHREADEX(NULL, 0, animationUpdate,
+        //        (PVOID)(&pMazeTileInfo),
+        //        0, &dw);
+        //
+        //    // Only waits for 64 of them, not matter how many you call.
+        //    WaitForSingleObject(ahThread, INFINITE);
+        //}
 
         // Update will run any Lua script sitting in the "brain"
         pBrain->Update(1);
@@ -2117,47 +2152,6 @@ int main(int argc, char* argv[]) {
 
         //g_MapCameraTarget = glm::vec3(1000.f, 0.0, 1000.f);
         //g_MapCameraEye = glm::vec3(1000.f, 6000.f, 1010.f);
-
-        // ---------------------- CAMERA UPDATE (OLD) ----------------------
-
-        {
-            if (g_GraphicScene.cameraFollowing && !g_GraphicScene.cameraTransitioning) {
-                cMeshObject* currentBehold = itBeholdsToFollow->second;
-                g_cameraEye.x = currentBehold->position.x + CAMERA_OFFSET;
-                g_cameraEye.y = currentBehold->position.y + CAMERA_OFFSET;
-                g_cameraEye.y = currentBehold->position.z + CAMERA_OFFSET;
-
-                g_cameraTarget = currentBehold->position;
-            }
-            else if (g_GraphicScene.cameraTransitioning) {
-                cMeshObject* currentBehold = itBeholdsToFollow->second;
-                float distanceCameraBehold = glm::distance(g_cameraEye, currentBehold->position);
-
-                float xDir = currentBehold->position.x - g_cameraEye.x;
-                float yDir = currentBehold->position.y - g_cameraEye.y;
-                float zDir = currentBehold->position.z - g_cameraEye.z;
-
-                g_cameraTarget = currentBehold->position;
-
-                float mag = pow((xDir * xDir + yDir * yDir + zDir * zDir), 0.5);
-
-                if (distanceCameraBehold > CAMERA_OFFSET * 5) {
-
-                    float xStep = xDir / mag;
-                    float yStep = yDir / mag;
-                    float zStep = zDir / mag;
-
-                    g_cameraEye.x += xStep * 15;
-                    g_cameraEye.y += yStep * 15;
-                    g_cameraEye.z += zStep * 15;
-                }
-                else {
-                    g_GraphicScene.cameraFollowing = true;
-                    g_GraphicScene.cameraTransitioning = false;
-                }
-            }
-        }
-
 
         std::stringstream ssTitle;
         ssTitle << "Multiverse Cursed Village";

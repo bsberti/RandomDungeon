@@ -24,10 +24,63 @@ public:
 	}
 
 	void setHighScore(const int32_t playerId, const int32_t highScore) {
-		this->highScoreByPlayer->insert(std::pair<int32_t, int32_t>(playerId, highScore));
+		//this->highScoreByPlayer->insert(std::pair<int32_t, int32_t>(playerId, highScore));
 
 		// Your implementation goes here
-		printf("setHighScore\n");
+		printf("Setting HighScore:\n");
+		std::string query = "SELECT * FROM leaderboard WHERE userID = " + std::to_string(playerId);
+
+		SQLiteHelper->ExecuteQuery(query.c_str());
+
+		if (SQLiteHelper->vec_SQLiteResult->size() != 0) {
+			//for (int i = 0; i < SQLiteHelper->vec_SQLiteResult->size(); i++) {
+			//	//printf(SQLiteHelper->vec_SQLiteResult->at(i).userId);
+			//	int32_t userID = std::stoi((*SQLiteHelper->vec_SQLiteResult)[i].userId);
+			//	int32_t highScore = std::stoi((*SQLiteHelper->vec_SQLiteResult)[i].highScore);
+			//	//_return[userID] = highScore;
+			//}
+			int32_t userID = std::stoi((*SQLiteHelper->vec_SQLiteResult)[0].userId);
+			int32_t highScoreReturned = std::stoi((*SQLiteHelper->vec_SQLiteResult)[0].highScore);
+
+			printf("userID: %d founded.\n", userID);
+
+			if (highScoreReturned < highScore) {
+				// UPDATE
+				query = "UPDATE leaderboard SET highScore = " + std::to_string(highScore)
+					+ " WHERE userID = " + std::to_string(playerId) + ";";
+
+				SQLiteHelper->ExecuteQuery(query.c_str());
+
+				if (SQLiteHelper->vec_SQLiteResult->size() != 0) {
+					int breakPoint = 5;
+					// ERROR?
+					printf("ERROR\n");
+				}
+				else {
+					printf("userID: %d UPDATED.\n", userID);
+				}
+			}
+			else {
+				printf("userID: %d NOT UPDATED.\n New HighScore (%d) < Old HighScore (%d) \n", userID, highScoreReturned, highScore);
+			}
+
+		}
+		else {
+			// INSERT
+			printf("userID NOT founded.\n");
+			query = "INSERT INTO leaderboard VALUES (" + std::to_string(playerId)
+				+ ", " + std::to_string(highScore) + ");";
+
+			SQLiteHelper->ExecuteQuery(query.c_str());
+
+			if (SQLiteHelper->vec_SQLiteResult->size() != 0) {
+				int breakPoint = 5;
+				// ERROR?
+			}
+			else {
+				printf("userID: %d UPDATED.\n", playerId);
+			}
+		}
 	}
 
 	void getTop20(std::map<int32_t, int32_t> & _return) {

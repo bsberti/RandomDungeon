@@ -1,5 +1,5 @@
 
-#include "globalOpenGL.h"   // for the GL calls.
+//#include "globalOpenGL.h"   // for the GL calls.
 #include <glm/glm.hpp>
 #include <glm/vec3.hpp> // glm::vec3        (x,y,z)
 #include <glm/vec4.hpp> // glm::vec4        (x,y,z,w)

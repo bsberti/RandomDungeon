@@ -15,29 +15,15 @@
 
 #include "physics.h"
 
-struct PositionKeyFrame
-{
-	glm::vec3 value;
-	float time;
-};
+#include "MeshRenderer.h"
+#include "Animation.h"
+#include "BoneHierarchy.h"
 
-struct ScaleKeyFrame
-{
-	glm::vec3 value;
-	float time;
-};
-
-struct RotationKeyFrame
-{
-	glm::vec3 value;
-	float time;
-	bool useSlerp;
-};
-
-struct ColorKeyFrame
-{
-	glm::vec3 value;
-	float time;
+struct GameObjectBoneData {
+	glm::vec3 Position;
+	glm::vec3 Scale;
+	glm::quat Rotation;
+	glm::mat4 ModelMatrix;
 };
 
 class cMeshObject {
@@ -117,23 +103,35 @@ public:
 	unsigned int rotating;
 
 	// Animation properties
-	std::vector<PositionKeyFrame> PositionKeyFrames;
-	std::vector<ScaleKeyFrame> ScaleKeyFrames;
-	std::vector<RotationKeyFrame> RotationKeyFrames;
-	std::vector<ColorKeyFrame> ColorKeyFrames;
 	float CurrentTime;
+
+	// Animation
+	bool HasParent;
+	bool HasBones;
+	bool IsBonedObject;
+
+	// Character Animation
+	std::vector<glm::mat4> BoneModelMatrices;
+	std::vector<glm::mat4> GlobalTransformations;
+	glm::mat4 BoneRotationMatrices[66];
+
+	Animation Animation;
+
+	MeshRenderer Renderer;
+	bool Enabled;
+
 	// TO-DO CurrentTime set
 	float Speed;
 	bool IsLooping;
 	bool IsPlaying;
 
-	glm::vec3 GetAnimationPosition(float time, int type);
-	glm::vec3 GetAnimationScale(float time, int type);
-	glm::vec3 GetAnimationRotation(float time, int type);
+	//glm::vec3 GetAnimationPosition(float time, int type);
+	//glm::vec3 GetAnimationScale(float time, int type);
+	//glm::vec3 GetAnimationRotation(float time, int type);
 
-	int FindPositionKeyFrameIndex(float time);
-	int FindScaleKeyFrameIndex(float time);
-	int FindRotationKeyFrameIndex(float time);
+	//int FindPositionKeyFrameIndex(float time);
+	//int FindScaleKeyFrameIndex(float time);
+	//int FindRotationKeyFrameIndex(float time);
 
 	void UpdateAnimation(float deltaTime);
 

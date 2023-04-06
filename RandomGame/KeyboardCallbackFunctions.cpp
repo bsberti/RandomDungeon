@@ -1,4 +1,4 @@
-#include "globalOpenGL.h"
+//#include "globalOpenGL.h"
 #include "globalThings.h"   // For the light manager, etc.
 #include <glm/glm.hpp>
 #include <glm/vec3.hpp>

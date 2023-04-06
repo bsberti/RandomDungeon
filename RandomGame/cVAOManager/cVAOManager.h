@@ -19,8 +19,6 @@
 //	float nx, ny, nz;	// And normals, too!! :) 
 //};
 
-
-
 // This holds the "type" of model (mesh) we are going to draw. 
 class cVAOManager
 {
@@ -30,16 +28,18 @@ public:
 						  sModelDrawInfo &drawInfo, 
 						  unsigned int shaderProgramID);
 
+	void AddDrawInfoToMap(std::string meshName, sModelDrawInfo drawInfo);
+
 	// We don't want to return an int, likely
 	bool FindDrawInfoByModelName(std::string filename,
 								 sModelDrawInfo &drawInfo);
 
 	std::string getLastError(bool bAndClear = true);
 
-private:
 
+private:
 	std::map< std::string /*model name*/,
-		      sModelDrawInfo /* info needed to draw*/ >
+		sModelDrawInfo /* info needed to draw*/ >
 		m_map_ModelName_to_VAOID;
 
 };

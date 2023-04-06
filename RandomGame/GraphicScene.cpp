@@ -2,10 +2,15 @@
 
 #include <glm/gtx/intersect.hpp>
 
+extern void BoneShaderUpdate(unsigned int shaderID);
+extern Model* GetModel(unsigned int id);
+extern cMeshObject* animatedCharacter;
+
 GraphicScene::GraphicScene() {
 	cameraFollowing = false;
 	cameraTransitioning = false;
     drawFog = 10;
+    pVAOManager = new cVAOManager();
 }
 
 GraphicScene::~GraphicScene() {
@@ -29,6 +34,28 @@ float RandomFloatGraphic(float a, float b) {
 	float diff = b - a;
 	float r = random * diff;
 	return a + r;
+}
+
+bool LoadFBXFileToModelDrawInfo(Model* model, sModelDrawInfo& modelDrawInfo, std::string& errorText)
+{
+    modelDrawInfo.numberOfVertices = model->Vertices.size();
+    modelDrawInfo.numberOfTriangles = model->NumTriangles;
+    modelDrawInfo.numberOfIndices = model->NumTriangles * 3;
+
+    // This is now different because the vertex layout in the shader is different
+    modelDrawInfo.pVertices = new sVertex_RGBA_XYZ_N_UV_T_BiN_Bones[modelDrawInfo.numberOfVertices];
+    //modelDrawInfo.pVertices = new sVertex[modelDrawInfo.numberOfVertices];
+
+    // Now copy the information from the PLY infomation to the model draw info structure
+    for (unsigned int index = 0; index != modelDrawInfo.numberOfVertices; index++)
+    {
+        // To The Shader                        From the file
+        modelDrawInfo.pVertices[index].x = model->Vertices[index].x;
+        modelDrawInfo.pVertices[index].y = model->Vertices[index].y;
+        modelDrawInfo.pVertices[index].z = model->Vertices[index].z;
+    }
+
+    return true;
 }
 
 // ------------------------ Load Model into VAO ------------------------
@@ -117,8 +144,14 @@ int GraphicScene::PrepareScene() {
     cShaderManager::cShader vertexShader01;
     cShaderManager::cShader fragmentShader01;
 
+    cShaderManager::cShader boneShaderVertex;
+    cShaderManager::cShader boneShaderFragment;
+
     vertexShader01.fileName = "assets/shaders/vertexShader01.glsl";
     fragmentShader01.fileName = "assets/shaders/fragmentShader01.glsl";
+
+    boneShaderVertex.fileName = "assets/shaders/BoneShader.vertex.glsl";
+    boneShaderFragment.fileName = "assets/shaders/BoneShader.fragment.glsl";
 
     if (!pTheShaderManager->createProgramFromFile("Shader_1", vertexShader01, fragmentShader01)) {
         std::cout << "Didn't compile shaders" << std::endl;
@@ -127,14 +160,23 @@ int GraphicScene::PrepareScene() {
         return -1;
     }
     else {
-        std::cout << "Compiled shader OK." << std::endl;
+        std::cout << "Compiled Shader_1 OK." << std::endl;
+    }
+
+    if (!pTheShaderManager->createProgramFromFile("BoneShader", boneShaderVertex, boneShaderFragment)) {
+        std::cout << "Didn't compile shaders" << std::endl;
+        std::string theLastError = pTheShaderManager->getLastError();
+        std::cout << "Because: " << theLastError << std::endl;
+        return -1;
+    }
+    else {
+        std::cout << "Compiled BoneShader OK." << std::endl;
     }
 
     pTheShaderManager->useShaderProgram("Shader_1");
     shaderID = pTheShaderManager->getIDFromFriendlyName("Shader_1");
     glUseProgram(shaderID);
 
-    pVAOManager = new cVAOManager();
     if (!LoadModelTypesIntoVAO("assets/PLYFilesToLoadIntoVAO.txt", pVAOManager, shaderID)) {
         std::cout << "Error: Unable to load list of models to load into VAO file" << std::endl;
         // Do we exit here? 
@@ -153,6 +195,25 @@ int GraphicScene::PrepareScene() {
     pSkyBox = new cMeshObject();
     pSkyBox->meshName = "Skybox_Sphere";
     pSkyBox->friendlyName = "skybox";
+
+    cShaderManager::cShaderProgram* shader = pTheShaderManager->pGetShaderProgramFromFriendlyName("BoneShader");
+    printf("gBoneShaderId id: %d\n", shader->ID);
+    //glUseProgram(shader->ID);
+    BoneShaderUpdate(shader->ID);
+
+    //sModelDrawInfo drawInfo;
+    //std::string errorText = "";
+    //Model* currentModel = GetModel(animatedCharacter->Renderer.MeshId);
+    //if (LoadFBXFileToModelDrawInfo(currentModel, drawInfo, errorText)) {
+    //    std::cout << "Loaded FBX to" << std::endl;
+    //}
+    //else {
+    //    std::cout << errorText;
+    //}
+    //animatedCharacter->friendlyName = "AnimatedChar";
+    //if (pVAOManager->LoadModelIntoVAO(animatedCharacter->friendlyName, drawInfo, shaderID)) {
+    //    std::cout << "Loaded the " << animatedCharacter->friendlyName << " model" << std::endl;
+    //}
 }
 
 bool IntersectPlanes(const glm::vec4& plane1, const glm::vec4& plane2, const glm::vec4& plane3, glm::vec3& point) {
@@ -228,33 +289,14 @@ void GraphicScene::cleanMazeView() {
 
 void GraphicScene::DrawScene(GLFWwindow* window, glm::vec3 g_cameraEye, glm::vec3 g_cameraTarget) {
     
-
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     // Enable depth testing
     glEnable(GL_DEPTH_TEST);
 
-    //glLoadIdentity();
-    // Making the fire impostor "move"
-    //for (int i = 0; i < vec_torchFlames.size(); i++) {
-    //    cMeshObject* torchFire = vec_torchFlames[i];
-    //    if (torchFire) {
-    //        torchFire->scaleXYZ.y += RandomFloatGraphic(-0.1f, 0.1f);
-    //    }
-    //}
-
     glfwGetFramebufferSize(window, &width, &height);
     ratio = width / (float)height;
     glViewport(0, 0, width, height);
-
-    //glEnable(GL_SCISSOR_TEST);
-    //glScissor(0, 0, width, height);
-
-    // Draw the second part of the scene
-    // Make sure to set the depth value to a high value
-    // to ensure that it is drawn behind the first part of the scene
-    //glClearDepth(1.0f);
-    //glDepthFunc(GL_LESS);
 
     glm::vec3 upVector = glm::vec3(0.0f, 1.0f, 0.0f);
     matView = glm::lookAt(g_cameraEye,
@@ -271,7 +313,6 @@ void GraphicScene::DrawScene(GLFWwindow* window, glm::vec3 g_cameraEye, glm::vec
         ratio,
         0.1f,           // Near plane (make this as LARGE as possible)
         10000.0f);      // Far plane (make this as SMALL as possible)
-    // 6-8 digits of precision
 
     glUniformMatrix4fv(mView_location, 1, GL_FALSE, glm::value_ptr(matView));
     glUniformMatrix4fv(mProjection_location, 1, GL_FALSE, glm::value_ptr(matProjection));
@@ -296,6 +337,22 @@ void GraphicScene::DrawScene(GLFWwindow* window, glm::vec3 g_cameraEye, glm::vec
 
         if (pCurrentMeshObject->friendlyName == "Plane_Floor")
             continue;
+
+        //if (pCurrentMeshObject->friendlyName == "MainChar")
+        //    continue; 
+
+        if (pCurrentMeshObject->friendlyName == "AnimatedChar") {
+            pCurrentMeshObject->meshName = "AnimatedChar";
+            pTheShaderManager->useShaderProgram("BoneShader");
+            shaderID = pTheShaderManager->getIDFromFriendlyName("BoneShader");
+            glUseProgram(shaderID);
+            int breakpoint = 5;
+        }
+        else {
+            pTheShaderManager->useShaderProgram("Shader_1");
+            shaderID = pTheShaderManager->getIDFromFriendlyName("Shader_1");
+            glUseProgram(shaderID);
+        }
 
         // The parent's model matrix is set to the identity
         glm::mat4x4 matModel = glm::mat4x4(1.0f);

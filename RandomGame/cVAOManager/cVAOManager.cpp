@@ -84,7 +84,6 @@ bool cVAOManager::LoadModelIntoVAO(
 	// Calculate the extents of this model
 	drawInfo.CalculateExtents();
 
-
 	// TODO: Load the model from file
 
 	// 
@@ -231,6 +230,9 @@ bool cVAOManager::LoadModelIntoVAO(
 	return true;
 }
 
+void cVAOManager::AddDrawInfoToMap(std::string meshName, sModelDrawInfo drawInfo) {
+	this->m_map_ModelName_to_VAOID[meshName] = drawInfo;
+}
 
 // We don't want to return an int, likely
 bool cVAOManager::FindDrawInfoByModelName(

@@ -10,6 +10,7 @@ extern GLFWwindow* window;
 cRandomUI::cRandomUI() {
     listbox_lights_current = 0;
     listbox_item_current = -1;
+    listbox_maze_current = -1;
     listbox_child_current = -1;
     listbox_behold_current = -1;
     masterVolume = 0;
@@ -269,6 +270,54 @@ void cRandomUI::render(GraphicScene& scene, FModManager* fmod, std::vector<cLigh
     ImGui::ListBox("4", &listbox_lights_current, listbox_lights, IM_ARRAYSIZE(listbox_lights), 10);
 
     ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+    ImGui::End();
+
+    ImGui::Begin("Maze Objects");
+    ImGui::Text("Maze Objets");
+    const int totalObjectsMaze = scene.vec_pMeshCurrentMaze.size() - 1;
+    const char* listbox_itemsMaze[1000];
+    for (int i = 0; i < 1000; i++) {
+        if (i <= totalObjectsMaze)
+            listbox_itemsMaze[i] = scene.vec_pMeshCurrentMaze[i]->friendlyName.c_str();
+        else
+            listbox_itemsMaze[i] = "Empty";
+    }
+    ImGui::ListBox("1", &listbox_maze_current, listbox_itemsMaze, IM_ARRAYSIZE(listbox_itemsMaze), 20);
+    ImGui::End();
+
+    ImGui::Begin("Selected Maze Object");
+    if (listbox_maze_current != -1) {
+        ImGui::Text(scene.vec_pMeshCurrentMaze[listbox_maze_current]->meshName.c_str());
+
+        glm::vec3 soPosition = scene.vec_pMeshCurrentMaze[listbox_maze_current]->position;
+        glm::quat soRotation = scene.vec_pMeshCurrentMaze[listbox_maze_current]->qRotation;
+        float scale = scene.vec_pMeshCurrentMaze[listbox_maze_current]->scale;
+
+
+        ImGui::SliderFloat("position.x", &soPosition.x, -500.0f, 500.0f);
+        ImGui::SliderFloat("position.y", &soPosition.y, -500.0f, 500.0f);
+        ImGui::SliderFloat("position.z", &soPosition.z, -500.0f, 500.0f);
+
+        ImGui::SliderFloat("scale", &scale, -50.0f, 50.0f);
+
+        ImGui::SliderFloat("rotation.x", &soRotation.x, -10.0f, 10.0f);
+        ImGui::SliderFloat("rotation.y", &soRotation.y, -10.0f, 10.0f);
+        ImGui::SliderFloat("rotation.z", &soRotation.z, -10.0f, 10.0f);
+        ImGui::SliderFloat("rotation.w", &soRotation.w, -10.0f, 10.0f);
+
+        scene.vec_pMeshCurrentMaze[listbox_maze_current]->position.x = soPosition.x;
+        scene.vec_pMeshCurrentMaze[listbox_maze_current]->position.y = soPosition.y;
+        scene.vec_pMeshCurrentMaze[listbox_maze_current]->position.z = soPosition.z;
+        scene.vec_pMeshCurrentMaze[listbox_maze_current]->scale = scale;
+
+        scene.vec_pMeshCurrentMaze[listbox_maze_current]->setRotationFromEuler(glm::vec3(soRotation.x, soRotation.y, soRotation.z));
+        //scene.vec_pMeshObjects[listbox_item_current]->rotation.x = soRotation.x;
+        //scene.vec_pMeshObjects[listbox_item_current]->rotation.y = soRotation.y;
+        //scene.vec_pMeshObjects[listbox_item_current]->rotation.z = soRotation.z;
+    }
+    else {
+        ImGui::Text("No Object Selected");
+    }
     ImGui::End();
 
     ImGui::Begin("Selected Object");

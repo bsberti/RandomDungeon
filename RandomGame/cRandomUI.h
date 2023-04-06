@@ -30,6 +30,7 @@ public:
 
 	int listbox_lights_current;
 	int listbox_item_current;
+	int listbox_maze_current;
 	int listbox_child_current;
 	int listbox_behold_current;
 

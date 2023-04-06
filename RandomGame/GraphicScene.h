@@ -4,11 +4,12 @@
 #include <vector>
 #include <map>
 #include <math.h>
+#include <sstream>
 
 #include "cMeshObject.h"
 #include "cVAOManager/sModelDrawInfo.h"
-#include "globalOpenGL.h"
-#include "globalThings.h"
+//#include "globalOpenGL.h"
+//#include "globalThings.h"
 #include "cShaderManager.h"
 #include "cVAOManager/cVAOManager.h"
 #include "cLightHelper.h"
@@ -16,13 +17,15 @@
 #include "cBasicTextureManager/cBasicTextureManager.h"
 #include "cFBO.h"
 
-#include <glm/glm.hpp>
-#include <glm/vec3.hpp> 
-#include <glm/vec4.hpp>
-#include <glm/mat4x4.hpp> 
-#include <glm/gtc/matrix_transform.hpp> 
-#include <glm/gtc/type_ptr.hpp>
-#include <algorithm>
+//#include <glm/glm.hpp>
+//#include <glm/vec3.hpp> 
+//#include <glm/vec4.hpp>
+//#include <glm/mat4x4.hpp> 
+//#include <glm/gtc/matrix_transform.hpp> 
+//#include <glm/gtc/type_ptr.hpp>
+//#include <algorithm>
+
+//#include "Model.h"
 
 /* Link with Win32 shared freeglut lib */
 #           if FREEGLUT_LIB_PRAGMAS
@@ -107,6 +110,11 @@ public:
 	// Frame Buffer Object
 	// (This is global so the windows resize callback can "see" it)
 	cFBO* g_pFBO_01 = NULL;
+
+
+	// Animation Stuffs
+	std::vector<Model*> gModelVec;
+
 private:
 	
 };
