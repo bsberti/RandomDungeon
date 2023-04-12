@@ -3,8 +3,6 @@
 #include <glm/gtx/easing.hpp>
 #include <iostream>
 
-#include "Engine.h"
-
 #include <glm/gtx/matrix_decompose.hpp>
 
 AnimationManager::AnimationManager() {
@@ -89,7 +87,7 @@ void AnimationManager::Update(const std::vector<cMeshObject*>& gameObjects, floa
 					//printf("Time: %.4f %d/%d\n", animation.AnimationTime, keyFrameTime, (int)animationData.Duration);
 					UpdateBoneHierarchy(animationData.BoneHierarchy->root, animationData, identity, animation.AnimationTime);
 
-					Model* model = GDP_GetModel(go->Renderer.MeshId);
+					//Model* model = GDP_GetModel(go->Renderer.MeshId);
 
 					SetGameObjectBoneModelMatrices(go, animationData.BoneHierarchy->root, animationData);
 				}

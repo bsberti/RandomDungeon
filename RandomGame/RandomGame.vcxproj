@@ -178,7 +178,6 @@
     <ClCompile Include="cMeshObject.cpp" />
     <ClCompile Include="cRandomUI.cpp" />
     <ClCompile Include="DrawObject_function.cpp" />
-    <ClCompile Include="Engine.cpp" />
     <ClCompile Include="EntityLoaderManager.cpp" />
     <ClCompile Include="FModManager.cpp" />
     <ClCompile Include="glad.c" />
@@ -221,7 +220,6 @@
     <ClInclude Include="cLuaBrain.h" />
     <ClInclude Include="cMazeMaker_W2023.h" />
     <ClInclude Include="cRandomUI.h" />
-    <ClInclude Include="Engine.h" />
     <ClInclude Include="EntityLoaderManager.h" />
     <ClInclude Include="FModManager.h" />
     <ClInclude Include="GL.h" />

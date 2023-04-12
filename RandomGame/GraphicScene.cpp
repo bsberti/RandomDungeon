@@ -2,10 +2,6 @@
 
 #include <glm/gtx/intersect.hpp>
 
-extern void BoneShaderUpdate(unsigned int shaderID);
-extern Model* GetModel(unsigned int id);
-extern cMeshObject* animatedCharacter;
-
 GraphicScene::GraphicScene() {
 	cameraFollowing = false;
 	cameraTransitioning = false;
@@ -199,22 +195,16 @@ int GraphicScene::PrepareScene() {
     cShaderManager::cShaderProgram* shader = pTheShaderManager->pGetShaderProgramFromFriendlyName("BoneShader");
     printf("gBoneShaderId id: %d\n", shader->ID);
     //glUseProgram(shader->ID);
-    BoneShaderUpdate(shader->ID);
+    //BoneShaderUpdate(shader->ID);
 
-    //sModelDrawInfo drawInfo;
-    //std::string errorText = "";
-    //Model* currentModel = GetModel(animatedCharacter->Renderer.MeshId);
-    //if (LoadFBXFileToModelDrawInfo(currentModel, drawInfo, errorText)) {
-    //    std::cout << "Loaded FBX to" << std::endl;
-    //}
-    //else {
-    //    std::cout << errorText;
-    //}
-    //animatedCharacter->friendlyName = "AnimatedChar";
-    //if (pVAOManager->LoadModelIntoVAO(animatedCharacter->friendlyName, drawInfo, shaderID)) {
-    //    std::cout << "Loaded the " << animatedCharacter->friendlyName << " model" << std::endl;
-    //}
+    sModelDrawInfo drawInfo;
+    std::string errorText = "";
+
+    pVAOManager->shaderID = shaderID;
+    pVAOManager->loadModel("assets/models/animation/Mutant.fbx");
+
 }
+
 
 bool IntersectPlanes(const glm::vec4& plane1, const glm::vec4& plane2, const glm::vec4& plane3, glm::vec3& point) {
     // Calculate the cross product of the first two planes' normals
@@ -338,21 +328,12 @@ void GraphicScene::DrawScene(GLFWwindow* window, glm::vec3 g_cameraEye, glm::vec
         if (pCurrentMeshObject->friendlyName == "Plane_Floor")
             continue;
 
-        if (pCurrentMeshObject->friendlyName == "MainChar")
-            continue; 
+        //if (pCurrentMeshObject->friendlyName == "MainChar")
+        //    continue;
 
-        if (pCurrentMeshObject->friendlyName == "AnimatedChar") {
-            //pCurrentMeshObject->meshName = "AnimatedChar";
-            //pTheShaderManager->useShaderProgram("BoneShader");
-            //shaderID = pTheShaderManager->getIDFromFriendlyName("BoneShader");
-            //glUseProgram(shaderID);
+        if (pCurrentMeshObject->meshName == "assets/models/animation/UnarmedIdleLooking.fbx") {
             int breakpoint = 5;
         }
-        //else {
-        //    pTheShaderManager->useShaderProgram("Shader_1");
-        //    shaderID = pTheShaderManager->getIDFromFriendlyName("Shader_1");
-        //    glUseProgram(shaderID);
-        //}
 
         // The parent's model matrix is set to the identity
         glm::mat4x4 matModel = glm::mat4x4(1.0f);
@@ -481,6 +462,10 @@ void GraphicScene::DrawMapView(GLFWwindow* window, glm::vec3 g_cameraEye, glm::v
 
         if (!pCurrentMeshObject->bIsVisible)
             continue;
+
+        if (pCurrentMeshObject->meshName == "assets/models/animation/UnarmedIdleLooking.fbx") {
+            int breakpoint = 5;
+        }
 
         // The parent's model matrix is set to the identity
         glm::mat4x4 matModel = glm::mat4x4(1.0f);

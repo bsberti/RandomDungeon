@@ -182,9 +182,6 @@
     <ClCompile Include="AnimationManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Engine.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="CheckGLError.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -302,7 +299,6 @@
     <ClInclude Include="Animation.h" />
     <ClInclude Include="AnimationManager.h" />
     <ClInclude Include="BoneHierarchy.h" />
-    <ClInclude Include="Engine.h" />
     <ClInclude Include="CheckGLError.h" />
     <ClInclude Include="MeshRenderer.h" />
     <ClInclude Include="BoneShader.h" />

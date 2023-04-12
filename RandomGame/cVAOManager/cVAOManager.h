@@ -20,6 +20,10 @@
 //};
 
 // This holds the "type" of model (mesh) we are going to draw. 
+
+class aiNode;
+class aiScene;
+class aiMesh;
 class cVAOManager
 {
 public:
@@ -35,6 +39,12 @@ public:
 								 sModelDrawInfo &drawInfo);
 
 	std::string getLastError(bool bAndClear = true);
+
+	void loadModel(std::string path);
+	void processNode(aiNode* node, const aiScene* scene, const std::string& path);
+	sModelDrawInfo* processMesh(aiMesh* mesh, const aiScene* scene);
+
+	unsigned int shaderID = -1;
 
 
 private:

@@ -250,6 +250,8 @@ bool cCharacter::LoadAssimpMesh(const aiMesh* assimpMesh)
 	sVertex_p4t4n4b4w4* pTempVertArray = new sVertex_p4t4n4b4w4[numIndicesInIndexArray * 2];
 	GLuint* pIndexArrayLocal = new GLuint[numIndicesInIndexArray * 2];
 
+
+
 	for (int vertArrayIndex = 0; vertArrayIndex < assimpMesh->mNumVertices; vertArrayIndex++)
 	{
 		const aiVector3D& vertex = assimpMesh->mVertices[vertArrayIndex];

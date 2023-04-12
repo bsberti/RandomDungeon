@@ -6,7 +6,6 @@
 //#include <thrift/protocol/TBinaryProtocol.h>
 
 #include "NetworkManager.h"
-#include "Engine.h"
 
 //#include "globalOpenGL.h"
 #include "globalThings.h"
@@ -87,7 +86,6 @@ HANDLE ahThread;
 
 // Main Character GLOBAL Variables
 cMeshObject* mainChar;
-cMeshObject* animatedCharacter;
 cMeshObject* planeFloor;
 cCharacter playabledCharacter;
 
@@ -96,8 +94,6 @@ EntityLoaderManager* entityLoaderManager = EntityLoaderManager::GetInstance();
 
 // String used for error feedback for methods call
 std::string errorMessage;
-
-const char* BeholderIDLE = "assets/models/animation/BeholderSketchfab.fbx";
 
 const char* ANIMATION1 = "assets/models/animation/Unarmed Idle Looking Ver. 1.fbx";
 const char* ANIMATION2 = "assets/models/animation/Unarmed Run Forward.fbx";
@@ -1422,7 +1418,6 @@ void updateCurrentMazeView(int newI, int newJ) {
     
     g_GraphicScene.cleanMazeView();
     g_GraphicScene.vec_pMeshCurrentMaze.push_back(mainChar);
-    g_GraphicScene.vec_pMeshCurrentMaze.push_back(animatedCharacter);
     g_GraphicScene.vec_pMeshCurrentMaze.push_back(planeFloor);
 
     mainChar->currentI = newI;
@@ -1535,27 +1530,6 @@ void setStaticPlane() {
     // Adds the BOX to the Physics World
     physics::RigidBodyDesc AABBDesc = createRigidBodyDesc(true, 0.f, glm::vec3(0.f), glm::vec3(0.f));
     world->AddBody(physicsFactory->CreateRigidBody(AABBDesc, theAABBShape));
-}
-
-void NetworkInitialization() {
-    //using namespace ::apache::thrift;
-    //using namespace ::apache::thrift::protocol;
-    //using namespace ::apache::thrift::transport;
-
-    //using boost::shared_ptr;
-
-    //shared_ptr<TSocket> socket(new TSocket("localhost", 9090));
-    //shared_ptr<TTransport> transport(new TBufferedTransport(socket));
-    //shared_ptr<TProtocol> protocol(new TBinaryProtocol(transport));
-
-    //LeaderboardClient client(protocol);
-    //transport->open();
-    //std::map<int32_t, int32_t> top20;
-    //client.getTop20(top20);
-    //int smartPoint = 5;
-
-    //client.setHighScore(40, 350);
-    //client.setHighScore(45, 1000);
 }
 
 void PhysicsInitialization() {
@@ -1770,19 +1744,21 @@ void MainCharInitialization() {
     }
 
     sModelDrawInfo drawingInformation;
-    drawingInformation = g_GraphicScene.returnDrawInformation(playabledCharacter.mFriendlyName);
+    //drawingInformation = g_GraphicScene.returnDrawInformation(playabledCharacter.mFriendlyName);
+    drawingInformation = g_GraphicScene.returnDrawInformation("assets/models/animation/Mutant.fbx");
     glm::vec3 mainCharacterPosition(playabledCharacter.mPosition[0], playabledCharacter.mPosition[1], playabledCharacter.mPosition[2]);
     mainChar = g_GraphicScene.CreateGameObjectByType(playabledCharacter.mFriendlyName, mainCharacterPosition, drawingInformation);
     mainChar->friendlyName = "MainChar";
-    mainChar->bUse_RGBA_colour = true;
-    mainChar->RGBA_colour = glm::vec4(1.0f, 0.0f, 0.0f, 1.0f);
+    mainChar->meshName = "assets/models/animation/Mutant.fbx";
+    mainChar->bUse_RGBA_colour = false;
+    //mainChar->RGBA_colour = glm::vec4(1.0f, 0.0f, 0.0f, 1.0f);
     playabledCharacter.mFriendlyName = mainChar->friendlyName;
-    mainChar->SetUniformScale(10.0f);
+    mainChar->SetUniformScale(0.3f);
 
     mainChar->currentI = mainChar->position.z / GLOBAL_MAP_OFFSET;
     mainChar->currentJ = mainChar->position.x / GLOBAL_MAP_OFFSET;
 
-    animatedCharacter->position = mainChar->position;
+    //animatedCharacter->position = mainChar->position;
 }
 
 void FloorInitialization() {
@@ -1892,7 +1868,7 @@ void MeshPositionUpdate() {
     glm::vec3 newPosition = glm::vec3(newPositionVector.x, newPositionVector.y, newPositionVector.z);
     mainChar->position = newPosition;
 
-    animatedCharacter->position = mainChar->position;
+    //animatedCharacter->position = mainChar->position;
 
     glm::quat newRotation;
     mainChar->physicsBody->GetRotation(newRotation);
@@ -2077,9 +2053,9 @@ int main(int argc, char* argv[]) {
     animationType = 0;
     animationSpeed = 0.01;
 
-    //NetworkInitialization();
     networkManager = new NetworkManager();
     networkManager->Start();
+
     PhysicsInitialization();
     MazeInitialization();
     FMODInitialization();
@@ -2115,27 +2091,6 @@ int main(int argc, char* argv[]) {
     // -------------------- SCECNE PREPARATION -----------------------
 
     {
-        unsigned int m_CharacterModelId;
-        std::string m_AnimationName;
-        GDP_LoadFBXFile(m_CharacterModelId, m_AnimationName, ANIMATION2);
-
-        std::vector<std::string> animations;
-        animations.push_back(ANIMATION1);
-        animations.push_back(ANIMATION2);
-
-        animatedCharacter = GDP_CreateAnimatedCharacter(ANIMATION1, animations);
-        g_GraphicScene.vec_pMeshCurrentMaze.push_back(animatedCharacter);
-        animatedCharacter->friendlyName = "AnimatedChar";
-        animatedCharacter->Animation.IsCharacterAnimation = true;
-        animatedCharacter->Animation.AnimationTime = 0.f;
-        animatedCharacter->Animation.IsLooping = true;
-        animatedCharacter->Animation.IsPlaying = true;
-        animatedCharacter->Animation.AnimationType = m_AnimationName;
-        animatedCharacter->Animation.Speed = 1.f;
-        animatedCharacter->position = glm::vec3(0.f);
-        //character->Renderer.MaterialId = m_WoodMaterialId;
-        animatedCharacter->HasBones = true;
-
         gameUi.fmod_manager_ = fmod_manager;
         gameUi.iniciatingUI();
 
