@@ -18,6 +18,10 @@ cRandomUI::cRandomUI() {
     fxVolume = 0;
     fmod_manager_ = nullptr;
     radioChoice = 0;
+    loggedIn = false;
+
+    login_attempted = false;
+    login_successful = false;
 }
 
 int cRandomUI::iniciatingUI()
@@ -182,6 +186,37 @@ bool cRandomUI::DisplayChannelFader(std::string channelName) {
     }
 
     return true;
+}
+
+bool cRandomUI::renderLogin() {
+    static char username[256] = "";
+    static char password[256] = "";
+
+    // Render the Login UI
+    ImGui::InputText("Username", username, 256);
+    ImGui::InputText("Password", password, 256, ImGuiInputTextFlags_Password);
+    if (ImGui::Button("Login")) {
+        // Attempt to log in using the entered username and password
+        login_attempted = true;
+        g_username = std::string(username);
+        g_password = std::string(password);
+        login_successful = true; //TO-DO for now, networklogin not implemented
+        return true;
+    }
+
+    // Display a message indicating the status of the login attempt
+    if (login_attempted) {
+        if (login_successful) {
+            ImGui::Text("Login successful!");
+            loggedIn = true;
+        }
+        else {
+            ImGui::Text("Login failed. Please check your username and password.");
+            loggedIn = false;
+        }
+    }
+
+    return false;
 }
 
 void cRandomUI::render(GraphicScene& scene, FModManager* fmod, std::vector<cLight>& vecTheLights) {

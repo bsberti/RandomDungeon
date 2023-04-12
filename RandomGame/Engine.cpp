@@ -129,7 +129,7 @@ bool LoadAssimpMesh(CharacterAnimationData& animationData, unsigned int& id, con
 
     unsigned int numIndicesInIndexArray = numFaces * 3;
 
-    sVertex_p4t4n4b4w4* pTempVertArray = new sVertex_p4t4n4b4w4[numIndicesInIndexArray];
+    sVertex_p4t4n4b4w4* pTempVertArray = new sVertex_p4t4n4b4w4[mesh->mNumVertices];
     GLuint* pIndexArrayLocal = new GLuint[numIndicesInIndexArray];
 
     // Create a bone reference map
@@ -183,171 +183,261 @@ bool LoadAssimpMesh(CharacterAnimationData& animationData, unsigned int& id, con
     drawInfo.numberOfTriangles = numFaces;
     drawInfo.numberOfIndices = drawInfo.numberOfTriangles * 3;
 
-    drawInfo.pVertices = new sVertex_RGBA_XYZ_N_UV_T_BiN_Bones[drawInfo.numberOfIndices];
+    drawInfo.pVertices = new sVertex_RGBA_XYZ_N_UV_T_BiN_Bones[drawInfo.numberOfVertices];
     drawInfo.pIndices = new unsigned int[drawInfo.numberOfIndices];
 
-    for (int faceIndex = 0; faceIndex < numFaces; faceIndex++)
+    for (unsigned int vertArrayIndex = 0; vertArrayIndex < mesh->mNumVertices; vertArrayIndex++)
     {
-        const aiFace& face = mesh->mFaces[faceIndex];
+        const aiVector3D& vertex = mesh->mVertices[vertArrayIndex];
 
-        // You can assert here to ensure mNumIndices is 3
-        // Unless you support non 3 face models 
-        for (int indicesIndex = 0; indicesIndex < face.mNumIndices; indicesIndex++)
+        pTempVertArray[vertArrayIndex].Pos.x = vertex.x;
+        pTempVertArray[vertArrayIndex].Pos.y = vertex.y;
+        pTempVertArray[vertArrayIndex].Pos.z = vertex.z;
+        pTempVertArray[vertArrayIndex].Pos.w = 1.0f;
+
+        drawInfo.pVertices[vertArrayIndex].x = vertex.x;
+        drawInfo.pVertices[vertArrayIndex].y = vertex.y;
+        drawInfo.pVertices[vertArrayIndex].y = vertex.z;
+
+        if (mesh->HasNormals())
         {
-            unsigned int vertexIndex = face.mIndices[indicesIndex];
-            triangles.push_back(vertexIndex);
+            const aiVector3D& normal = mesh->mNormals[vertArrayIndex];
+            pTempVertArray[vertArrayIndex].Normal.x = normal.x;
+            pTempVertArray[vertArrayIndex].Normal.y = normal.y;
+            pTempVertArray[vertArrayIndex].Normal.z = normal.z;
+            pTempVertArray[vertArrayIndex].Normal.w = 1.f;
 
-            //printf("%d\t", vertexIndex);
+            drawInfo.pVertices[vertArrayIndex].nx = normal.x;
+            drawInfo.pVertices[vertArrayIndex].ny = normal.y;
+            drawInfo.pVertices[vertArrayIndex].nz = normal.z;
+            drawInfo.pVertices[vertArrayIndex].nw = 0.f;
+        }
+        else
+        {
+            pTempVertArray[vertArrayIndex].Normal.x = 1.f;
+            pTempVertArray[vertArrayIndex].Normal.y = 0.f;
+            pTempVertArray[vertArrayIndex].Normal.z = 0.f;
+            pTempVertArray[vertArrayIndex].Normal.w = 0.f;
 
-            const aiVector3D& vertex = mesh->mVertices[vertexIndex];
-            drawInfo.pIndices[vertexIndex] = face.mIndices[indicesIndex];
+            drawInfo.pVertices[vertArrayIndex].nx = 1.f;
+            drawInfo.pVertices[vertArrayIndex].ny = 0.f;
+            drawInfo.pVertices[vertArrayIndex].nz = 0.f;
+            drawInfo.pVertices[vertArrayIndex].nw = 0.f;
+        }
 
-            pTempVertArray[vertArrayIndex].Pos.x = vertex.x;
-            pTempVertArray[vertArrayIndex].Pos.y = vertex.y;
-            pTempVertArray[vertArrayIndex].Pos.z = vertex.z;
-            pTempVertArray[vertArrayIndex].Pos.w = 1.0f;
+        if (mesh->HasTextureCoords(0))
+        {
+            const aiVector3D& uvCoord = mesh->mTextureCoords[0][vertArrayIndex];
+            pTempVertArray[vertArrayIndex].TexUVx2.x = uvCoord.x;
+            pTempVertArray[vertArrayIndex].TexUVx2.y = uvCoord.y;
 
             // ----------------------------------------------------
 
-            drawInfo.pVertices[vertArrayIndex].x = vertex.x;
-            drawInfo.pVertices[vertArrayIndex].y = vertex.y;
-            drawInfo.pVertices[vertArrayIndex].y = vertex.z;
+            drawInfo.pVertices[vertArrayIndex].u0 = uvCoord.x;
+            drawInfo.pVertices[vertArrayIndex].v0 = uvCoord.y;
+        }
 
-            if (mesh->HasNormals())
-            {
-                const aiVector3D& normal = mesh->mNormals[vertexIndex];
-                pTempVertArray[vertArrayIndex].Normal.x = normal.x;
-                pTempVertArray[vertArrayIndex].Normal.y = normal.y;
-                pTempVertArray[vertArrayIndex].Normal.z = normal.z;
-                pTempVertArray[vertArrayIndex].Normal.w = 0.f;
+        if (mesh->HasTextureCoords(1))
+        {
+            const aiVector3D& uvCoord = mesh->mTextureCoords[1][vertArrayIndex];
+            pTempVertArray[vertArrayIndex].TexUVx2.z = uvCoord.x;
+            pTempVertArray[vertArrayIndex].TexUVx2.w = uvCoord.y;
 
-                // ----------------------------------------------------
+            // ----------------------------------------------------
 
-                drawInfo.pVertices[vertArrayIndex].nx = normal.x;
-                drawInfo.pVertices[vertArrayIndex].ny = normal.y;
-                drawInfo.pVertices[vertArrayIndex].nz = normal.z;
-                drawInfo.pVertices[vertArrayIndex].nw = 0.f;
-            }
-            else
-            {
-                pTempVertArray[vertArrayIndex].Normal.x = 1.f;
-                pTempVertArray[vertArrayIndex].Normal.y = 0.f;
-                pTempVertArray[vertArrayIndex].Normal.z = 0.f;
-                pTempVertArray[vertArrayIndex].Normal.w = 0.f;
+            drawInfo.pVertices[vertArrayIndex].u0 = uvCoord.x;
+            drawInfo.pVertices[vertArrayIndex].v0 = uvCoord.y;
+        }
 
-                // ----------------------------------------------------
+        // Use a BoneInformation Map to get bone info and store the values here
+        BoneVertexData& bvd = boneVertexData[vertArrayIndex];
+        pTempVertArray[vertArrayIndex].BoneIds.x = bvd.ids[0];
+        pTempVertArray[vertArrayIndex].BoneIds.y = bvd.ids[1];
+        pTempVertArray[vertArrayIndex].BoneIds.z = bvd.ids[2];
+        pTempVertArray[vertArrayIndex].BoneIds.w = bvd.ids[3];
 
-                drawInfo.pVertices[vertArrayIndex].nx = 1.f;
-                drawInfo.pVertices[vertArrayIndex].ny = 0.f;
-                drawInfo.pVertices[vertArrayIndex].nz = 0.f;
-                drawInfo.pVertices[vertArrayIndex].nw = 0.f;
-            }
+        pTempVertArray[vertArrayIndex].BoneWeights.x = bvd.weights[0];
+        pTempVertArray[vertArrayIndex].BoneWeights.y = bvd.weights[1];
+        pTempVertArray[vertArrayIndex].BoneWeights.z = bvd.weights[2];
+        pTempVertArray[vertArrayIndex].BoneWeights.w = bvd.weights[3];
+    }
 
-            if (mesh->HasTextureCoords(0))
-            {
-                const aiVector3D& uvCoord = mesh->mTextureCoords[0][vertexIndex];
-                pTempVertArray[vertArrayIndex].TexUVx2.x = uvCoord.x;
-                pTempVertArray[vertArrayIndex].TexUVx2.y = uvCoord.y;
-
-                // ----------------------------------------------------
-
-                drawInfo.pVertices[vertArrayIndex].u0 = uvCoord.x;
-                drawInfo.pVertices[vertArrayIndex].v0 = uvCoord.y;
-            }
-
-            if (mesh->HasTextureCoords(1))
-            {
-                const aiVector3D& uvCoord = mesh->mTextureCoords[1][vertexIndex];
-                pTempVertArray[vertArrayIndex].TexUVx2.z = uvCoord.x;
-                pTempVertArray[vertArrayIndex].TexUVx2.w = uvCoord.y;
-
-                // ----------------------------------------------------
-
-                drawInfo.pVertices[vertArrayIndex].u0 = uvCoord.x;
-                drawInfo.pVertices[vertArrayIndex].v0 = uvCoord.y;
-            }
-
-            // Use a BoneInformation Map to get bone info and store the values here
-            BoneVertexData& bvd = boneVertexData[vertexIndex];
-            pTempVertArray[vertArrayIndex].BoneIds.x = bvd.ids[0];
-            pTempVertArray[vertArrayIndex].BoneIds.y = bvd.ids[1];
-            pTempVertArray[vertArrayIndex].BoneIds.z = bvd.ids[2];
-            pTempVertArray[vertArrayIndex].BoneIds.w = bvd.ids[3];
-
-            pTempVertArray[vertArrayIndex].BoneWeights.x = bvd.weights[0];
-            pTempVertArray[vertArrayIndex].BoneWeights.y = bvd.weights[1];
-            pTempVertArray[vertArrayIndex].BoneWeights.z = bvd.weights[2];
-            pTempVertArray[vertArrayIndex].BoneWeights.w = bvd.weights[3];
-
-            pIndexArrayLocal[vertArrayIndex] = vertArrayIndex;
-
-            vertArrayIndex++;
+    for (int i = 0; i < mesh->mNumFaces; i++)
+    {
+        aiFace face = mesh->mFaces[i];
+        for (int j = 0; j < face.mNumIndices; j++)
+        {
+            pIndexArrayLocal[j] = face.mIndices[j];
+            drawInfo.pIndices[j] = face.mIndices[j];
         }
     }
-    //printf("  - Done loading Model data");
 
-    unsigned int vertex_element_index_index = 0;
-
-    for (unsigned int triangleIndex = 0; triangleIndex != drawInfo.numberOfTriangles; triangleIndex++)
-    {
-        
-        // Each +1 of the triangle index moves the "vertex element index" by 3
-        // (3 vertices per triangle)
-        vertex_element_index_index += 3;
-    }
+    //for (int faceIndex = 0; faceIndex < numFaces; faceIndex++)
+    //{
+    //    const aiFace& face = mesh->mFaces[faceIndex];
+    //
+    //    // You can assert here to ensure mNumIndices is 3
+    //    // Unless you support non 3 face models 
+    //    for (int indicesIndex = 0; indicesIndex < face.mNumIndices; indicesIndex++)
+    //    {
+    //        unsigned int vertexIndex = face.mIndices[indicesIndex];
+    //        triangles.push_back(vertexIndex);
+    //
+    //        //printf("%d\t", vertexIndex);
+    //
+    //        const aiVector3D& vertex = mesh->mVertices[vertexIndex];
+    //        drawInfo.pIndices[vertexIndex] = face.mIndices[indicesIndex];
+    //
+    //        pTempVertArray[vertArrayIndex].Pos.x = vertex.x;
+    //        pTempVertArray[vertArrayIndex].Pos.y = vertex.y;
+    //        pTempVertArray[vertArrayIndex].Pos.z = vertex.z;
+    //        pTempVertArray[vertArrayIndex].Pos.w = 1.0f;
+    //
+    //        // ----------------------------------------------------
+    //
+    //        drawInfo.pVertices[vertArrayIndex].x = vertex.x;
+    //        drawInfo.pVertices[vertArrayIndex].y = vertex.y;
+    //        drawInfo.pVertices[vertArrayIndex].y = vertex.z;
+    //
+    //        if (mesh->HasNormals())
+    //        {
+    //            const aiVector3D& normal = mesh->mNormals[vertexIndex];
+    //            pTempVertArray[vertArrayIndex].Normal.x = normal.x;
+    //            pTempVertArray[vertArrayIndex].Normal.y = normal.y;
+    //            pTempVertArray[vertArrayIndex].Normal.z = normal.z;
+    //            pTempVertArray[vertArrayIndex].Normal.w = 0.f;
+    //
+    //            // ----------------------------------------------------
+    //
+    //            drawInfo.pVertices[vertArrayIndex].nx = normal.x;
+    //            drawInfo.pVertices[vertArrayIndex].ny = normal.y;
+    //            drawInfo.pVertices[vertArrayIndex].nz = normal.z;
+    //            drawInfo.pVertices[vertArrayIndex].nw = 0.f;
+    //        }
+    //        else
+    //        {
+    //            pTempVertArray[vertArrayIndex].Normal.x = 1.f;
+    //            pTempVertArray[vertArrayIndex].Normal.y = 0.f;
+    //            pTempVertArray[vertArrayIndex].Normal.z = 0.f;
+    //            pTempVertArray[vertArrayIndex].Normal.w = 0.f;
+    //
+    //            // ----------------------------------------------------
+    //
+    //            drawInfo.pVertices[vertArrayIndex].nx = 1.f;
+    //            drawInfo.pVertices[vertArrayIndex].ny = 0.f;
+    //            drawInfo.pVertices[vertArrayIndex].nz = 0.f;
+    //            drawInfo.pVertices[vertArrayIndex].nw = 0.f;
+    //        }
+    //
+    //        if (mesh->HasTextureCoords(0))
+    //        {
+    //            const aiVector3D& uvCoord = mesh->mTextureCoords[0][vertexIndex];
+    //            pTempVertArray[vertArrayIndex].TexUVx2.x = uvCoord.x;
+    //            pTempVertArray[vertArrayIndex].TexUVx2.y = uvCoord.y;
+    //
+    //            // ----------------------------------------------------
+    //
+    //            drawInfo.pVertices[vertArrayIndex].u0 = uvCoord.x;
+    //            drawInfo.pVertices[vertArrayIndex].v0 = uvCoord.y;
+    //        }
+    //
+    //        if (mesh->HasTextureCoords(1))
+    //        {
+    //            const aiVector3D& uvCoord = mesh->mTextureCoords[1][vertexIndex];
+    //            pTempVertArray[vertArrayIndex].TexUVx2.z = uvCoord.x;
+    //            pTempVertArray[vertArrayIndex].TexUVx2.w = uvCoord.y;
+    //
+    //            // ----------------------------------------------------
+    //
+    //            drawInfo.pVertices[vertArrayIndex].u0 = uvCoord.x;
+    //            drawInfo.pVertices[vertArrayIndex].v0 = uvCoord.y;
+    //        }
+    //
+    //        // Use a BoneInformation Map to get bone info and store the values here
+    //        BoneVertexData& bvd = boneVertexData[vertexIndex];
+    //        pTempVertArray[vertArrayIndex].BoneIds.x = bvd.ids[0];
+    //        pTempVertArray[vertArrayIndex].BoneIds.y = bvd.ids[1];
+    //        pTempVertArray[vertArrayIndex].BoneIds.z = bvd.ids[2];
+    //        pTempVertArray[vertArrayIndex].BoneIds.w = bvd.ids[3];
+    //
+    //        pTempVertArray[vertArrayIndex].BoneWeights.x = bvd.weights[0];
+    //        pTempVertArray[vertArrayIndex].BoneWeights.y = bvd.weights[1];
+    //        pTempVertArray[vertArrayIndex].BoneWeights.z = bvd.weights[2];
+    //        pTempVertArray[vertArrayIndex].BoneWeights.w = bvd.weights[3];
+    //
+    //        pIndexArrayLocal[vertArrayIndex] = vertArrayIndex;
+    //
+    //        vertArrayIndex++;
+    //    }
+    //}
+    ////printf("  - Done loading Model data");
+    //
+    //unsigned int vertex_element_index_index = 0;
+    //
+    //for (unsigned int triangleIndex = 0; triangleIndex != drawInfo.numberOfTriangles; triangleIndex++)
+    //{
+    //    
+    //    // Each +1 of the triangle index moves the "vertex element index" by 3
+    //    // (3 vertices per triangle)
+    //    vertex_element_index_index += 3;
+    //}
 
     Model* model = new Model();
     int testNumTriangles = triangles.size();
     model->NumTriangles = numFaces;
-    glGenVertexArrays(1, &model->Vbo);
-    glBindVertexArray(model->Vbo);
-    //CheckGLError();
+    //glGenVertexArrays(1, &model->Vbo);
+    //glBindVertexArray(model->Vbo);
+    ////CheckGLError();
 
-    glEnableVertexAttribArray(0);
-    glEnableVertexAttribArray(1);
-    glEnableVertexAttribArray(2);
-    glEnableVertexAttribArray(3);
-    glEnableVertexAttribArray(4);
-    //CheckGLError();
+    //glEnableVertexAttribArray(0);
+    //glEnableVertexAttribArray(1);
+    //glEnableVertexAttribArray(2);
+    //glEnableVertexAttribArray(3);
+    //glEnableVertexAttribArray(4);
+    //glEnableVertexAttribArray(5);
+    ////CheckGLError();
 
-    glGenBuffers(1, &model->VertexBufferId);
-    glGenBuffers(1, &model->IndexBufferId);
-    //CheckGLError();
+    //glGenBuffers(1, &model->VertexBufferId);
+    //glGenBuffers(1, &model->IndexBufferId);
+    ////CheckGLError();
 
-    glBindBuffer(GL_ARRAY_BUFFER, model->VertexBufferId);
-    //CheckGLError();
+    //glBindBuffer(GL_ARRAY_BUFFER, model->VertexBufferId);
+    ////CheckGLError();
 
-    unsigned int totalVertBufferSizeBYTES = numIndicesInIndexArray * sizeof(sVertex_p4t4n4b4w4);
-    glBufferData(GL_ARRAY_BUFFER, totalVertBufferSizeBYTES, pTempVertArray, GL_STATIC_DRAW);
-    //CheckGLError();
+    //unsigned int totalVertBufferSizeBYTES = drawInfo.numberOfVertices * sizeof(sVertex_p4t4n4b4w4);
+    //glBufferData(GL_ARRAY_BUFFER, totalVertBufferSizeBYTES, pTempVertArray, GL_STATIC_DRAW);
+    ////CheckGLError();
 
-    unsigned int bytesInOneVertex = sizeof(sVertex_p4t4n4b4w4);
-    unsigned int byteOffsetToPosition = offsetof(sVertex_p4t4n4b4w4, Pos);
-    unsigned int byteOffsetToNormal = offsetof(sVertex_p4t4n4b4w4, Normal);
-    unsigned int byteOffsetToUVCoords = offsetof(sVertex_p4t4n4b4w4, TexUVx2);
-    unsigned int byteOffsetToBoneWeights = offsetof(sVertex_p4t4n4b4w4, BoneWeights);
-    unsigned int byteOffsetToBoneIds = offsetof(sVertex_p4t4n4b4w4, BoneIds);
+    //unsigned int bytesInOneVertex = sizeof(sVertex_p4t4n4b4w4);
+    //unsigned int byteOffsetToPosition = offsetof(sVertex_p4t4n4b4w4, Pos);
+    //unsigned int byteOffsetToNormal = offsetof(sVertex_p4t4n4b4w4, Normal);
+    //unsigned int byteOffsetToUVCoords = offsetof(sVertex_p4t4n4b4w4, TexUVx2);
+    //unsigned int byteOffsetToBoneWeights = offsetof(sVertex_p4t4n4b4w4, BoneWeights);
+    //unsigned int byteOffsetToBoneIds = offsetof(sVertex_p4t4n4b4w4, BoneIds);
 
-    glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, bytesInOneVertex, (GLvoid*)byteOffsetToPosition);
-    glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, bytesInOneVertex, (GLvoid*)byteOffsetToUVCoords);
-    glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, bytesInOneVertex, (GLvoid*)byteOffsetToNormal);
-    glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, bytesInOneVertex, (GLvoid*)byteOffsetToBoneWeights);
-    glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, bytesInOneVertex, (GLvoid*)byteOffsetToBoneIds);
+    //glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, bytesInOneVertex, (GLvoid*)byteOffsetToPosition);
+    //glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, bytesInOneVertex, (GLvoid*)byteOffsetToUVCoords);
+    //glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, bytesInOneVertex, (GLvoid*)byteOffsetToNormal);
+    //glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, bytesInOneVertex, (GLvoid*)byteOffsetToBoneWeights);
+    //glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, bytesInOneVertex, (GLvoid*)byteOffsetToBoneIds);
 
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, model->IndexBufferId);
+    //glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, model->IndexBufferId);
 
-    unsigned int sizeOfIndexArrayInBytes = numIndicesInIndexArray * sizeof(GLuint);
+    //unsigned int sizeOfIndexArrayInBytes = numIndicesInIndexArray * sizeof(GLuint);
 
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeOfIndexArrayInBytes, pIndexArrayLocal, GL_STATIC_DRAW);
+    //glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeOfIndexArrayInBytes, pIndexArrayLocal, GL_STATIC_DRAW);
 
-    glBindVertexArray(0);
+    //glBindVertexArray(0);
 
     delete[] pTempVertArray;
     delete[] pIndexArrayLocal;
 
     //printf("  - Done Generating Buffer data");
 
-    std::string friendlyName = "AnimatedChar";
+    //std::string friendlyName = "AnimatedChar"; // TO-DO CHANGE THAT
+    std::string friendlyName = mesh->mName.C_Str(); // TO-DO CHANGE THAT
+    drawInfo.meshName = mesh->mName.C_Str();
+
     if (g_GraphicScene.pVAOManager->LoadModelIntoVAO(friendlyName, drawInfo, 3)) {
         std::cout << "Loaded the " << friendlyName << " model" << std::endl;
     }
@@ -525,16 +615,18 @@ cMeshObject* GDP_CreateAnimatedCharacter(const char* filename,
 {
     g_tmpCharacterGameObject = GDP_CreateGameObject();
     g_tmpCharacter = new cCharacter();
-    g_tmpCharacter->LoadCharacterFromAssimp(filename);
+    std::string meshName;
+    g_tmpCharacter->LoadCharacterFromAssimp(filename, meshName);
 
-    int numAnimations = animations.size();
-    for (int i = 0; i < numAnimations; i++)
-    {
-        // Load animation
-        g_tmpCharacter->LoadAnimationFromAssimp(animations[i].c_str());
-    }
+    //int numAnimations = animations.size();
+    //for (int i = 0; i < numAnimations; i++)
+    //{
+    //    // Load animation
+    //    g_tmpCharacter->LoadAnimationFromAssimp(animations[i].c_str());
+    //}
 
     g_tmpCharacterGameObject->Renderer.MeshId = gModelVec.size();
+    g_tmpCharacterGameObject->meshName = meshName;
     gModelVec.push_back(g_tmpCharacter->GetModel());
     return g_tmpCharacterGameObject;
 }

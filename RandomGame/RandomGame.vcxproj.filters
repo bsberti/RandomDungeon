@@ -306,6 +306,7 @@
     <ClInclude Include="CheckGLError.h" />
     <ClInclude Include="MeshRenderer.h" />
     <ClInclude Include="BoneShader.h" />
+    <ClInclude Include="NetworkManager.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="assets\shaders\fragmentShader01.glsl">

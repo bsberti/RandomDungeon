@@ -245,6 +245,7 @@
     <ClInclude Include="iObject.h" />
     <ClInclude Include="MeshRenderer.h" />
     <ClInclude Include="Model.h" />
+    <ClInclude Include="NetworkManager.h" />
     <ClInclude Include="physics.h" />
     <ClInclude Include="threads.h" />
     <ClInclude Include="vertex_types.h" />

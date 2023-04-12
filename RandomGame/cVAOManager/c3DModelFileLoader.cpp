@@ -178,3 +178,13 @@ bool c3DModelFileLoader::LoadPLYFile_Format_XYZ_N_RGBA_UV(std::string filename,
     return true;
 }
 
+bool c3DModelFileLoader::LoadFBXFile_Format_XYZ_N_RGBA_UV(std::string filename, 
+                                                            sModelDrawInfo& modelDrawInfo, 
+                                                            std::string& errorText) {
+
+
+
+    return false;
+}
+
+

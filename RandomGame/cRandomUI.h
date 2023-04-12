@@ -27,6 +27,7 @@ public:
 
 	//void render(GraphicScene &scene);
 	void render(GraphicScene&, FModManager*, std::vector<cLight>& vecTheLights);
+	bool renderLogin();
 
 	int listbox_lights_current;
 	int listbox_item_current;
@@ -39,4 +40,10 @@ public:
 	std::vector< cMeshObject* > vecBeholds;
 
 	int radioChoice;
+
+	bool loggedIn;
+	std::string g_username;
+	std::string g_password;
+	bool login_attempted;
+	bool login_successful;
 };

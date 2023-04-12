@@ -338,21 +338,21 @@ void GraphicScene::DrawScene(GLFWwindow* window, glm::vec3 g_cameraEye, glm::vec
         if (pCurrentMeshObject->friendlyName == "Plane_Floor")
             continue;
 
-        //if (pCurrentMeshObject->friendlyName == "MainChar")
-        //    continue; 
+        if (pCurrentMeshObject->friendlyName == "MainChar")
+            continue; 
 
         if (pCurrentMeshObject->friendlyName == "AnimatedChar") {
-            pCurrentMeshObject->meshName = "AnimatedChar";
-            pTheShaderManager->useShaderProgram("BoneShader");
-            shaderID = pTheShaderManager->getIDFromFriendlyName("BoneShader");
-            glUseProgram(shaderID);
+            //pCurrentMeshObject->meshName = "AnimatedChar";
+            //pTheShaderManager->useShaderProgram("BoneShader");
+            //shaderID = pTheShaderManager->getIDFromFriendlyName("BoneShader");
+            //glUseProgram(shaderID);
             int breakpoint = 5;
         }
-        else {
-            pTheShaderManager->useShaderProgram("Shader_1");
-            shaderID = pTheShaderManager->getIDFromFriendlyName("Shader_1");
-            glUseProgram(shaderID);
-        }
+        //else {
+        //    pTheShaderManager->useShaderProgram("Shader_1");
+        //    shaderID = pTheShaderManager->getIDFromFriendlyName("Shader_1");
+        //    glUseProgram(shaderID);
+        //}
 
         // The parent's model matrix is set to the identity
         glm::mat4x4 matModel = glm::mat4x4(1.0f);

@@ -201,6 +201,13 @@ void DrawObject(cMeshObject* pCurrentMeshObject,
                        drawingInformation.numberOfIndices,
                        GL_UNSIGNED_INT,
                        (void*)0);
+        GLenum errorCode;
+
+        errorCode = glGetError();
+        if (errorCode != GL_NO_ERROR)
+        {
+            int breakME = 0;
+        }
 
         glBindVertexArray(0);
 

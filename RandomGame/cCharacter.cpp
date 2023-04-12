@@ -57,7 +57,7 @@ void cCharacter::CastToGLM(const aiVector3D& in, glm::vec3& out)
 	out.z = in.z;
 }
 
-void cCharacter::LoadCharacterFromAssimp(const char* filename) {
+void cCharacter::LoadCharacterFromAssimp(const char* filename, std::string& meshName) {
 	printf("Character::LoadCharacterFromAssimp: %s\n", filename);
 
 	unsigned int flags =
@@ -100,6 +100,9 @@ void cCharacter::LoadCharacterFromAssimp(const char* filename) {
 			if (!LoadAssimpMesh(mesh))
 			{
 				printf("Failed to load mesh! \n");
+			}
+			else {
+				meshName = mesh->mName.C_Str();
 			}
 		}
 	}
@@ -247,67 +250,125 @@ bool cCharacter::LoadAssimpMesh(const aiMesh* assimpMesh)
 	sVertex_p4t4n4b4w4* pTempVertArray = new sVertex_p4t4n4b4w4[numIndicesInIndexArray * 2];
 	GLuint* pIndexArrayLocal = new GLuint[numIndicesInIndexArray * 2];
 
-	int vertArrayIndex = 0;
-	for (int faceIndex = 0; faceIndex < numFaces; faceIndex++)
+	for (int vertArrayIndex = 0; vertArrayIndex < assimpMesh->mNumVertices; vertArrayIndex++)
 	{
-		const aiFace& face = assimpMesh->mFaces[faceIndex];
+		const aiVector3D& vertex = assimpMesh->mVertices[vertArrayIndex];
 
-		unsigned int numIndices = face.mNumIndices;
-		for (int indicesIndex = 0; indicesIndex < numIndices; indicesIndex++)
+		pTempVertArray[vertArrayIndex].Pos.x = vertex.x;
+		pTempVertArray[vertArrayIndex].Pos.y = vertex.y;
+		pTempVertArray[vertArrayIndex].Pos.z = vertex.z;
+		pTempVertArray[vertArrayIndex].Pos.w = 1.0f;
+
+		if (assimpMesh->HasNormals())
 		{
-			unsigned int vertexIndex = face.mIndices[indicesIndex];
+			const aiVector3D& normal = assimpMesh->mNormals[vertArrayIndex];
+			pTempVertArray[vertArrayIndex].Normal.x = normal.x;
+			pTempVertArray[vertArrayIndex].Normal.y = normal.y;
+			pTempVertArray[vertArrayIndex].Normal.z = normal.z;
+			pTempVertArray[vertArrayIndex].Normal.w = 0.f;
+		}
+		else
+		{
+			pTempVertArray[vertArrayIndex].Normal.x = 1.f;
+			pTempVertArray[vertArrayIndex].Normal.y = 0.f;
+			pTempVertArray[vertArrayIndex].Normal.z = 0.f;
+			pTempVertArray[vertArrayIndex].Normal.w = 0.f;
+		}
 
-			const aiVector3D& vertex = assimpMesh->mVertices[vertexIndex];
+		//if (assimpMesh->HasTextureCoords(0))
+		//{
+			//const aiVector3D& uvCoord = assimpMesh->mTextureCoords[0][vertexIndex];
+		pTempVertArray[vertArrayIndex].TexUVx2.x = 0;
+		pTempVertArray[vertArrayIndex].TexUVx2.y = 0;
+		pTempVertArray[vertArrayIndex].TexUVx2.z = 0;
+		pTempVertArray[vertArrayIndex].TexUVx2.w = 0;
+		//}
 
-			pTempVertArray[vertArrayIndex].Pos.x = vertex.x;
-			pTempVertArray[vertArrayIndex].Pos.y = vertex.y;
-			pTempVertArray[vertArrayIndex].Pos.z = vertex.z;
-			pTempVertArray[vertArrayIndex].Pos.w = 1.0f;
+		// Use a BoneInformation Map to get bone info and store the values here
 
-			if (assimpMesh->HasNormals())
-			{
-				const aiVector3D& normal = assimpMesh->mNormals[vertexIndex];
-				pTempVertArray[vertArrayIndex].Normal.x = normal.x;
-				pTempVertArray[vertArrayIndex].Normal.y = normal.y;
-				pTempVertArray[vertArrayIndex].Normal.z = normal.z;
-				pTempVertArray[vertArrayIndex].Normal.w = 0.f;
-			}
-			else
-			{
-				pTempVertArray[vertArrayIndex].Normal.x = 1.f;
-				pTempVertArray[vertArrayIndex].Normal.y = 0.f;
-				pTempVertArray[vertArrayIndex].Normal.z = 0.f;
-				pTempVertArray[vertArrayIndex].Normal.w = 0.f;
-			}
+		// Copy instead of reference, try..
+		/*BoneVertexData bvd = m_BoneVertexData[vertexIndex];
+		pTempVertArray[vertArrayIndex].BoneIds.x = bvd.ids[0];
+		pTempVertArray[vertArrayIndex].BoneIds.y = bvd.ids[1];
+		pTempVertArray[vertArrayIndex].BoneIds.z = bvd.ids[2];
+		pTempVertArray[vertArrayIndex].BoneIds.w = bvd.ids[3];
 
-			//if (assimpMesh->HasTextureCoords(0))
-			//{
-				//const aiVector3D& uvCoord = assimpMesh->mTextureCoords[0][vertexIndex];
-			pTempVertArray[vertArrayIndex].TexUVx2.x = 0;
-			pTempVertArray[vertArrayIndex].TexUVx2.y = 0;
-			pTempVertArray[vertArrayIndex].TexUVx2.z = 0;
-			pTempVertArray[vertArrayIndex].TexUVx2.w = 0;
-			//}
+		pTempVertArray[vertArrayIndex].BoneWeights.x = bvd.weights[0];
+		pTempVertArray[vertArrayIndex].BoneWeights.y = bvd.weights[1];
+		pTempVertArray[vertArrayIndex].BoneWeights.z = bvd.weights[2];
+		pTempVertArray[vertArrayIndex].BoneWeights.w = bvd.weights[3]*/;
 
-			// Use a BoneInformation Map to get bone info and store the values here
+		//vertArrayIndex++;
+	}
 
-			// Copy instead of reference, try..
-			BoneVertexData bvd = m_BoneVertexData[vertexIndex];
-			pTempVertArray[vertArrayIndex].BoneIds.x = bvd.ids[0];
-			pTempVertArray[vertArrayIndex].BoneIds.y = bvd.ids[1];
-			pTempVertArray[vertArrayIndex].BoneIds.z = bvd.ids[2];
-			pTempVertArray[vertArrayIndex].BoneIds.w = bvd.ids[3];
-
-			pTempVertArray[vertArrayIndex].BoneWeights.x = bvd.weights[0];
-			pTempVertArray[vertArrayIndex].BoneWeights.y = bvd.weights[1];
-			pTempVertArray[vertArrayIndex].BoneWeights.z = bvd.weights[2];
-			pTempVertArray[vertArrayIndex].BoneWeights.w = bvd.weights[3];
-
-			pIndexArrayLocal[vertArrayIndex] = vertArrayIndex;
-
-			vertArrayIndex++;
+	for (int i = 0; i < assimpMesh->mNumFaces; i++)
+	{
+		aiFace face = assimpMesh->mFaces[i];
+		for (int j = 0; j < face.mNumIndices; j++)
+		{
+			pIndexArrayLocal[j] = face.mIndices[j];
 		}
 	}
+	//for (int faceIndex = 0; faceIndex < numFaces; faceIndex++)
+	//{
+	//	const aiFace& face = assimpMesh->mFaces[faceIndex];
+
+	//	unsigned int numIndices = face.mNumIndices;
+	//	for (int indicesIndex = 0; indicesIndex < numIndices; indicesIndex++)
+	//	{
+	//		unsigned int vertexIndex = face.mIndices[indicesIndex];
+
+	//		const aiVector3D& vertex = assimpMesh->mVertices[vertexIndex];
+
+	//		pTempVertArray[vertArrayIndex].Pos.x = vertex.x;
+	//		pTempVertArray[vertArrayIndex].Pos.y = vertex.y;
+	//		pTempVertArray[vertArrayIndex].Pos.z = vertex.z;
+	//		pTempVertArray[vertArrayIndex].Pos.w = 1.0f;
+
+	//		if (assimpMesh->HasNormals())
+	//		{
+	//			const aiVector3D& normal = assimpMesh->mNormals[vertexIndex];
+	//			pTempVertArray[vertArrayIndex].Normal.x = normal.x;
+	//			pTempVertArray[vertArrayIndex].Normal.y = normal.y;
+	//			pTempVertArray[vertArrayIndex].Normal.z = normal.z;
+	//			pTempVertArray[vertArrayIndex].Normal.w = 0.f;
+	//		}
+	//		else
+	//		{
+	//			pTempVertArray[vertArrayIndex].Normal.x = 1.f;
+	//			pTempVertArray[vertArrayIndex].Normal.y = 0.f;
+	//			pTempVertArray[vertArrayIndex].Normal.z = 0.f;
+	//			pTempVertArray[vertArrayIndex].Normal.w = 0.f;
+	//		}
+
+	//		//if (assimpMesh->HasTextureCoords(0))
+	//		//{
+	//			//const aiVector3D& uvCoord = assimpMesh->mTextureCoords[0][vertexIndex];
+	//		pTempVertArray[vertArrayIndex].TexUVx2.x = 0;
+	//		pTempVertArray[vertArrayIndex].TexUVx2.y = 0;
+	//		pTempVertArray[vertArrayIndex].TexUVx2.z = 0;
+	//		pTempVertArray[vertArrayIndex].TexUVx2.w = 0;
+	//		//}
+
+	//		// Use a BoneInformation Map to get bone info and store the values here
+
+	//		// Copy instead of reference, try..
+	//		BoneVertexData bvd = m_BoneVertexData[vertexIndex];
+	//		pTempVertArray[vertArrayIndex].BoneIds.x = bvd.ids[0];
+	//		pTempVertArray[vertArrayIndex].BoneIds.y = bvd.ids[1];
+	//		pTempVertArray[vertArrayIndex].BoneIds.z = bvd.ids[2];
+	//		pTempVertArray[vertArrayIndex].BoneIds.w = bvd.ids[3];
+
+	//		pTempVertArray[vertArrayIndex].BoneWeights.x = bvd.weights[0];
+	//		pTempVertArray[vertArrayIndex].BoneWeights.y = bvd.weights[1];
+	//		pTempVertArray[vertArrayIndex].BoneWeights.z = bvd.weights[2];
+	//		pTempVertArray[vertArrayIndex].BoneWeights.w = bvd.weights[3];
+
+	//		pIndexArrayLocal[vertArrayIndex] = vertArrayIndex;
+
+	//		vertArrayIndex++;
+	//	}
+	//}
 
 	Model* model = new Model();
 	//int testNumTriangles = triangles.size();

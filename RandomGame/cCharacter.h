@@ -81,7 +81,7 @@ public:
 	std::vector<std::string> vSkills;
 
 	// Loading
-	void LoadCharacterFromAssimp(const char* filename);
+	void LoadCharacterFromAssimp(const char* filename, std::string& meshName);
 	void LoadAnimationFromAssimp(const char* filename);
 
 	void UpdateTransforms(std::vector<glm::mat4>& transforms, std::vector<glm::mat4>& globals, float dt);
