@@ -193,14 +193,22 @@ bool cRandomUI::renderLogin() {
     static char password[256] = "";
 
     // Render the Login UI
-    ImGui::InputText("Username", username, 256);
+    ImGui::InputText("E-mail", username, 256);
     ImGui::InputText("Password", password, 256, ImGuiInputTextFlags_Password);
     if (ImGui::Button("Login")) {
         // Attempt to log in using the entered username and password
         login_attempted = true;
         g_username = std::string(username);
         g_password = std::string(password);
-        login_successful = true; //TO-DO for now, networklogin not implemented
+        //login_successful = true; //TO-DO for now, networklogin not implemented
+        return true;
+    }
+    if (ImGui::Button("New Account")) {
+        // Attempt to create a new account
+        creation_attempted = true;
+        g_username = std::string(username);
+        g_password = std::string(password);
+
         return true;
     }
 
@@ -212,6 +220,18 @@ bool cRandomUI::renderLogin() {
         }
         else {
             ImGui::Text("Login failed. Please check your username and password.");
+            loggedIn = false;
+        }
+    }
+
+    // Display a message indicating the status of the account creation attempt
+    if (creation_attempted) {
+        if (creation_successful) {
+            ImGui::Text("Account creation successful!");
+            loggedIn = true;
+        }
+        else {
+            ImGui::Text("Account creation failed. Please check your username and password.");
             loggedIn = false;
         }
     }

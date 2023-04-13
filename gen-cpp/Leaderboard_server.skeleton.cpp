@@ -30,6 +30,16 @@ class LeaderboardHandler : virtual public LeaderboardIf {
     printf("getTop20\n");
   }
 
+  bool login(const std::string& email, const std::string& password, const bool newLogin) {
+    // Your implementation goes here
+    printf("login\n");
+  }
+
+  bool createAccount(const std::string& email, const std::string& hashedPassword, const std::string& salt) {
+    // Your implementation goes here
+    printf("createAccount\n");
+  }
+
 };
 
 int main(int argc, char **argv) {

@@ -129,7 +129,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>glew32d.lib;assimp-vc143-mdd.lib;libthrift.lib;libboost_thread-vc140-mt-gd-1_59.lib;lua5.4.4-static.lib;pugixml_d.lib;fmod_vc.lib;glfw3.lib;PhysicsInterface.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>sha256.lib;glew32d.lib;assimp-vc143-mdd.lib;libthrift.lib;libboost_thread-vc140-mt-gd-1_59.lib;lua5.4.4-static.lib;pugixml_d.lib;fmod_vc.lib;glfw3.lib;PhysicsInterface.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
       <Command>python "$(SolutionDir)dev\tools\texture-pipeline.py" "$(ProjectDir)assets/textures"</Command>
@@ -150,7 +150,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>glew32d.lib;assimp-vc143-md.lib;libthrift.lib;libboost_thread-vc140-mt-1_59.lib;lua5.4.4-static.lib;pugixml.lib;fmodL_vc.lib;glfw3.lib;freeglut.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>sha256.lib;glew32d.lib;assimp-vc143-md.lib;libthrift.lib;libboost_thread-vc140-mt-1_59.lib;lua5.4.4-static.lib;pugixml.lib;fmodL_vc.lib;glfw3.lib;freeglut.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
       <Command>python "$(SolutionDir)dev\tools\texture-pipeline.py" "$(ProjectDir)assets/textures"</Command>

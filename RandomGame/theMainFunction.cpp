@@ -1835,7 +1835,20 @@ void DrawingTheScene() {
     if (!gameUi.loggedIn) {
         if (gameUi.renderLogin()) {
             int breakPoint = 1;
-            //networkManager.login(gameUi.g_username, gameUi.g_password);
+            if (gameUi.login_attempted) {
+                bool isNewLogin = false;
+                if (networkManager->login(gameUi.g_username, gameUi.g_password, isNewLogin)) {
+                    gameUi.newLogin = isNewLogin;
+                    gameUi.login_successful = true;
+                }
+            }
+
+            if (gameUi.creation_attempted) {
+                if (networkManager->createAccount(gameUi.g_username, gameUi.g_password)) {
+                    gameUi.creation_successful = true;
+                }
+            }
+
         }
     }
     else {

@@ -46,4 +46,8 @@ public:
 	std::string g_password;
 	bool login_attempted;
 	bool login_successful;
+	bool creation_attempted;
+	bool creation_successful;
+
+	bool newLogin;
 };

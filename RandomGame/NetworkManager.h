@@ -5,6 +5,8 @@
 
 #include "../gen-cpp/Leaderboard.h"
 
+#include <SHA256.h>
+
 using namespace std;
 using namespace apache::thrift;
 using namespace apache::thrift::protocol;
@@ -16,6 +18,33 @@ public:
     void Start() { transport_->open(); }
     void setHighScore(const int32_t playerId, const int32_t highScore) { client_.setHighScore(playerId, highScore); }
     void getTop20(std::map<int32_t, int32_t>& top20) { client_.getTop20(top20); }
+    
+    bool login(std::string email, std::string password, bool& newLogin) {
+        bool isNewLogin = false;
+        if (client_.login(email, password, isNewLogin)) {
+            newLogin = isNewLogin;
+            return true;
+        }
+        else
+            return false;
+    }
+
+    bool createAccount(std::string email, std::string password) {
+
+        //Defining random salt
+        std::string salt;
+        salt = std::to_string(rand() * 100000);
+
+        // Hashing salt + password
+        std::string hashedPassword;
+        SHA256 sha;
+        sha.update(salt + password);
+        uint8_t* digest = sha.digest();
+        hashedPassword = SHA256::toString(digest);
+
+        return client_.createAccount(email, hashedPassword, salt);
+    }
+
     ~NetworkManager() { transport_->close(); }
 private:
     boost::shared_ptr<TSocket> socket_;

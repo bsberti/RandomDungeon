@@ -67,6 +67,10 @@ public:
 	// Character Current Available Mana
 	float mCurrentMana;
 
+	float mStrengh;
+	float mMagicPower;
+	float mAgility;
+
 	// Default Constructor
 	cCharacter();
 	// Overloaded Constructor

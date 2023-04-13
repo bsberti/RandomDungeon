@@ -83,7 +83,7 @@ public:
 		}
 	}
 
-	void getTop20(std::map<int32_t, int32_t> & _return) {
+	void getTop20(std::map<int32_t, int32_t>& _return) {
 		SQLiteHelper->ExecuteQuery("SELECT * FROM leaderboard ORDER BY highScore DESC LIMIT 20;");
 
 		for (int i = 0; i < SQLiteHelper->vec_SQLiteResult->size(); i++) {
@@ -98,6 +98,32 @@ public:
 		// Your implementation goes here
 		printf("getTop20\n");
 	}
+
+	bool login(const std::string& email, const std::string& password, bool& newLogin) {
+		bool isNewLogin = false;
+
+		if (SQLiteHelper->Login(email, password, isNewLogin)) {
+
+			newLogin = isNewLogin;
+			return true;
+		}
+
+		return false;
+	}
+
+	bool createAccount(const std::string& email, 
+		const std::string& hashedPassword,
+		const std::string& salt) {
+
+		if (SQLiteHelper->CreateAccount(email, hashedPassword, salt)) {
+
+			return true;
+		}
+
+		return false;
+	}
+
+
 private:
 	std::map<int32_t, int32_t> *highScoreByPlayer;
 };
