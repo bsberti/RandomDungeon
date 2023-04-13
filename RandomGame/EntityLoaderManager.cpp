@@ -133,7 +133,7 @@ bool EntityLoaderManager::LoadCharacter(const std::string path, cCharacter& char
 		return false;
 	}
 	// Saves the Friendly Name
-	character.mFriendlyName = attributes[0]["value"].GetString();
+	character.friendlyName = attributes[0]["value"].GetString();
 
 	// Reads Position
 	attrName = attributes[1]["name"].GetString();
@@ -144,9 +144,9 @@ bool EntityLoaderManager::LoadCharacter(const std::string path, cCharacter& char
 	}
 	// Saves the position
 	const rapidjson::Value& values = attributes[1]["value"];
-	character.mPosition[0] = values[0].GetFloat();
-	character.mPosition[1] = values[1].GetFloat();
-	character.mPosition[2] = values[2].GetFloat();
+	character.position[0] = values[0].GetFloat();
+	character.position[1] = values[1].GetFloat();
+	character.position[2] = values[2].GetFloat();
 
 	// Reads Mesh File Path
 	attrName = attributes[2]["name"].GetString();
@@ -156,7 +156,7 @@ bool EntityLoaderManager::LoadCharacter(const std::string path, cCharacter& char
 		return false;
 	}
 	// Saves the Mesh File Path
-	character.mMeshFilePath = attributes[2]["value"].GetString();
+	//character.mMeshFilePath = attributes[2]["value"].GetString();
 
 	// Reads Character Name
 	attrName = attributes[3]["name"].GetString();

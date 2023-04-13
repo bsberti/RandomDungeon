@@ -7,7 +7,6 @@
 #include <glm/gtx/matrix_decompose.hpp>
 #include "vertex_types.h"
 
-//#include "GL.h"
 #include "CheckGLError.h"
 
 cCharacter::cCharacter() {
@@ -15,11 +14,11 @@ cCharacter::cCharacter() {
 }
 
 cCharacter::cCharacter(std::string friendlyName, float position[3], std::string meshFilePath, std::string name, unsigned int level, float maxHealth, float currentHealth, float maxMana, float currentMana) {
-	this->mFriendlyName		= friendlyName;
-	this->mPosition[0]		= position[0];
-	this->mPosition[1]		= position[1];
-	this->mPosition[2]		= position[2];
-	this->mMeshFilePath		= meshFilePath;
+	this->friendlyName		= friendlyName;
+	this->position[0]		= position[0];
+	this->position[1]		= position[1];
+	this->position[2]		= position[2];
+	//this->mMeshFilePath		= meshFilePath;
 	this->mName				= name;
 	this->mLevel			= level;
 	this->mMaxHealth		= maxHealth;
@@ -57,7 +56,7 @@ void cCharacter::CastToGLM(const aiVector3D& in, glm::vec3& out)
 	out.z = in.z;
 }
 
-void cCharacter::LoadCharacterFromAssimp(const char* filename, std::string& meshName) {
+void cCharacter::LoadCharacterFromAssimp(const char* filename) {
 	printf("Character::LoadCharacterFromAssimp: %s\n", filename);
 
 	unsigned int flags =
@@ -68,7 +67,6 @@ void cCharacter::LoadCharacterFromAssimp(const char* filename, std::string& mesh
 
 	aiMatrix4x4 g = m_Scene->RootNode->mTransformation;
 	aiMatrix4x4 inverse = g.Inverse();
-
 
 	// Node hierarchy for rendering
 	m_RootNode = CreateNodeHierarchy(m_Scene->RootNode);
@@ -101,9 +99,6 @@ void cCharacter::LoadCharacterFromAssimp(const char* filename, std::string& mesh
 			{
 				printf("Failed to load mesh! \n");
 			}
-			else {
-				meshName = mesh->mName.C_Str();
-			}
 		}
 	}
 
@@ -116,6 +111,7 @@ void cCharacter::LoadAnimationFromAssimp(const char* filename) {
 	unsigned int numAnimations = scene->mNumAnimations;
 	printf("-Loading %d animations!\n", numAnimations);
 	aiAnimation* animation = scene->mAnimations[0];
+	Animation.AnimationType = animation->mName.C_Str();
 	LoadAssimpAnimation(animation);
 }
 

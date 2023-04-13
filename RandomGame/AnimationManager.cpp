@@ -151,7 +151,6 @@ void AnimationManager::Update(const std::vector<cMeshObject*>& gameObjects, floa
 					}
 				}
 
-
 				// Controlling one "node"/"bone".
 				go->position = GetAnimationPosition(itFind->second, animation.AnimationTime);
 				go->scaleXYZ = GetAnimationScale(itFind->second, animation.AnimationTime);

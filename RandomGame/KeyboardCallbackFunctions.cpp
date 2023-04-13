@@ -20,8 +20,7 @@ extern glm::vec3 g_MapCameraTarget;
 
 extern GraphicScene g_GraphicScene;
 extern std::map< std::string, cMeshObject*>::iterator itBeholdsToFollow;
-extern int animationType;
-extern float animationSpeed;
+
 extern cMeshObject* mainChar;
 extern cMazeMaker_W2023 theMM;
 extern BlocksLoader* m_blocksLoader;
@@ -118,50 +117,7 @@ void key_callback(GLFWwindow* window,
 
     case ANIMATION:
     {
-        if (key == GLFW_KEY_RIGHT && action == GLFW_PRESS)
-        {
-            if (animationType < 3) {
-                animationType++;
-            }
-            else {
-                animationType = 0;
-            }
-        }
-
-        if (key == GLFW_KEY_LEFT && action == GLFW_PRESS)
-        {
-            if (animationType > 0) {
-                animationType--;
-            }
-            else {
-                animationType = 3;
-            }
-        }
-
-        if (key == GLFW_KEY_1 && action == GLFW_PRESS)
-        {
-            animationSpeed = 0.01;
-        }
-
-        if (key == GLFW_KEY_2 && action == GLFW_PRESS)
-        {
-            animationSpeed = 0.02;
-        }
-
-        if (key == GLFW_KEY_3 && action == GLFW_PRESS)
-        {
-            animationSpeed = 0.03;
-        }
-
-        if (key == GLFW_KEY_4 && action == GLFW_PRESS)
-        {
-            animationSpeed = 0.04;
-        }
-
-        if (key == GLFW_KEY_5 && action == GLFW_PRESS)
-        {
-            animationSpeed = 0.05;
-        }
+        
     }
     break;
 

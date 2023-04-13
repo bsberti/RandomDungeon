@@ -65,6 +65,8 @@ public:
 	GLuint returnShaderID(std::string shaderName);
 
 	cMeshObject* CreateGameObjectByType(const std::string& type, glm::vec3 position, sModelDrawInfo& drawInfo);
+	cMeshObject* CreateAnimatedCharacter(const char* filename,
+		const std::vector<std::string>& animations, sModelDrawInfo drawInfo);
 	cMeshObject* GetObjectByName(std::string name, bool bSearchChildren);
 	cMeshObject* GetObjectByGridPosition(int i, int j);
 

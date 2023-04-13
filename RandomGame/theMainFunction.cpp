@@ -33,6 +33,8 @@
 // Physics Includes
 #include "physics.h"
 
+#include "AnimationManager.h"
+
 // Physics GLOBAL Variables
 physics::iPhysicsFactory* physicsFactory;
 physics::iPhysicsWorld* world;
@@ -49,16 +51,16 @@ cLuaBrain* pBrain;
 cMazeMaker_W2023 theMM;
 BlocksLoader* m_blocksLoader;
 cRandomUI gameUi;
-FModManager* fmod_manager;
 FMOD::Channel* _channel;
 constexpr int max_channels = 255;
-int animationType;
-float animationSpeed;
 GLFWwindow* window;
 float NinetyDegrees = 1.575f;
 std::map< std::string, cMeshObject*>::iterator itBeholdsToFollow;
 std::vector<Node*> vec_AStarPath;
+
+FModManager* fmod_manager;
 NetworkManager* networkManager;
+AnimationManager* animationManager;
 
 // GLOBAL DEFINITIONS
 #define NUMBER_OF_TAGS 10
@@ -87,7 +89,7 @@ HANDLE ahThread;
 // Main Character GLOBAL Variables
 cMeshObject* mainChar;
 cMeshObject* planeFloor;
-cCharacter playabledCharacter;
+//cCharacter playabledCharacter;
 
 // Entity Loader using JSON
 EntityLoaderManager* entityLoaderManager = EntityLoaderManager::GetInstance();
@@ -95,8 +97,8 @@ EntityLoaderManager* entityLoaderManager = EntityLoaderManager::GetInstance();
 // String used for error feedback for methods call
 std::string errorMessage;
 
-const char* ANIMATION1 = "assets/models/animation/Unarmed Idle Looking Ver. 1.fbx";
-const char* ANIMATION2 = "assets/models/animation/Unarmed Run Forward.fbx";
+const char* MainCharANIMATION1 = "assets/models/animation/MutantIdle.fbx";
+const char* MainCharANIMATION2 = "assets/models/animation/MutantWalking.fbx";
 
 // Call back signatures here
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
@@ -1737,28 +1739,32 @@ void LuaScriptInitialization() {
 }
 
 void MainCharInitialization() {
-    bool loaderReturn = entityLoaderManager->LoadCharacter(MAIN_CHAR_JSON_INFO, playabledCharacter, errorMessage);
+    //bool loaderReturn = entityLoaderManager->LoadCharacter(MAIN_CHAR_JSON_INFO, playabledCharacter, errorMessage);
 
-    if (!loaderReturn) {
-        std::cout << "Error loading playable character: " << errorMessage << std::endl;
-    }
+    //if (!loaderReturn) {
+    //    std::cout << "Error loading playable character: " << errorMessage << std::endl;
+    //}
 
     sModelDrawInfo drawingInformation;
-    //drawingInformation = g_GraphicScene.returnDrawInformation(playabledCharacter.mFriendlyName);
-    drawingInformation = g_GraphicScene.returnDrawInformation("assets/models/animation/Mutant.fbx");
-    glm::vec3 mainCharacterPosition(playabledCharacter.mPosition[0], playabledCharacter.mPosition[1], playabledCharacter.mPosition[2]);
-    mainChar = g_GraphicScene.CreateGameObjectByType(playabledCharacter.mFriendlyName, mainCharacterPosition, drawingInformation);
+    drawingInformation = g_GraphicScene.returnDrawInformation(MainCharANIMATION1);
+    
+    std::vector<std::string> animations;
+    animations.push_back(MainCharANIMATION1);
+    animations.push_back(MainCharANIMATION2);
+
+    //mainChar = g_GraphicScene.CreateGameObjectByType(
+    //    MainCharANIMATION1, glm::vec3(0.f), drawingInformation);
+
+    mainChar = g_GraphicScene.CreateAnimatedCharacter(
+        MainCharANIMATION1, animations, drawingInformation);
+
     mainChar->friendlyName = "MainChar";
-    mainChar->meshName = "assets/models/animation/Mutant.fbx";
-    mainChar->bUse_RGBA_colour = false;
-    //mainChar->RGBA_colour = glm::vec4(1.0f, 0.0f, 0.0f, 1.0f);
-    playabledCharacter.mFriendlyName = mainChar->friendlyName;
+    mainChar->meshName = MainCharANIMATION1;
     mainChar->SetUniformScale(0.3f);
 
     mainChar->currentI = mainChar->position.z / GLOBAL_MAP_OFFSET;
     mainChar->currentJ = mainChar->position.x / GLOBAL_MAP_OFFSET;
 
-    //animatedCharacter->position = mainChar->position;
 }
 
 void FloorInitialization() {
@@ -1982,7 +1988,7 @@ void BeholderBehaviourUpdate() {
             else if (currentBehold->moving == 2 && !currentBehold->dead && currentBehold->rotating == 0) {
                 // Check if the animation is finished?
                 currentBehold->UpdateAnimation(1);
-                currentBehold->Speed = animationSpeed;
+                //currentBehold->Speed = animationSpeed;
         
                 //glm::vec3 newPosition = currentBehold->GetAnimationPosition(currentBehold->CurrentTime, animationType);
                 //currentBehold->position.x = newPosition.x;
@@ -1990,7 +1996,7 @@ void BeholderBehaviourUpdate() {
             }
             else if (currentBehold->moving == 1 && !currentBehold->dead && currentBehold->rotating == 1) {
                 currentBehold->UpdateAnimation(1);
-                currentBehold->Speed = animationSpeed;
+                //currentBehold->Speed = animationSpeed;
         
                 //glm::vec3 newRotation = currentBehold->GetAnimationRotation(currentBehold->CurrentTime, animationType);
                 //currentBehold->rotation = newRotation;
@@ -2050,11 +2056,10 @@ void GameLoop() {
 int main(int argc, char* argv[]) {
     std::cout << "starting up..." << std::endl;
 
-    animationType = 0;
-    animationSpeed = 0.01;
-
     networkManager = new NetworkManager();
     networkManager->Start();
+
+    animationManager = new AnimationManager();
 
     PhysicsInitialization();
     MazeInitialization();

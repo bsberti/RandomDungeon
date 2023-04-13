@@ -1,7 +1,6 @@
 #pragma once
 #include <vector>
-#include "cGameObject.h"
-
+#include "cMeshObject.h"
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
@@ -53,7 +52,7 @@ private:
 	const aiScene* m_Scene;
 };
 
-class cCharacter : public cGameObject {
+class cCharacter : public cMeshObject {
 public:
 	// Character Name
 	std::string mName;
@@ -81,7 +80,7 @@ public:
 	std::vector<std::string> vSkills;
 
 	// Loading
-	void LoadCharacterFromAssimp(const char* filename, std::string& meshName);
+	void LoadCharacterFromAssimp(const char* filename);
 	void LoadAnimationFromAssimp(const char* filename);
 
 	void UpdateTransforms(std::vector<glm::mat4>& transforms, std::vector<glm::mat4>& globals, float dt);

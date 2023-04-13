@@ -1,5 +1,5 @@
 #include "GraphicScene.h"
-
+#include "cCharacter.h"
 #include <glm/gtx/intersect.hpp>
 
 GraphicScene::GraphicScene() {
@@ -202,6 +202,8 @@ int GraphicScene::PrepareScene() {
 
     pVAOManager->shaderID = shaderID;
     pVAOManager->loadModel("assets/models/animation/Mutant.fbx");
+    pVAOManager->loadModel("assets/models/animation/MutantIdle.fbx");
+    pVAOManager->loadModel("assets/models/animation/MutantWalking.fbx");
 
 }
 
@@ -327,13 +329,6 @@ void GraphicScene::DrawScene(GLFWwindow* window, glm::vec3 g_cameraEye, glm::vec
 
         if (pCurrentMeshObject->friendlyName == "Plane_Floor")
             continue;
-
-        //if (pCurrentMeshObject->friendlyName == "MainChar")
-        //    continue;
-
-        if (pCurrentMeshObject->meshName == "assets/models/animation/UnarmedIdleLooking.fbx") {
-            int breakpoint = 5;
-        }
 
         // The parent's model matrix is set to the identity
         glm::mat4x4 matModel = glm::mat4x4(1.0f);
@@ -666,6 +661,33 @@ cMeshObject* GraphicScene::CreateGameObjectByType(const std::string& type, glm::
     // gonna just return so the one adding to vector can be handle by critical section
     //vec_pMeshObjects.push_back(go);
     return go;
+}
+
+cMeshObject* GraphicScene::CreateAnimatedCharacter(const char* filename,
+    const std::vector<std::string>& animations, sModelDrawInfo drawInfo) {
+    cCharacter* tempChar = new cCharacter();
+    tempChar->position = glm::vec3(0.0f);
+    tempChar->scale = 1.0f;
+    tempChar->qRotation = glm::quat(1.0f, 0.0f, 0.0f, 0.0f);
+    tempChar->meshName = filename;
+    tempChar->bUse_RGBA_colour = false;
+    tempChar->numberOfTriangles = drawInfo.numberOfTriangles;
+    tempChar->meshTriangles = drawInfo.modelTriangles;
+    tempChar->Animation.IsCharacterAnimation = true;
+    tempChar->Animation.AnimationTime = 0.f;
+    tempChar->Animation.IsLooping = true;
+    tempChar->Animation.IsPlaying = true;
+    tempChar->Animation.Speed = 1.f;
+    tempChar->HasBones = true;
+
+    int numAnimations = animations.size();
+    for (int i = 0; i < numAnimations; i++)
+    {
+        // Load animation
+        tempChar->LoadAnimationFromAssimp(animations[i].c_str());
+    }
+
+    return tempChar;
 }
 
 cMeshObject* GraphicScene::GetObjectByName(std::string name, bool bSearchChildren) {

@@ -165,17 +165,6 @@ void DrawObject(cMeshObject* pCurrentMeshObject,
     GLint texture1_UL = glGetUniformLocation(shaderID, "texture1");
     glUniform1i(texture1_UL, texture01Unit);
 
-    // Do that for the other 6 textures... FUN!
-
-    //// Same for texture #7
-    //std::string texture7Name = pCurrentMeshObject->textures[7];
-    //GLuint texture07Number = pTextureManager->getTextureIDFromName(texture7Name);
-    //GLuint texture07Unit = 7;			// Texture unit go from 0 to 79
-    //glActiveTexture(texture07Unit + GL_TEXTURE0);	// GL_TEXTURE0 = 33984
-    //glBindTexture(GL_TEXTURE_2D, texture07Number);
-    //GLint texture7_UL = glGetUniformLocation(shaderID, "texture7");
-    //glUniform1i(texture7_UL, texture07Unit);
-
     // uniform vec4 texRatio_0_3;
     GLint texRatio_0_3 = glGetUniformLocation(shaderID, "texRatio_0_3");
     glUniform4f(texRatio_0_3,
