@@ -22,6 +22,18 @@ struct UsersResultSet {
 	std::string creation_date;
 };
 
+struct userPropertiesResultSet {
+	unsigned int userID;
+	std::string date;
+	unsigned int strengh;
+	unsigned int magicPower;
+	unsigned int agility;
+	unsigned int max_health;
+	unsigned int max_mana;
+	std::string villager;
+	unsigned int level;
+};
+
 class Date {
 public:
 	Date(int year, int month, int day) : year_(year), month_(month), day_(day) {}
@@ -52,6 +64,8 @@ public:
 	bool CreateAccount(std::string email, 
 		std::string hashedPassword, std::string salt);
 	bool CreateUser(std::string userID);
+	bool GetUserProperties(userPropertiesResultSet& recordSet, std::string userID);
+	bool SetUserProperties(userPropertiesResultSet data);
 
 	std::vector<LeaderboardResultSet>* vec_SQLiteResult;
 	int resultCount;

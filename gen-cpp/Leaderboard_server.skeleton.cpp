@@ -40,6 +40,16 @@ class LeaderboardHandler : virtual public LeaderboardIf {
     printf("createAccount\n");
   }
 
+  void getUserProperties(UserProperties& _return, const int32_t playerId) {
+    // Your implementation goes here
+    printf("getUserProperties\n");
+  }
+
+  void setUserProperties(const UserProperties& userPropertiesPacket) {
+    // Your implementation goes here
+    printf("setUserProperties\n");
+  }
+
 };
 
 int main(int argc, char **argv) {

@@ -59,23 +59,26 @@ public:
 	// Character Level
 	unsigned int mLevel;
 	// Character Max Health
-	float mMaxHealth;
+	unsigned int mMaxHealth;
 	// Character Current Available Health
-	float mCurrentHealth;
+	unsigned int mCurrentHealth;
 	// Chracter Max Mana
-	float mMaxMana;
+	unsigned int mMaxMana;
 	// Character Current Available Mana
-	float mCurrentMana;
+	unsigned int mCurrentMana;
 
-	float mStrengh;
-	float mMagicPower;
-	float mAgility;
+	unsigned int mPlayerID;
+	unsigned int mStrengh;
+	unsigned int mMagicPower;
+	unsigned int mAgility;
+	std::string mLastLogin;
+	std::string mVillager;
 
 	// Default Constructor
 	cCharacter();
 	// Overloaded Constructor
 	cCharacter(std::string friendlyName, float position[3], std::string meshFilePath, std::string name, 
-			unsigned int level, float maxHealth, float currentHealth, float maxMana, float currentMana);
+			unsigned int level, unsigned int maxHealth, unsigned int currentHealth, unsigned int maxMana, unsigned int currentMana);
 	// Destructor
 	~cCharacter();
 
@@ -94,6 +97,21 @@ public:
 		m_PreviousAnimation = m_CurrentAnimation;
 		m_CurrentAnimation = animationId;
 		m_CurrentTimeInSeconds = 0;
+	}
+
+	void SetCharacterInfo(unsigned int mPlayerID, std::string mLastLogin, unsigned int mStrengh,
+		unsigned int mMagicPower, unsigned int mAgility, unsigned int mMaxHealth,
+		unsigned int mMaxMana, std::string mVillager, unsigned int mLevel) {
+
+		this->mPlayerID = mPlayerID;
+		this->mLastLogin = mLastLogin;
+		this->mStrengh = mStrengh;
+		this->mMagicPower = mMagicPower;
+		this->mAgility = mAgility;
+		this->mMaxHealth = mMaxHealth;
+		this->mMaxMana = mMaxMana;
+		this->mVillager = mVillager;
+		this->mLevel = mLevel;
 	}
 
 	// Render

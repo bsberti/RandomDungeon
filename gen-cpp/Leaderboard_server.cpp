@@ -111,18 +111,42 @@ public:
 		return false;
 	}
 
-	bool createAccount(const std::string& email, 
-		const std::string& hashedPassword,
-		const std::string& salt) {
-
-		if (SQLiteHelper->CreateAccount(email, hashedPassword, salt)) {
-
-			return true;
-		}
-
-		return false;
+	bool createAccount(const std::string& email, const std::string& hashedPassword, const std::string& salt) {
+		return SQLiteHelper->CreateAccount(email, hashedPassword, salt);
 	}
 
+	void getUserProperties(UserProperties& _return, const int32_t playerId) {
+		userPropertiesResultSet resultSet;
+		std::string playerID = std::to_string(playerId);
+		if (SQLiteHelper->GetUserProperties(resultSet, playerID)) {
+			_return.userID		= resultSet.userID;
+			_return.date		= atoi(resultSet.date.c_str());
+			_return.strengh		= resultSet.strengh;
+			_return.magicPower	= resultSet.magicPower;
+			_return.agility		= resultSet.agility;
+			_return.maxHealth	= resultSet.max_health;
+			_return.maxMana		= resultSet.max_mana;
+			_return.villager	= resultSet.villager;
+			_return.level		= resultSet.level;
+		}
+	}
+
+	void setUserProperties(const UserProperties& userPropertiesPacket) {
+		userPropertiesResultSet imputData;
+		imputData.userID		= userPropertiesPacket.userID;
+		imputData.date			= userPropertiesPacket.date;
+		imputData.strengh		= userPropertiesPacket.strengh;
+		imputData.magicPower	= userPropertiesPacket.magicPower;
+		imputData.agility		= userPropertiesPacket.agility;
+		imputData.max_health	= userPropertiesPacket.maxHealth;
+		imputData.max_mana		= userPropertiesPacket.maxMana;
+		imputData.villager		= userPropertiesPacket.villager;
+		imputData.level			= userPropertiesPacket.level;
+
+		if (!SQLiteHelper->SetUserProperties(imputData)) {
+			printf("setUserProperties query error.\n");
+		}
+	}
 
 private:
 	std::map<int32_t, int32_t> *highScoreByPlayer;

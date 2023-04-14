@@ -678,7 +678,7 @@ cMeshObject* GraphicScene::CreateGameObjectByType(const std::string& type, glm::
     return go;
 }
 
-cMeshObject* GraphicScene::CreateAnimatedCharacter(const char* filename,
+cCharacter* GraphicScene::CreateAnimatedCharacter(const char* filename,
     const std::vector<std::string>& animations, sModelDrawInfo drawInfo) {
     cCharacter* tempChar = new cCharacter();
     tempChar->position = glm::vec3(0.0f);

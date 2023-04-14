@@ -13,7 +13,7 @@ cCharacter::cCharacter() {
 
 }
 
-cCharacter::cCharacter(std::string friendlyName, float position[3], std::string meshFilePath, std::string name, unsigned int level, float maxHealth, float currentHealth, float maxMana, float currentMana) {
+cCharacter::cCharacter(std::string friendlyName, float position[3], std::string meshFilePath, std::string name, unsigned int level, unsigned int maxHealth, unsigned int currentHealth, unsigned int maxMana, unsigned int currentMana) {
 	this->friendlyName		= friendlyName;
 	this->position[0]		= position[0];
 	this->position[1]		= position[1];

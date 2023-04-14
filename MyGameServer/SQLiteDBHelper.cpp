@@ -88,6 +88,52 @@ int ResultCallbackUsers(void* list, int columnsCount, char** data, char** column
 	return 0;
 }
 
+int ResultCallbackUsersProperties(void* list, int columnsCount, char** data, char** columnsName) {
+	int idx;
+
+	std::vector<userPropertiesResultSet>& queryResultList = *(std::vector<userPropertiesResultSet>*)list;
+	userPropertiesResultSet queryResult;
+
+	printf("There are %d column(s)\n", columnsCount);
+
+	for (int i = 0; i < columnsCount; i++) {
+		printf("The data in column \"%s\" is: %s\n", columnsName[i], data[i]);
+		if (strcmp(columnsName[i], "userID") == 0) {
+			queryResult.userID = atoi(data[i]);
+		}
+		else if (strcmp(columnsName[i], "date") == 0) {
+			queryResult.date = data[i];
+		}
+		else if (strcmp(columnsName[i], "strengh") == 0) {
+			queryResult.strengh = atoi(data[i]);
+		}
+		else if (strcmp(columnsName[i], "magic_power") == 0) {
+			queryResult.magicPower = atoi(data[i]);
+		}
+		else if (strcmp(columnsName[i], "agility") == 0) {
+			queryResult.agility = atoi(data[i]);
+		}
+		else if (strcmp(columnsName[i], "max_health") == 0) {
+			queryResult.max_health = atoi(data[i]);
+		}
+		else if (strcmp(columnsName[i], "max_mana") == 0) {
+			queryResult.max_mana = atoi(data[i]);
+		}
+		else if (strcmp(columnsName[i], "villager") == 0) {
+			queryResult.villager = data[i];
+		}
+		else if (strcmp(columnsName[i], "level") == 0) {
+			queryResult.level = atoi(data[i]);
+		}
+	}
+
+	queryResultList.push_back(queryResult);
+
+	printf("\n");
+
+	return 0;
+}
+
 SQLiteDBHelper::SQLiteDBHelper()
 	: m_DB(nullptr)
 	, m_IsConnected(false) {
@@ -305,4 +351,69 @@ bool SQLiteDBHelper::CreateAccount(std::string email, std::string hashedPassword
 		return false;
 	}
 	
+}
+
+bool SQLiteDBHelper::GetUserProperties(userPropertiesResultSet& recordSet, std::string userID) {
+	if (!m_IsConnected) {
+		printf("SQLiteDBHelper::GetUserProperties: not connected to a DB\n");
+		return false;
+	}
+
+	std::string sql = "SELECT * FROM user_properties WHERE userID = " + userID + ";";
+
+	char* errorMsg;
+	std::vector<userPropertiesResultSet> resultList;
+	int result = sqlite3_exec(m_DB, sql.c_str(), ResultCallbackUsersProperties, &resultList, &errorMsg);
+	if (result != SQLITE_OK) {
+		printf("Failed to execute our query with erro code: %d!\n", result);
+		return false;
+	}
+
+	if (resultList.size() == 1) {
+		recordSet = resultList[0];
+		return true;
+	}
+	else {
+		return true;
+	}
+}
+
+bool SQLiteDBHelper::SetUserProperties(userPropertiesResultSet data) {
+	if (!m_IsConnected) {
+		printf("SQLiteDBHelper::SetUserProperties: not connected to a DB\n");
+		return false;
+	}
+
+	std::string sql = "SELECT * FROM user_properties WHERE userID = " + std::to_string(data.userID) + ";";
+
+	char* errorMsg;
+	std::vector<userPropertiesResultSet> resultList;
+	int result = sqlite3_exec(m_DB, sql.c_str(), ResultCallbackUsersProperties, &resultList, &errorMsg);
+	if (result != SQLITE_OK) {
+		printf("Failed to execute our query with erro code: %d!\n", result);
+		return false;
+	}
+
+	if (resultList.size() == 1) {
+		sql = "UPDATE user_properties SET date = julianday('now', 'localtime'), strengh = " + std::to_string(data.strengh) + 
+			", magic_power = " + std::to_string(data.magicPower) + 
+			", agility = " + std::to_string(data.agility) + 
+			", max_health = " + std::to_string(data.max_health) + 
+			", max_mana = " + std::to_string(data.max_mana) + 
+			", villager = '" + data.villager + 
+			"', level = " + std::to_string(data.level) + 
+			" WHERE userID = " + std::to_string(data.userID) + ";";
+
+		result = sqlite3_exec(m_DB, sql.c_str(), ResultCallbackUsers, &resultList, &errorMsg);
+		if (result != SQLITE_OK) {
+			printf("Failed to execute our query with erro code: %d!\n", result);
+			return false;
+		}
+	}
+	else {
+		printf("Failed to retrieve database information with userID: %d", data.userID);
+		return false;
+	}
+
+	return true;
 }

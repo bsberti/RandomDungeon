@@ -10,4 +10,170 @@
 
 
 
+const char* UserProperties::ascii_fingerprint = "C779C700B6D3727CDEBBA15EDD3C2ECA";
+const uint8_t UserProperties::binary_fingerprint[16] = {0xC7,0x79,0xC7,0x00,0xB6,0xD3,0x72,0x7C,0xDE,0xBB,0xA1,0x5E,0xDD,0x3C,0x2E,0xCA};
+
+uint32_t UserProperties::read(::apache::thrift::protocol::TProtocol* iprot) {
+
+  uint32_t xfer = 0;
+  std::string fname;
+  ::apache::thrift::protocol::TType ftype;
+  int16_t fid;
+
+  xfer += iprot->readStructBegin(fname);
+
+  using ::apache::thrift::protocol::TProtocolException;
+
+
+  while (true)
+  {
+    xfer += iprot->readFieldBegin(fname, ftype, fid);
+    if (ftype == ::apache::thrift::protocol::T_STOP) {
+      break;
+    }
+    switch (fid)
+    {
+      case 1:
+        if (ftype == ::apache::thrift::protocol::T_I32) {
+          xfer += iprot->readI32(this->userID);
+          this->__isset.userID = true;
+        } else {
+          xfer += iprot->skip(ftype);
+        }
+        break;
+      case 2:
+        if (ftype == ::apache::thrift::protocol::T_I64) {
+          xfer += iprot->readI64(this->date);
+          this->__isset.date = true;
+        } else {
+          xfer += iprot->skip(ftype);
+        }
+        break;
+      case 3:
+        if (ftype == ::apache::thrift::protocol::T_I32) {
+          xfer += iprot->readI32(this->strengh);
+          this->__isset.strengh = true;
+        } else {
+          xfer += iprot->skip(ftype);
+        }
+        break;
+      case 4:
+        if (ftype == ::apache::thrift::protocol::T_I32) {
+          xfer += iprot->readI32(this->magicPower);
+          this->__isset.magicPower = true;
+        } else {
+          xfer += iprot->skip(ftype);
+        }
+        break;
+      case 5:
+        if (ftype == ::apache::thrift::protocol::T_I32) {
+          xfer += iprot->readI32(this->agility);
+          this->__isset.agility = true;
+        } else {
+          xfer += iprot->skip(ftype);
+        }
+        break;
+      case 6:
+        if (ftype == ::apache::thrift::protocol::T_I32) {
+          xfer += iprot->readI32(this->maxHealth);
+          this->__isset.maxHealth = true;
+        } else {
+          xfer += iprot->skip(ftype);
+        }
+        break;
+      case 7:
+        if (ftype == ::apache::thrift::protocol::T_I32) {
+          xfer += iprot->readI32(this->maxMana);
+          this->__isset.maxMana = true;
+        } else {
+          xfer += iprot->skip(ftype);
+        }
+        break;
+      case 8:
+        if (ftype == ::apache::thrift::protocol::T_STRING) {
+          xfer += iprot->readString(this->villager);
+          this->__isset.villager = true;
+        } else {
+          xfer += iprot->skip(ftype);
+        }
+        break;
+      case 9:
+        if (ftype == ::apache::thrift::protocol::T_I32) {
+          xfer += iprot->readI32(this->level);
+          this->__isset.level = true;
+        } else {
+          xfer += iprot->skip(ftype);
+        }
+        break;
+      default:
+        xfer += iprot->skip(ftype);
+        break;
+    }
+    xfer += iprot->readFieldEnd();
+  }
+
+  xfer += iprot->readStructEnd();
+
+  return xfer;
+}
+
+uint32_t UserProperties::write(::apache::thrift::protocol::TProtocol* oprot) const {
+  uint32_t xfer = 0;
+  xfer += oprot->writeStructBegin("UserProperties");
+
+  xfer += oprot->writeFieldBegin("userID", ::apache::thrift::protocol::T_I32, 1);
+  xfer += oprot->writeI32(this->userID);
+  xfer += oprot->writeFieldEnd();
+
+  xfer += oprot->writeFieldBegin("date", ::apache::thrift::protocol::T_I64, 2);
+  xfer += oprot->writeI64(this->date);
+  xfer += oprot->writeFieldEnd();
+
+  xfer += oprot->writeFieldBegin("strengh", ::apache::thrift::protocol::T_I32, 3);
+  xfer += oprot->writeI32(this->strengh);
+  xfer += oprot->writeFieldEnd();
+
+  xfer += oprot->writeFieldBegin("magicPower", ::apache::thrift::protocol::T_I32, 4);
+  xfer += oprot->writeI32(this->magicPower);
+  xfer += oprot->writeFieldEnd();
+
+  xfer += oprot->writeFieldBegin("agility", ::apache::thrift::protocol::T_I32, 5);
+  xfer += oprot->writeI32(this->agility);
+  xfer += oprot->writeFieldEnd();
+
+  xfer += oprot->writeFieldBegin("maxHealth", ::apache::thrift::protocol::T_I32, 6);
+  xfer += oprot->writeI32(this->maxHealth);
+  xfer += oprot->writeFieldEnd();
+
+  xfer += oprot->writeFieldBegin("maxMana", ::apache::thrift::protocol::T_I32, 7);
+  xfer += oprot->writeI32(this->maxMana);
+  xfer += oprot->writeFieldEnd();
+
+  xfer += oprot->writeFieldBegin("villager", ::apache::thrift::protocol::T_STRING, 8);
+  xfer += oprot->writeString(this->villager);
+  xfer += oprot->writeFieldEnd();
+
+  xfer += oprot->writeFieldBegin("level", ::apache::thrift::protocol::T_I32, 9);
+  xfer += oprot->writeI32(this->level);
+  xfer += oprot->writeFieldEnd();
+
+  xfer += oprot->writeFieldStop();
+  xfer += oprot->writeStructEnd();
+  return xfer;
+}
+
+void swap(UserProperties &a, UserProperties &b) {
+  using ::std::swap;
+  swap(a.userID, b.userID);
+  swap(a.date, b.date);
+  swap(a.strengh, b.strengh);
+  swap(a.magicPower, b.magicPower);
+  swap(a.agility, b.agility);
+  swap(a.maxHealth, b.maxHealth);
+  swap(a.maxMana, b.maxMana);
+  swap(a.villager, b.villager);
+  swap(a.level, b.level);
+  swap(a.__isset, b.__isset);
+}
+
 

@@ -90,7 +90,7 @@ HANDLE dataSemaphore;
 HANDLE ahThread;
 
 // Main Character GLOBAL Variables
-cMeshObject* mainChar;
+cCharacter* mainChar;
 cMeshObject* planeFloor;
 //cCharacter playabledCharacter;
 
@@ -1830,6 +1830,7 @@ void DrawingTheScene() {
 
     DrawConcentricDebugLightObjects(gameUi.listbox_lights_current);
 
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     if (gameUi.loggedIn) {
         g_GraphicScene.DrawScene(window, ::g_cameraEye, ::g_cameraTarget);
         g_GraphicScene.DrawMapView(window, ::g_MapCameraEye, ::g_MapCameraTarget);
@@ -1849,6 +1850,19 @@ void DrawingTheScene() {
                 if (networkManager->login(gameUi.g_username, gameUi.g_password, isNewLogin)) {
                     gameUi.newLogin = isNewLogin;
                     gameUi.login_successful = true;
+
+                    UserProperties getData;
+                    //TO-DO: Change userId to one property retrived from login
+                    networkManager->getUserProperties(8, getData);
+                    mainChar->SetCharacterInfo(getData.userID,
+                        std::to_string(getData.date),
+                        getData.strengh,
+                        getData.magicPower,
+                        getData.agility,
+                        getData.maxHealth,
+                        getData.maxMana,
+                        getData.villager,
+                        getData.level);
                 }
             }
 
@@ -2310,6 +2324,17 @@ int main(int argc, char* argv[]) {
     }
 
     // -------------------- FINISHING  -----------------------
+    UserProperties serverImput;
+    serverImput.userID      = mainChar->mPlayerID;
+    serverImput.date        = atoi(mainChar->mLastLogin.c_str());
+    serverImput.strengh     = mainChar->mStrengh;
+    serverImput.magicPower  = mainChar->mMagicPower;
+    serverImput.agility     = mainChar->mAgility;
+    serverImput.maxHealth   = mainChar->mMaxHealth;
+    serverImput.maxMana     = mainChar->mMaxMana;
+    serverImput.villager    = mainChar->mVillager;
+    serverImput.level       = mainChar->mLevel;
+    networkManager->setUserProperties(serverImput);
     
     // Clean up the mutex before exiting the program
     DeleteCriticalSection(&dataMutex);
@@ -2319,6 +2344,7 @@ int main(int argc, char* argv[]) {
     g_GraphicScene.Shutdown();
     delete ::g_pTheLightManager;
     delete entityLoaderManager;
+    delete networkManager;
 
     glfwDestroyWindow(window);
     fmod_manager->Shutdown();

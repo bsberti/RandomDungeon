@@ -19,6 +19,8 @@ class LeaderboardIf {
   virtual void getTop20(std::map<int32_t, int32_t> & _return) = 0;
   virtual bool login(const std::string& email, const std::string& password, bool& newLogin) = 0;
   virtual bool createAccount(const std::string& email, const std::string& hashedPassword, const std::string& salt) = 0;
+  virtual void getUserProperties(UserProperties& _return, const int32_t playerId) = 0;
+  virtual void setUserProperties(const UserProperties& userPropertiesPacket) = 0;
 };
 
 class LeaderboardIfFactory {
@@ -61,6 +63,12 @@ class LeaderboardNull : virtual public LeaderboardIf {
   bool createAccount(const std::string& /* email */, const std::string& /* hashedPassword */, const std::string& /* salt */) {
     bool _return = false;
     return _return;
+  }
+  void getUserProperties(UserProperties& /* _return */, const int32_t /* playerId */) {
+    return;
+  }
+  void setUserProperties(const UserProperties& /* userPropertiesPacket */) {
+    return;
   }
 };
 
@@ -470,6 +478,165 @@ class Leaderboard_createAccount_presult {
 
 };
 
+typedef struct _Leaderboard_getUserProperties_args__isset {
+  _Leaderboard_getUserProperties_args__isset() : playerId(false) {}
+  bool playerId;
+} _Leaderboard_getUserProperties_args__isset;
+
+class Leaderboard_getUserProperties_args {
+ public:
+
+  Leaderboard_getUserProperties_args() : playerId(0) {
+  }
+
+  virtual ~Leaderboard_getUserProperties_args() throw() {}
+
+  int32_t playerId;
+
+  _Leaderboard_getUserProperties_args__isset __isset;
+
+  void __set_playerId(const int32_t val) {
+    playerId = val;
+  }
+
+  bool operator == (const Leaderboard_getUserProperties_args & rhs) const
+  {
+    if (!(playerId == rhs.playerId))
+      return false;
+    return true;
+  }
+  bool operator != (const Leaderboard_getUserProperties_args &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const Leaderboard_getUserProperties_args & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+
+class Leaderboard_getUserProperties_pargs {
+ public:
+
+
+  virtual ~Leaderboard_getUserProperties_pargs() throw() {}
+
+  const int32_t* playerId;
+
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _Leaderboard_getUserProperties_result__isset {
+  _Leaderboard_getUserProperties_result__isset() : success(false) {}
+  bool success;
+} _Leaderboard_getUserProperties_result__isset;
+
+class Leaderboard_getUserProperties_result {
+ public:
+
+  Leaderboard_getUserProperties_result() {
+  }
+
+  virtual ~Leaderboard_getUserProperties_result() throw() {}
+
+  UserProperties success;
+
+  _Leaderboard_getUserProperties_result__isset __isset;
+
+  void __set_success(const UserProperties& val) {
+    success = val;
+  }
+
+  bool operator == (const Leaderboard_getUserProperties_result & rhs) const
+  {
+    if (!(success == rhs.success))
+      return false;
+    return true;
+  }
+  bool operator != (const Leaderboard_getUserProperties_result &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const Leaderboard_getUserProperties_result & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _Leaderboard_getUserProperties_presult__isset {
+  _Leaderboard_getUserProperties_presult__isset() : success(false) {}
+  bool success;
+} _Leaderboard_getUserProperties_presult__isset;
+
+class Leaderboard_getUserProperties_presult {
+ public:
+
+
+  virtual ~Leaderboard_getUserProperties_presult() throw() {}
+
+  UserProperties* success;
+
+  _Leaderboard_getUserProperties_presult__isset __isset;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+
+};
+
+typedef struct _Leaderboard_setUserProperties_args__isset {
+  _Leaderboard_setUserProperties_args__isset() : userPropertiesPacket(false) {}
+  bool userPropertiesPacket;
+} _Leaderboard_setUserProperties_args__isset;
+
+class Leaderboard_setUserProperties_args {
+ public:
+
+  Leaderboard_setUserProperties_args() {
+  }
+
+  virtual ~Leaderboard_setUserProperties_args() throw() {}
+
+  UserProperties userPropertiesPacket;
+
+  _Leaderboard_setUserProperties_args__isset __isset;
+
+  void __set_userPropertiesPacket(const UserProperties& val) {
+    userPropertiesPacket = val;
+  }
+
+  bool operator == (const Leaderboard_setUserProperties_args & rhs) const
+  {
+    if (!(userPropertiesPacket == rhs.userPropertiesPacket))
+      return false;
+    return true;
+  }
+  bool operator != (const Leaderboard_setUserProperties_args &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const Leaderboard_setUserProperties_args & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+
+class Leaderboard_setUserProperties_pargs {
+ public:
+
+
+  virtual ~Leaderboard_setUserProperties_pargs() throw() {}
+
+  const UserProperties* userPropertiesPacket;
+
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
 class LeaderboardClient : virtual public LeaderboardIf {
  public:
   LeaderboardClient(boost::shared_ptr< ::apache::thrift::protocol::TProtocol> prot) :
@@ -501,6 +668,11 @@ class LeaderboardClient : virtual public LeaderboardIf {
   bool createAccount(const std::string& email, const std::string& hashedPassword, const std::string& salt);
   void send_createAccount(const std::string& email, const std::string& hashedPassword, const std::string& salt);
   bool recv_createAccount();
+  void getUserProperties(UserProperties& _return, const int32_t playerId);
+  void send_getUserProperties(const int32_t playerId);
+  void recv_getUserProperties(UserProperties& _return);
+  void setUserProperties(const UserProperties& userPropertiesPacket);
+  void send_setUserProperties(const UserProperties& userPropertiesPacket);
  protected:
   boost::shared_ptr< ::apache::thrift::protocol::TProtocol> piprot_;
   boost::shared_ptr< ::apache::thrift::protocol::TProtocol> poprot_;
@@ -520,6 +692,8 @@ class LeaderboardProcessor : public ::apache::thrift::TDispatchProcessor {
   void process_getTop20(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_login(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_createAccount(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
+  void process_getUserProperties(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
+  void process_setUserProperties(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
  public:
   LeaderboardProcessor(boost::shared_ptr<LeaderboardIf> iface) :
     iface_(iface) {
@@ -527,6 +701,8 @@ class LeaderboardProcessor : public ::apache::thrift::TDispatchProcessor {
     processMap_["getTop20"] = &LeaderboardProcessor::process_getTop20;
     processMap_["login"] = &LeaderboardProcessor::process_login;
     processMap_["createAccount"] = &LeaderboardProcessor::process_createAccount;
+    processMap_["getUserProperties"] = &LeaderboardProcessor::process_getUserProperties;
+    processMap_["setUserProperties"] = &LeaderboardProcessor::process_setUserProperties;
   }
 
   virtual ~LeaderboardProcessor() {}
@@ -590,6 +766,25 @@ class LeaderboardMultiface : virtual public LeaderboardIf {
       ifaces_[i]->createAccount(email, hashedPassword, salt);
     }
     return ifaces_[i]->createAccount(email, hashedPassword, salt);
+  }
+
+  void getUserProperties(UserProperties& _return, const int32_t playerId) {
+    size_t sz = ifaces_.size();
+    size_t i = 0;
+    for (; i < (sz - 1); ++i) {
+      ifaces_[i]->getUserProperties(_return, playerId);
+    }
+    ifaces_[i]->getUserProperties(_return, playerId);
+    return;
+  }
+
+  void setUserProperties(const UserProperties& userPropertiesPacket) {
+    size_t sz = ifaces_.size();
+    size_t i = 0;
+    for (; i < (sz - 1); ++i) {
+      ifaces_[i]->setUserProperties(userPropertiesPacket);
+    }
+    ifaces_[i]->setUserProperties(userPropertiesPacket);
   }
 
 };

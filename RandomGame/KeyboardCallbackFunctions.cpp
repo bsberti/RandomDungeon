@@ -8,6 +8,8 @@
 #include "cMazeMaker_W2023.h"
 #include "BlocksLoader.h"
 
+#include "cCharacter.h"
+
 // Extern is so the compiler knows what TYPE this thing is
 // The LINKER needs the ACTUAL declaration 
 // These are defined in theMainFunction.cpp
@@ -21,7 +23,7 @@ extern glm::vec3 g_MapCameraTarget;
 extern GraphicScene g_GraphicScene;
 extern std::map< std::string, cMeshObject*>::iterator itBeholdsToFollow;
 
-extern cMeshObject* mainChar;
+extern cCharacter* mainChar;
 extern cMazeMaker_W2023 theMM;
 extern BlocksLoader* m_blocksLoader;
 
@@ -224,24 +226,7 @@ void key_callback(GLFWwindow* window,
     
     case MOVING_MAINCHAR:
     {
-        if (key == GLFW_KEY_A)     // Tile LEFT
-        {
-            mainChar->rotation.y += MOVE_SPEED;
-        }
-        if (key == GLFW_KEY_D)     // Tile RIGHT
-        {
-            mainChar->rotation.y -= MOVE_SPEED;
-        }
-        if (key == GLFW_KEY_W)     // Tile UP
-        {
-            mainChar->position.x += sin(mainChar->rotation.y);
-            mainChar->position.z += cos(mainChar->rotation.y);
-        }
-        if (key == GLFW_KEY_S)     // Tile DOWN
-        {
-            mainChar->position.x -= sin(mainChar->rotation.y);
-            mainChar->position.z -= cos(mainChar->rotation.y);
-        }
+
     }
     break;
 
@@ -287,57 +272,6 @@ void key_callback(GLFWwindow* window,
 
         //mainChar->physicsBody->ApplyForce(direction * force);
         mainChar->physicsBody->ApplyForce(direction);
-
-        //if (mainChar->physicsBody->GetVelocity().GetGLM() != glm::vec3(0.f))
-        //{
-        //    int breakpoint = 5;
-
-        //    nextTileI = (mainChar->position.z + (GLOBAL_MAP_OFFSET / 2)) / GLOBAL_MAP_OFFSET;
-        //    nextTileJ = (mainChar->position.x + (GLOBAL_MAP_OFFSET / 2)) / GLOBAL_MAP_OFFSET;
-
-        //    updateCurrentMazeView(nextTileI, nextTileJ);
-        //}
-
-        //if (nextTileI != mainChar->currentI && nextTileJ != mainChar->currentJ)
-        //{
-        //    int breakpoint = 5;
-        //    updateCurrentMazeView(nextTileI, nextTileJ);
-        //}
-        
-        //if (key == GLFW_KEY_A && action == GLFW_PRESS)     // Tile LEFT
-        //{
-        //    //TO-DO
-        //    //MainChar tries to move to left tile
-        //    nextTileI = mainChar->currentI;
-        //    nextTileJ = mainChar->currentJ - 1;
-        //    if (m_blocksLoader->checkValidPosition(nextTileI, nextTileJ)) {
-        //        updateCurrentMazeView(nextTileI, nextTileJ);
-        //    }
-        //}
-        //if (key == GLFW_KEY_D && action == GLFW_PRESS)     // Tile RIGHT
-        //{
-        //    nextTileI = mainChar->currentI;
-        //    nextTileJ = mainChar->currentJ + 1;
-        //    if (m_blocksLoader->checkValidPosition(nextTileI, nextTileJ)) {
-        //        updateCurrentMazeView(nextTileI, nextTileJ);
-        //    }
-        //}
-        //if (key == GLFW_KEY_W && action == GLFW_PRESS)     // Tile UP
-        //{
-        //    nextTileI = mainChar->currentI - 1;
-        //    nextTileJ = mainChar->currentJ;
-        //    if (m_blocksLoader->checkValidPosition(nextTileI, nextTileJ)) {
-        //        updateCurrentMazeView(nextTileI, nextTileJ);
-        //    }
-        //}
-        //if (key == GLFW_KEY_S && action == GLFW_PRESS)     // Tile DOWN
-        //{
-        //    nextTileI = mainChar->currentI + 1;
-        //    nextTileJ = mainChar->currentJ;
-        //    if (m_blocksLoader->checkValidPosition(nextTileI, nextTileJ)) {
-        //        updateCurrentMazeView(nextTileI, nextTileJ);
-        //    }
-        //}
     }
     break;
     } //switch (theEditMode)
