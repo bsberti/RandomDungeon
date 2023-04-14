@@ -249,29 +249,44 @@ void key_callback(GLFWwindow* window,
     {
         glm::vec3 direction(0.f);
         float force = 1000.f;
+        float directionX = 0.f;
+        float directionZ = 0.f;
 
         if (key == GLFW_KEY_A)     // Tile LEFT
         {
-            //mainChar->physObj->position.z -= CAMERA_MOVE_SPEED;
-            direction.x += -1;
+            mainChar->rotation.y += MOVE_SPEED;
+            //direction.x += -1;
         }
         if (key == GLFW_KEY_D)     // Tile RIGHT
         {
-            //mainChar->physObj->position.z += CAMERA_MOVE_SPEED;
-            direction.x += 1;
+            mainChar->rotation.y -= MOVE_SPEED;
+            //direction.x += 1;
         }
         if (key == GLFW_KEY_W)     // Tile UP
         {
-            //mainChar->physObj->position.x += CAMERA_MOVE_SPEED;
-            direction.z += -1;
+            directionX = sin(mainChar->rotation.y);
+            directionZ = cos(mainChar->rotation.y);
+            float directionMagnitude = sqrt(directionX * directionX + directionZ * directionZ);
+            directionX /= directionMagnitude;
+            directionZ /= directionMagnitude;
+
+            direction = glm::vec3(directionX * force, 0.f, directionZ* force);
+            //direction.z += -1;
         }
         if (key == GLFW_KEY_S)     // Tile DOWN
         {
-            //mainChar->physObj->position.x -= CAMERA_MOVE_SPEED;
-            direction.z += 1;
+            directionX = sin(mainChar->rotation.y);
+            directionZ = cos(mainChar->rotation.y);
+            float directionMagnitude = sqrt(directionX * directionX + directionZ * directionZ);
+            directionX /= directionMagnitude;
+            directionZ /= directionMagnitude;
+
+            direction = glm::vec3(directionX * -force, 0.f, directionZ * -force);
+            //direction.z += 1;
         }
 
-        mainChar->physicsBody->ApplyForce(direction * force);
+        //mainChar->physicsBody->ApplyForce(direction * force);
+        mainChar->physicsBody->ApplyForce(direction);
 
         //if (mainChar->physicsBody->GetVelocity().GetGLM() != glm::vec3(0.f))
         //{

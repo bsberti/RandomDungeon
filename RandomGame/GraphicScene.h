@@ -113,6 +113,8 @@ public:
 	// (This is global so the windows resize callback can "see" it)
 	cFBO* g_pFBO_01 = NULL;
 
+	std::string mAnimationName;
+
 
 	// Animation Stuffs
 	std::vector<Model*> gModelVec;

@@ -10,6 +10,7 @@ GraphicScene::GraphicScene() {
 }
 
 GraphicScene::~GraphicScene() {
+
 }
 
 void GraphicScene::Initialize() {
@@ -599,6 +600,20 @@ void GraphicScene::LoadTextures() {
         std::cout << "texture loaded" << std::endl;
     }
 
+    if (!g_pTextureManager->Create2DTextureFromBMPFile("Mutant_diffuse.bmp")) {
+        std::cout << "Didn't load texture" << std::endl;
+    }
+    else {
+        std::cout << "texture loaded" << std::endl;
+    }
+    if (!g_pTextureManager->Create2DTextureFromBMPFile("Mutant_normal.bmp")) {
+        std::cout << "Didn't load texture" << std::endl;
+    }
+    else {
+        std::cout << "texture loaded" << std::endl;
+    }
+    
+    
     // Load a skybox
     // Here's an example of the various sides: http://www.3dcpptutorials.sk/obrazky/cube_map.jpg
     std::string errorString = "";
@@ -679,6 +694,7 @@ cMeshObject* GraphicScene::CreateAnimatedCharacter(const char* filename,
     tempChar->Animation.IsPlaying = true;
     tempChar->Animation.Speed = 1.f;
     tempChar->HasBones = true;
+    tempChar->Enabled = true;
 
     int numAnimations = animations.size();
     for (int i = 0; i < numAnimations; i++)

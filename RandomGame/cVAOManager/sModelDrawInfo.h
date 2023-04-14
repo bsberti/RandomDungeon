@@ -53,4 +53,6 @@ struct sModelDrawInfo {
 	sVertex_RGBA_XYZ_N_UV_T_BiN_Bones* pVertices;	//  = 0;
 	// The index buffer (CPU side)
 	unsigned int* pIndices;
+
+	std::string textureFileName;
 };

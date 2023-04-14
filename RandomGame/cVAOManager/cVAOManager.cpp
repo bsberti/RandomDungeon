@@ -92,10 +92,11 @@ void cVAOManager::loadModel(std::string path)
 void cVAOManager::processNode(aiNode* node, const aiScene* scene, const std::string& path)
 {
 	// process all the node's meshes (if any)
-	for (unsigned int i = 0; i < node->mNumMeshes; i++)
-	{
+	for (unsigned int i = 0; i < node->mNumMeshes; i++) {
+
 		aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
 		sModelDrawInfo* drawInfo = processMesh(mesh, scene);
+
 		if (shaderID != -1)
 		{
 			LoadModelIntoVAO(path, *drawInfo, shaderID);
@@ -116,6 +117,8 @@ sModelDrawInfo* cVAOManager::processMesh(aiMesh* mesh, const aiScene* scene)
 	drawInfo->numberOfVertices = mesh->mNumVertices;
 	drawInfo->numberOfTriangles = mesh->mNumFaces;
 	drawInfo->pVertices = new sVertex_RGBA_XYZ_N_UV_T_BiN_Bones[mesh->mNumVertices];
+
+	
 	for (unsigned int i = 0; i < mesh->mNumVertices; i++)
 	{
 		sVertex_RGBA_XYZ_N_UV_T_BiN_Bones vertex;
@@ -124,6 +127,12 @@ sModelDrawInfo* cVAOManager::processMesh(aiMesh* mesh, const aiScene* scene)
 		vertex.y = mesh->mVertices[i].y;
 		vertex.z = mesh->mVertices[i].z;
 		vertex.w = 1.f;
+
+		if (mesh->mColors[0]) {
+			vertex.r = mesh->mColors[0][i].r;
+			vertex.g = mesh->mColors[0][i].g;
+			vertex.b = mesh->mColors[0][i].b;
+		}
 
 		vertex.nx = mesh->mNormals[i].x;
 		vertex.ny = mesh->mNormals[i].y;

@@ -10,6 +10,8 @@
 //#include "globalOpenGL.h"
 #include "globalThings.h"
 
+#include <glm/gtx/matrix_decompose.hpp>
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <fstream>
@@ -61,6 +63,7 @@ std::vector<Node*> vec_AStarPath;
 FModManager* fmod_manager;
 NetworkManager* networkManager;
 AnimationManager* animationManager;
+Assimp::Importer g_Importer;
 
 // GLOBAL DEFINITIONS
 #define NUMBER_OF_TAGS 10
@@ -99,6 +102,8 @@ std::string errorMessage;
 
 const char* MainCharANIMATION1 = "assets/models/animation/MutantIdle.fbx";
 const char* MainCharANIMATION2 = "assets/models/animation/MutantWalking.fbx";
+const char* MainCharTEXTURE1 = "Mutant_diffuse.bmp";
+const char* MainCharTEXTURE2 = "Mutant_normal.bmp";
 
 // Call back signatures here
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
@@ -1760,7 +1765,10 @@ void MainCharInitialization() {
 
     mainChar->friendlyName = "MainChar";
     mainChar->meshName = MainCharANIMATION1;
+    mainChar->Animation.AnimationType = g_GraphicScene.mAnimationName;
     mainChar->SetUniformScale(0.3f);
+    mainChar->textures[0] = MainCharTEXTURE1;
+    mainChar->textures[1] = MainCharTEXTURE2;
 
     mainChar->currentI = mainChar->position.z / GLOBAL_MAP_OFFSET;
     mainChar->currentJ = mainChar->position.x / GLOBAL_MAP_OFFSET;
@@ -1822,9 +1830,10 @@ void DrawingTheScene() {
 
     DrawConcentricDebugLightObjects(gameUi.listbox_lights_current);
 
-    g_GraphicScene.DrawScene(window, ::g_cameraEye, ::g_cameraTarget);
-
-    g_GraphicScene.DrawMapView(window, ::g_MapCameraEye, ::g_MapCameraTarget);
+    if (gameUi.loggedIn) {
+        g_GraphicScene.DrawScene(window, ::g_cameraEye, ::g_cameraTarget);
+        g_GraphicScene.DrawMapView(window, ::g_MapCameraEye, ::g_MapCameraTarget);
+    }
 
     glfwPollEvents();
 
@@ -2045,6 +2054,7 @@ void GameLoop() {
 
         // Update will run any Lua script sitting in the "brain"
         pBrain->Update(1);
+        animationManager->Update(g_GraphicScene.vec_pMeshCurrentMaze, 1.f);
 
         g_cameraTarget = mainChar->position;
         g_cameraEye = glm::vec3(mainChar->position.x, 250.f, mainChar->position.z + 100.f);
@@ -2064,6 +2074,155 @@ void GameLoop() {
     std::string theText = ssTitle.str();
 
     glfwSetWindowTitle(window, ssTitle.str().c_str());
+}
+
+void CastToGLM(const aiMatrix4x4& in, glm::mat4& out) {
+    out = glm::mat4(in.a1, in.b1, in.c1, in.d1,
+        in.a2, in.b2, in.c2, in.d2,
+        in.a3, in.b3, in.c3, in.d3,
+        in.a4, in.b4, in.c4, in.d4);
+}
+
+void LoadAssimpAnimation(CharacterAnimationData& characterAnimation, const aiAnimation* animation, BoneHierarchy* boneHierarchy) {
+    if (animation == nullptr)
+        return;
+
+    printf("LoadAssimpAnimation %s\n", animation->mName.C_Str());
+
+    characterAnimation.Name = std::string(animation->mName.C_Str());
+    characterAnimation.Duration = animation->mDuration;
+    characterAnimation.TicksPerSecond = animation->mTicksPerSecond;
+
+    unsigned int numChannels = animation->mNumChannels;
+
+    printf("- Loading %d channels\n", numChannels);
+
+    characterAnimation.Channels.resize(numChannels);
+    for (int i = 0; i < numChannels; i++)
+    {
+        const aiNodeAnim* nodeAnim = animation->mChannels[i];
+        std::string name(nodeAnim->mNodeName.C_Str());
+
+        printf("  %s\n", name.c_str());
+
+        unsigned int numPositionKeys = nodeAnim->mNumPositionKeys;
+        unsigned int numRotationKeys = nodeAnim->mNumRotationKeys;
+        unsigned int numScalingKeys = nodeAnim->mNumScalingKeys;
+
+        AnimationData* animData = new AnimationData();
+        characterAnimation.Channels[i] = animData;
+        animData->Name = name;
+
+        animData->PositionKeyFrames.resize(numPositionKeys);
+        animData->RotationKeyFrames.resize(numRotationKeys);
+        animData->ScaleKeyFrames.resize(numScalingKeys);
+
+        for (int keyIdx = 0; keyIdx < numPositionKeys; keyIdx++)
+        {
+            const aiVectorKey& posKey = nodeAnim->mPositionKeys[keyIdx];
+            animData->PositionKeyFrames[keyIdx].time = posKey.mTime;
+            animData->PositionKeyFrames[keyIdx].value.x = posKey.mValue.x;
+            animData->PositionKeyFrames[keyIdx].value.y = posKey.mValue.y;
+            animData->PositionKeyFrames[keyIdx].value.z = posKey.mValue.z;
+        }
+
+        for (int keyIdx = 0; keyIdx < numRotationKeys; keyIdx++)
+        {
+            const aiQuatKey& rotKey = nodeAnim->mRotationKeys[keyIdx];
+            animData->RotationKeyFrames[keyIdx].time = rotKey.mTime;
+            animData->RotationKeyFrames[keyIdx].value.x = rotKey.mValue.x;
+            animData->RotationKeyFrames[keyIdx].value.y = rotKey.mValue.y;
+            animData->RotationKeyFrames[keyIdx].value.z = rotKey.mValue.z;
+            animData->RotationKeyFrames[keyIdx].value.w = rotKey.mValue.w;
+        }
+
+        for (int keyIdx = 0; keyIdx < numScalingKeys; keyIdx++)
+        {
+            const aiVectorKey& scaleKey = nodeAnim->mScalingKeys[keyIdx];
+            animData->ScaleKeyFrames[keyIdx].time = scaleKey.mTime;
+            animData->ScaleKeyFrames[keyIdx].value.x = scaleKey.mValue.x;
+            animData->ScaleKeyFrames[keyIdx].value.y = scaleKey.mValue.y;
+            animData->ScaleKeyFrames[keyIdx].value.z = scaleKey.mValue.z;
+        }
+    }
+
+    characterAnimation.BoneHierarchy = boneHierarchy;
+    animationManager->LoadCharacterAnimation(characterAnimation.Name, characterAnimation);
+
+    printf("- Done!\n");
+}
+
+BoneNode* CreateNodeHierarchy(aiNode* node, int depth = 0) {
+    BoneNode* newNode = new BoneNode();
+    newNode->name = node->mName.C_Str();
+    CastToGLM(node->mTransformation, newNode->transformation);
+
+    for (int i = 0; i < depth; i++)
+        printf(" ");
+    printf("%s (%d)\n", newNode->name.c_str(), node->mNumChildren);
+
+
+    glm::vec3 globalScale, globalTranslation, ignore3;
+    glm::vec4 ignore4;
+    glm::quat globalOrientation;
+    
+    bool success = glm::decompose(newNode->transformation, globalScale, globalOrientation, globalTranslation, ignore3, ignore4);
+
+    printf("  NodeTransformation:\n");
+    printf("    Position: (%.4f, %.4f, %.4f)\n", globalTranslation.x, globalTranslation.y, globalTranslation.z);
+    printf("    Scale: (%.4f, %.4f, %.4f)\n", globalScale.x, globalScale.y, globalScale.z);
+    printf("    Rotation: (%.4f, %.4f, %.4f, %.4f)\n", globalOrientation.x, globalOrientation.y, globalOrientation.z, globalOrientation.w);
+    printf("\n");
+
+    //const aiMatrix4x4& m = node->mTransformation;
+    //printf("%.2f %.2f %.2f %.2f, %.2f %.2f %.2f %.2f, %.2f %.2f %.2f %.2f, %.2f %.2f %.2f %.2f\n",
+    //    m.a1, m.b1, m.c1, m.d1, m.a2, m.b2, m.c2, m.d2, m.a3, m.b3, m.c3, m.d3, m.a4, m.b4, m.c4, m.d4);
+
+    std::vector<aiNode*> children;
+
+    for (int i = 0; i < node->mNumChildren; i++)
+    {
+        children.push_back(node->mChildren[i]);
+
+        BoneNode* childNode = CreateNodeHierarchy(node->mChildren[i], depth + 1);
+        newNode->AddChild(childNode);
+    }
+
+    return newNode;
+}
+
+void LoadFBXAnimationFile(std::string& animationName, const std::string& filename)
+{
+    unsigned int Flags = aiProcess_Triangulate
+        | aiProcess_JoinIdenticalVertices;
+    const aiScene* scene = g_Importer.ReadFile(filename, Flags);
+
+    printf("GDP_LoadFBXFile: %s\n", filename.c_str());
+
+    // Create our Bone Hierarchy
+    BoneHierarchy* boneHierarchy = new BoneHierarchy();
+
+    // Node hierarchy for rendering
+    boneHierarchy->root = CreateNodeHierarchy(scene->mRootNode);
+    CastToGLM(scene->mRootNode->mTransformation, boneHierarchy->globalInverseTransform);
+    boneHierarchy->globalInverseTransform = glm::inverse(boneHierarchy->globalInverseTransform);
+
+    if (scene->HasMeshes())
+    {
+        CharacterAnimationData animationData(scene);
+
+        unsigned int numAnimations = scene->mNumAnimations;
+        printf("-Loading %d animations!\n", numAnimations);
+        for (int i = 0; i < numAnimations; i++)
+        {
+            aiAnimation* animation = scene->mAnimations[i];
+
+            animationName = animation->mName.C_Str();
+            LoadAssimpAnimation(animationData, animation, boneHierarchy);
+        }
+    }
+
+    printf("Done loading FBX file!\n");
 }
 
 int main(int argc, char* argv[]) {
@@ -2113,6 +2272,9 @@ int main(int argc, char* argv[]) {
         gameUi.iniciatingUI();
 
         g_GraphicScene.PrepareScene();
+        std::string animationName;
+        LoadFBXAnimationFile(animationName, MainCharANIMATION1);
+        g_GraphicScene.mAnimationName = animationName;
 
         // Setting the lights
         lightning(g_GraphicScene.shaderID);
