@@ -105,6 +105,8 @@ const char* MainCharANIMATION2 = "assets/models/animation/MutantWalking.fbx";
 const char* MainCharTEXTURE1 = "Mutant_diffuse.bmp";
 const char* MainCharTEXTURE2 = "Mutant_normal.bmp";
 
+map<std::string, std::string> modelMap;
+
 // Call back signatures here
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
 
@@ -1863,6 +1865,11 @@ void DrawingTheScene() {
                         getData.maxMana,
                         getData.villager,
                         getData.level);
+
+                    std::string meshPath = modelMap.find(mainChar->mVillager)->second;
+                    mainChar->meshName = meshPath;
+                    mainChar->textures[0] = mainChar->mVillager + "_diffuse.bmp";
+                    mainChar->textures[1] = mainChar->mVillager + "_normal.bmp";
                 }
             }
 
@@ -2246,6 +2253,11 @@ int main(int argc, char* argv[]) {
     networkManager->Start();
 
     animationManager = new AnimationManager();
+
+    modelMap.insert(std::make_pair("Mutant", "assets/models/animation/Mutant.fbx"));
+    modelMap.insert(std::make_pair("Archer", "assets/models/animation/Archer.fbx"));
+    modelMap.insert(std::make_pair("Warrior", "assets/models/animation/Warrior.fbx"));
+    modelMap.insert(std::make_pair("Ninja", "assets/models/animation/Ninja.fbx"));
 
     PhysicsInitialization();
     MazeInitialization();

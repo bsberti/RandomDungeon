@@ -206,6 +206,11 @@ int GraphicScene::PrepareScene() {
     pVAOManager->loadModel("assets/models/animation/MutantIdle.fbx");
     pVAOManager->loadModel("assets/models/animation/MutantWalking.fbx");
 
+    pVAOManager->loadModel("assets/models/animation/MainChar.fbx");
+    pVAOManager->loadModel("assets/models/animation/Ninja.fbx");
+    pVAOManager->loadModel("assets/models/animation/Warrior.fbx");
+    pVAOManager->loadModel("assets/models/animation/Archer.fbx");
+
 }
 
 
@@ -612,7 +617,45 @@ void GraphicScene::LoadTextures() {
     else {
         std::cout << "texture loaded" << std::endl;
     }
-    
+
+    if (!g_pTextureManager->Create2DTextureFromBMPFile("Ninja_diffuse.bmp")) {
+        std::cout << "Didn't load texture" << std::endl;
+    }
+    else {
+        std::cout << "texture loaded" << std::endl;
+    }
+    if (!g_pTextureManager->Create2DTextureFromBMPFile("Ninja_normal.bmp")) {
+        std::cout << "Didn't load texture" << std::endl;
+    }
+    else {
+        std::cout << "texture loaded" << std::endl;
+    }
+
+    if (!g_pTextureManager->Create2DTextureFromBMPFile("Archer_diffuse.bmp")) {
+        std::cout << "Didn't load texture" << std::endl;
+    }
+    else {
+        std::cout << "texture loaded" << std::endl;
+    }
+    if (!g_pTextureManager->Create2DTextureFromBMPFile("Archer_normal.bmp")) {
+        std::cout << "Didn't load texture" << std::endl;
+    }
+    else {
+        std::cout << "texture loaded" << std::endl;
+    }
+
+    if (!g_pTextureManager->Create2DTextureFromBMPFile("Warrior_diffuse.bmp")) {
+        std::cout << "Didn't load texture" << std::endl;
+    }
+    else {
+        std::cout << "texture loaded" << std::endl;
+    }
+    if (!g_pTextureManager->Create2DTextureFromBMPFile("Warrior_normal.bmp")) {
+        std::cout << "Didn't load texture" << std::endl;
+    }
+    else {
+        std::cout << "texture loaded" << std::endl;
+    }
     
     // Load a skybox
     // Here's an example of the various sides: http://www.3dcpptutorials.sk/obrazky/cube_map.jpg
