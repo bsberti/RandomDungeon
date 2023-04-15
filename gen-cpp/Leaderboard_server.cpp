@@ -98,17 +98,24 @@ public:
 		// Your implementation goes here
 		printf("getTop20\n");
 	}
-
-	bool login(const std::string& email, const std::string& password, bool& newLogin) {
+	
+	void login(LoginResult& _return, const std::string& email, const std::string& password) {
 		bool isNewLogin = false;
-
-		if (SQLiteHelper->Login(email, password, isNewLogin)) {
-
-			newLogin = isNewLogin;
-			return true;
+		int32_t userID;
+		if (SQLiteHelper->Login(email, password, isNewLogin, userID) == 1) {
+			_return.playerId = userID;
+			if (isNewLogin) {
+				// If it IS a new Login, return 1;
+				_return.result = 1;
+			}
+			else {
+				// If it ISN'T a new Login, return 2;
+				_return.result = 2;
+			}
 		}
-
-		return false;
+		else {
+			_return.result = 0;
+		}
 	}
 
 	bool createAccount(const std::string& email, const std::string& hashedPassword, const std::string& salt) {

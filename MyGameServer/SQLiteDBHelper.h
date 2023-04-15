@@ -59,7 +59,7 @@ public:
 	void ConnectToDB(const char* dbName);
 
 	void ExecuteQuery(const char* sql);
-	bool Login(std::string email, std::string password, bool& newLogin);
+	int Login(std::string email, std::string password, bool& newLogin, int32_t& userID);
 	bool UpdateUser(std::string userID, bool& newLogin);
 	bool CreateAccount(std::string email, 
 		std::string hashedPassword, std::string salt);

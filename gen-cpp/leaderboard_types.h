@@ -17,6 +17,57 @@
 
 
 
+typedef struct _LoginResult__isset {
+  _LoginResult__isset() : result(false), playerId(false) {}
+  bool result;
+  bool playerId;
+} _LoginResult__isset;
+
+class LoginResult {
+ public:
+
+  static const char* ascii_fingerprint; // = "989D1F1AE8D148D5E2119FFEC4BBBEE3";
+  static const uint8_t binary_fingerprint[16]; // = {0x98,0x9D,0x1F,0x1A,0xE8,0xD1,0x48,0xD5,0xE2,0x11,0x9F,0xFE,0xC4,0xBB,0xBE,0xE3};
+
+  LoginResult() : result(0), playerId(0) {
+  }
+
+  virtual ~LoginResult() throw() {}
+
+  int32_t result;
+  int32_t playerId;
+
+  _LoginResult__isset __isset;
+
+  void __set_result(const int32_t val) {
+    result = val;
+  }
+
+  void __set_playerId(const int32_t val) {
+    playerId = val;
+  }
+
+  bool operator == (const LoginResult & rhs) const
+  {
+    if (!(result == rhs.result))
+      return false;
+    if (!(playerId == rhs.playerId))
+      return false;
+    return true;
+  }
+  bool operator != (const LoginResult &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const LoginResult & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+void swap(LoginResult &a, LoginResult &b);
+
 typedef struct _UserProperties__isset {
   _UserProperties__isset() : userID(false), date(false), strengh(false), magicPower(false), agility(false), maxHealth(false), maxMana(false), villager(false), level(false) {}
   bool userID;

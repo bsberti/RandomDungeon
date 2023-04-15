@@ -17,7 +17,7 @@ class LeaderboardIf {
   virtual ~LeaderboardIf() {}
   virtual void setHighScore(const int32_t playerId, const int32_t highScore) = 0;
   virtual void getTop20(std::map<int32_t, int32_t> & _return) = 0;
-  virtual bool login(const std::string& email, const std::string& password, bool& newLogin) = 0;
+  virtual void login(LoginResult& _return, const std::string& email, const std::string& password) = 0;
   virtual bool createAccount(const std::string& email, const std::string& hashedPassword, const std::string& salt) = 0;
   virtual void getUserProperties(UserProperties& _return, const int32_t playerId) = 0;
   virtual void setUserProperties(const UserProperties& userPropertiesPacket) = 0;
@@ -56,9 +56,8 @@ class LeaderboardNull : virtual public LeaderboardIf {
   void getTop20(std::map<int32_t, int32_t> & /* _return */) {
     return;
   }
-  bool login(const std::string& /* email */, const std::string& /* password */, const bool /* newLogin */) {
-    bool _return = false;
-    return _return;
+  void login(LoginResult& /* _return */, const std::string& /* email */, const std::string& /* password */) {
+    return;
   }
   bool createAccount(const std::string& /* email */, const std::string& /* hashedPassword */, const std::string& /* salt */) {
     bool _return = false;
@@ -227,23 +226,21 @@ class Leaderboard_getTop20_presult {
 };
 
 typedef struct _Leaderboard_login_args__isset {
-  _Leaderboard_login_args__isset() : email(false), password(false), newLogin(false) {}
+  _Leaderboard_login_args__isset() : email(false), password(false) {}
   bool email;
   bool password;
-  bool newLogin;
 } _Leaderboard_login_args__isset;
 
 class Leaderboard_login_args {
  public:
 
-  Leaderboard_login_args() : email(), password(), newLogin(0) {
+  Leaderboard_login_args() : email(), password() {
   }
 
   virtual ~Leaderboard_login_args() throw() {}
 
   std::string email;
   std::string password;
-  bool newLogin;
 
   _Leaderboard_login_args__isset __isset;
 
@@ -255,17 +252,11 @@ class Leaderboard_login_args {
     password = val;
   }
 
-  void __set_newLogin(const bool val) {
-    newLogin = val;
-  }
-
   bool operator == (const Leaderboard_login_args & rhs) const
   {
     if (!(email == rhs.email))
       return false;
     if (!(password == rhs.password))
-      return false;
-    if (!(newLogin == rhs.newLogin))
       return false;
     return true;
   }
@@ -289,7 +280,6 @@ class Leaderboard_login_pargs {
 
   const std::string* email;
   const std::string* password;
-  const bool* newLogin;
 
   uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
 
@@ -303,16 +293,16 @@ typedef struct _Leaderboard_login_result__isset {
 class Leaderboard_login_result {
  public:
 
-  Leaderboard_login_result() : success(0) {
+  Leaderboard_login_result() {
   }
 
   virtual ~Leaderboard_login_result() throw() {}
 
-  bool success;
+  LoginResult success;
 
   _Leaderboard_login_result__isset __isset;
 
-  void __set_success(const bool val) {
+  void __set_success(const LoginResult& val) {
     success = val;
   }
 
@@ -344,7 +334,7 @@ class Leaderboard_login_presult {
 
   virtual ~Leaderboard_login_presult() throw() {}
 
-  bool* success;
+  LoginResult* success;
 
   _Leaderboard_login_presult__isset __isset;
 
@@ -662,9 +652,9 @@ class LeaderboardClient : virtual public LeaderboardIf {
   void getTop20(std::map<int32_t, int32_t> & _return);
   void send_getTop20();
   void recv_getTop20(std::map<int32_t, int32_t> & _return);
-  bool login(const std::string& email, const std::string& password, bool& newLogin);
-  void send_login(const std::string& email, const std::string& password, const bool newLogin);
-  bool recv_login();
+  void login(LoginResult& _return, const std::string& email, const std::string& password);
+  void send_login(const std::string& email, const std::string& password);
+  void recv_login(LoginResult& _return);
   bool createAccount(const std::string& email, const std::string& hashedPassword, const std::string& salt);
   void send_createAccount(const std::string& email, const std::string& hashedPassword, const std::string& salt);
   bool recv_createAccount();
@@ -750,13 +740,14 @@ class LeaderboardMultiface : virtual public LeaderboardIf {
     return;
   }
 
-  bool login(const std::string& email, const std::string& password, bool& newLogin) {
+  void login(LoginResult& _return, const std::string& email, const std::string& password) {
     size_t sz = ifaces_.size();
     size_t i = 0;
     for (; i < (sz - 1); ++i) {
-      ifaces_[i]->login(email, password, newLogin);
+      ifaces_[i]->login(_return, email, password);
     }
-    return ifaces_[i]->login(email, password, newLogin);
+    ifaces_[i]->login(_return, email, password);
+    return;
   }
 
   bool createAccount(const std::string& email, const std::string& hashedPassword, const std::string& salt) {

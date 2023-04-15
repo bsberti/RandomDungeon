@@ -245,10 +245,10 @@ bool SQLiteDBHelper::CreateUser(std::string userID) {
 	return true;
 }
 
-bool SQLiteDBHelper::Login(std::string email, std::string password, bool& newLogin) {
+int SQLiteDBHelper::Login(std::string email, std::string password, bool& newLogin, int32_t& userID) {
 	if (!m_IsConnected) {
 		printf("SQLiteDBHelper::Login: not connected to a DB\n");
-		return false;
+		return 0;
 	}
 
 	bool isNewLogin = false;
@@ -259,7 +259,7 @@ bool SQLiteDBHelper::Login(std::string email, std::string password, bool& newLog
 	int result = sqlite3_exec(m_DB, query.c_str(), ResultCallbackWebAuth, &resultList, &errorMsg);
 	if (result != SQLITE_OK) {
 		printf("Failed to execute our query with erro code: %d!\n", result);
-		return false;
+		return 0;
 	}
 
 	if (resultList.size() == 1) {
@@ -279,21 +279,22 @@ bool SQLiteDBHelper::Login(std::string email, std::string password, bool& newLog
 			// Login successfull
 			if (UpdateUser(resultList[0].id, isNewLogin)) {
 				newLogin = isNewLogin;
-				return true;
+				userID = atoi(resultList[0].id.c_str());
+				return 1;
 			}
 			else {
 				printf("Invalid Credentials!\n");
-				return false;
+				return 0;
 			}
 		}
 		else {
 			printf("Invalid Credentials!\n");
-			return false;
+			return 0;
 		}
 	}
 	else {
 		printf("Invalid Credentials!\n");
-		return false;
+		return 0;
 	}
 }
 

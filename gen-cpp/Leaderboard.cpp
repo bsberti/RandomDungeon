@@ -306,14 +306,6 @@ uint32_t Leaderboard_login_args::read(::apache::thrift::protocol::TProtocol* ipr
           xfer += iprot->skip(ftype);
         }
         break;
-      case 3:
-        if (ftype == ::apache::thrift::protocol::T_BOOL) {
-          xfer += iprot->readBool(this->newLogin);
-          this->__isset.newLogin = true;
-        } else {
-          xfer += iprot->skip(ftype);
-        }
-        break;
       default:
         xfer += iprot->skip(ftype);
         break;
@@ -338,10 +330,6 @@ uint32_t Leaderboard_login_args::write(::apache::thrift::protocol::TProtocol* op
   xfer += oprot->writeString(this->password);
   xfer += oprot->writeFieldEnd();
 
-  xfer += oprot->writeFieldBegin("newLogin", ::apache::thrift::protocol::T_BOOL, 3);
-  xfer += oprot->writeBool(this->newLogin);
-  xfer += oprot->writeFieldEnd();
-
   xfer += oprot->writeFieldStop();
   xfer += oprot->writeStructEnd();
   return xfer;
@@ -357,10 +345,6 @@ uint32_t Leaderboard_login_pargs::write(::apache::thrift::protocol::TProtocol* o
 
   xfer += oprot->writeFieldBegin("password", ::apache::thrift::protocol::T_STRING, 2);
   xfer += oprot->writeString((*(this->password)));
-  xfer += oprot->writeFieldEnd();
-
-  xfer += oprot->writeFieldBegin("newLogin", ::apache::thrift::protocol::T_BOOL, 3);
-  xfer += oprot->writeBool((*(this->newLogin)));
   xfer += oprot->writeFieldEnd();
 
   xfer += oprot->writeFieldStop();
@@ -389,8 +373,8 @@ uint32_t Leaderboard_login_result::read(::apache::thrift::protocol::TProtocol* i
     switch (fid)
     {
       case 0:
-        if (ftype == ::apache::thrift::protocol::T_BOOL) {
-          xfer += iprot->readBool(this->success);
+        if (ftype == ::apache::thrift::protocol::T_STRUCT) {
+          xfer += this->success.read(iprot);
           this->__isset.success = true;
         } else {
           xfer += iprot->skip(ftype);
@@ -415,8 +399,8 @@ uint32_t Leaderboard_login_result::write(::apache::thrift::protocol::TProtocol* 
   xfer += oprot->writeStructBegin("Leaderboard_login_result");
 
   if (this->__isset.success) {
-    xfer += oprot->writeFieldBegin("success", ::apache::thrift::protocol::T_BOOL, 0);
-    xfer += oprot->writeBool(this->success);
+    xfer += oprot->writeFieldBegin("success", ::apache::thrift::protocol::T_STRUCT, 0);
+    xfer += this->success.write(oprot);
     xfer += oprot->writeFieldEnd();
   }
   xfer += oprot->writeFieldStop();
@@ -445,8 +429,8 @@ uint32_t Leaderboard_login_presult::read(::apache::thrift::protocol::TProtocol* 
     switch (fid)
     {
       case 0:
-        if (ftype == ::apache::thrift::protocol::T_BOOL) {
-          xfer += iprot->readBool((*(this->success)));
+        if (ftype == ::apache::thrift::protocol::T_STRUCT) {
+          xfer += (*(this->success)).read(iprot);
           this->__isset.success = true;
         } else {
           xfer += iprot->skip(ftype);
@@ -963,13 +947,13 @@ void LeaderboardClient::recv_getTop20(std::map<int32_t, int32_t> & _return)
   throw ::apache::thrift::TApplicationException(::apache::thrift::TApplicationException::MISSING_RESULT, "getTop20 failed: unknown result");
 }
 
-bool LeaderboardClient::login(const std::string& email, const std::string& password, bool& newLogin)
+void LeaderboardClient::login(LoginResult& _return, const std::string& email, const std::string& password)
 {
-  send_login(email, password, newLogin);
-  return recv_login();
+  send_login(email, password);
+  recv_login(_return);
 }
 
-void LeaderboardClient::send_login(const std::string& email, const std::string& password, const bool newLogin)
+void LeaderboardClient::send_login(const std::string& email, const std::string& password)
 {
   int32_t cseqid = 0;
   oprot_->writeMessageBegin("login", ::apache::thrift::protocol::T_CALL, cseqid);
@@ -977,7 +961,6 @@ void LeaderboardClient::send_login(const std::string& email, const std::string& 
   Leaderboard_login_pargs args;
   args.email = &email;
   args.password = &password;
-  args.newLogin = &newLogin;
   args.write(oprot_);
 
   oprot_->writeMessageEnd();
@@ -985,7 +968,7 @@ void LeaderboardClient::send_login(const std::string& email, const std::string& 
   oprot_->getTransport()->flush();
 }
 
-bool LeaderboardClient::recv_login()
+void LeaderboardClient::recv_login(LoginResult& _return)
 {
 
   int32_t rseqid = 0;
@@ -1010,7 +993,6 @@ bool LeaderboardClient::recv_login()
     iprot_->readMessageEnd();
     iprot_->getTransport()->readEnd();
   }
-  bool _return;
   Leaderboard_login_presult result;
   result.success = &_return;
   result.read(iprot_);
@@ -1018,7 +1000,8 @@ bool LeaderboardClient::recv_login()
   iprot_->getTransport()->readEnd();
 
   if (result.__isset.success) {
-    return _return;
+    // _return pointer has now been filled
+    return;
   }
   throw ::apache::thrift::TApplicationException(::apache::thrift::TApplicationException::MISSING_RESULT, "login failed: unknown result");
 }
@@ -1293,7 +1276,7 @@ void LeaderboardProcessor::process_login(int32_t seqid, ::apache::thrift::protoc
 
   Leaderboard_login_result result;
   try {
-    result.success = iface_->login(args.email, args.password, args.newLogin);
+    iface_->login(result.success, args.email, args.password);
     result.__isset.success = true;
   } catch (const std::exception& e) {
     if (this->eventHandler_.get() != NULL) {

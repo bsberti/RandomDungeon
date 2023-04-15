@@ -19,14 +19,24 @@ public:
     void setHighScore(const int32_t playerId, const int32_t highScore) { client_.setHighScore(playerId, highScore); }
     void getTop20(std::map<int32_t, int32_t>& top20) { client_.getTop20(top20); }
 
-    bool login(std::string email, std::string password, bool& newLogin) {
-        bool isNewLogin = false;
-        if (client_.login(email, password, isNewLogin)) {
-            newLogin = isNewLogin;
+    bool login(std::string email, std::string password, bool& newLogin, int& playerID) {
+        LoginResult result;
+
+        client_.login(result, email, password);
+
+        if (result.result != 0) {
+            playerID = result.playerId;
+            if (result.result == 1) {
+                newLogin = true;
+            }
+            else if (result.result == 2) {
+                newLogin = false;
+            }
             return true;
         }
-        else
+        else {
             return false;
+        }
     }
 
     bool createAccount(std::string email, std::string password) {

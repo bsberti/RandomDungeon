@@ -30,7 +30,7 @@ class LeaderboardHandler : virtual public LeaderboardIf {
     printf("getTop20\n");
   }
 
-  bool login(const std::string& email, const std::string& password, const bool newLogin) {
+  void login(LoginResult& _return, const std::string& email, const std::string& password) {
     // Your implementation goes here
     printf("login\n");
   }

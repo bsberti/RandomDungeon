@@ -1849,22 +1849,31 @@ void DrawingTheScene() {
             int breakPoint = 1;
             if (gameUi.login_attempted) {
                 bool isNewLogin = false;
-                if (networkManager->login(gameUi.g_username, gameUi.g_password, isNewLogin)) {
+                int currentPlayerID;
+                if (networkManager->login(gameUi.g_username, gameUi.g_password, isNewLogin, currentPlayerID)) {
                     gameUi.newLogin = isNewLogin;
                     gameUi.login_successful = true;
 
-                    UserProperties getData;
-                    //TO-DO: Change userId to one property retrived from login
-                    networkManager->getUserProperties(8, getData);
-                    mainChar->SetCharacterInfo(getData.userID,
-                        std::to_string(getData.date),
-                        getData.strengh,
-                        getData.magicPower,
-                        getData.agility,
-                        getData.maxHealth,
-                        getData.maxMana,
-                        getData.villager,
-                        getData.level);
+                    if (!gameUi.newLogin) {
+                        UserProperties getData;
+                        //TO-DO: Change userId to one property retrived from login
+                        networkManager->getUserProperties(currentPlayerID, getData);
+                        mainChar->SetCharacterInfo(getData.userID,
+                            std::to_string(getData.date),
+                            getData.strengh,
+                            getData.magicPower,
+                            getData.agility,
+                            getData.maxHealth,
+                            getData.maxMana,
+                            getData.villager,
+                            getData.level);
+                    }
+                    else {
+                        //TO-DO Randomize Villager and status
+                        UserProperties setData;
+
+                        networkManager->setUserProperties(setData);
+                    }
 
                     std::string meshPath = modelMap.find(mainChar->mVillager)->second;
                     mainChar->meshName = meshPath;

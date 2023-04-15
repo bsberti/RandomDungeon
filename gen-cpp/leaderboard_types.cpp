@@ -10,6 +10,81 @@
 
 
 
+const char* LoginResult::ascii_fingerprint = "989D1F1AE8D148D5E2119FFEC4BBBEE3";
+const uint8_t LoginResult::binary_fingerprint[16] = {0x98,0x9D,0x1F,0x1A,0xE8,0xD1,0x48,0xD5,0xE2,0x11,0x9F,0xFE,0xC4,0xBB,0xBE,0xE3};
+
+uint32_t LoginResult::read(::apache::thrift::protocol::TProtocol* iprot) {
+
+  uint32_t xfer = 0;
+  std::string fname;
+  ::apache::thrift::protocol::TType ftype;
+  int16_t fid;
+
+  xfer += iprot->readStructBegin(fname);
+
+  using ::apache::thrift::protocol::TProtocolException;
+
+
+  while (true)
+  {
+    xfer += iprot->readFieldBegin(fname, ftype, fid);
+    if (ftype == ::apache::thrift::protocol::T_STOP) {
+      break;
+    }
+    switch (fid)
+    {
+      case 1:
+        if (ftype == ::apache::thrift::protocol::T_I32) {
+          xfer += iprot->readI32(this->result);
+          this->__isset.result = true;
+        } else {
+          xfer += iprot->skip(ftype);
+        }
+        break;
+      case 2:
+        if (ftype == ::apache::thrift::protocol::T_I32) {
+          xfer += iprot->readI32(this->playerId);
+          this->__isset.playerId = true;
+        } else {
+          xfer += iprot->skip(ftype);
+        }
+        break;
+      default:
+        xfer += iprot->skip(ftype);
+        break;
+    }
+    xfer += iprot->readFieldEnd();
+  }
+
+  xfer += iprot->readStructEnd();
+
+  return xfer;
+}
+
+uint32_t LoginResult::write(::apache::thrift::protocol::TProtocol* oprot) const {
+  uint32_t xfer = 0;
+  xfer += oprot->writeStructBegin("LoginResult");
+
+  xfer += oprot->writeFieldBegin("result", ::apache::thrift::protocol::T_I32, 1);
+  xfer += oprot->writeI32(this->result);
+  xfer += oprot->writeFieldEnd();
+
+  xfer += oprot->writeFieldBegin("playerId", ::apache::thrift::protocol::T_I32, 2);
+  xfer += oprot->writeI32(this->playerId);
+  xfer += oprot->writeFieldEnd();
+
+  xfer += oprot->writeFieldStop();
+  xfer += oprot->writeStructEnd();
+  return xfer;
+}
+
+void swap(LoginResult &a, LoginResult &b) {
+  using ::std::swap;
+  swap(a.result, b.result);
+  swap(a.playerId, b.playerId);
+  swap(a.__isset, b.__isset);
+}
+
 const char* UserProperties::ascii_fingerprint = "C779C700B6D3727CDEBBA15EDD3C2ECA";
 const uint8_t UserProperties::binary_fingerprint[16] = {0xC7,0x79,0xC7,0x00,0xB6,0xD3,0x72,0x7C,0xDE,0xBB,0xA1,0x5E,0xDD,0x3C,0x2E,0xCA};
 
