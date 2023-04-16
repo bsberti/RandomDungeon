@@ -1854,10 +1854,10 @@ void DrawingTheScene() {
                     gameUi.newLogin = isNewLogin;
                     gameUi.login_successful = true;
 
+                    UserProperties getData;
+                    networkManager->getUserProperties(currentPlayerID, getData);
+
                     if (!gameUi.newLogin) {
-                        UserProperties getData;
-                        //TO-DO: Change userId to one property retrived from login
-                        networkManager->getUserProperties(currentPlayerID, getData);
                         mainChar->SetCharacterInfo(getData.userID,
                             std::to_string(getData.date),
                             getData.strengh,
@@ -1869,10 +1869,61 @@ void DrawingTheScene() {
                             getData.level);
                     }
                     else {
-                        //TO-DO Randomize Villager and status
                         UserProperties setData;
 
+                        //User ID stays the same
+                        setData.userID = currentPlayerID;
+
+                        //Date can be the same
+                        setData.date = getData.date;
+
+                        //Strengh 1-99
+                        int newStrengh = 1 + (rand() * 98);
+                        setData.strengh = newStrengh;
+
+                        //Magic Power 1-99
+                        int newMagicPower = 1 + (rand() * 98);
+                        setData.magicPower = newMagicPower;
+
+                        //Agility 1-99
+                        int newAgility = 1 + (rand() * 98);
+                        setData.agility = newAgility;
+
+                        //Max Health 50-300
+                        int newMaxHealth = 50 + (rand() * 250);
+                        setData.maxHealth = newMaxHealth;
+
+                        //Max Mana 10-150
+                        int newMaxMana = 10 + (rand() * 140);
+                        setData.maxMana = newMaxMana;
+
+                        //Group of possible villagers (meshes)
+                        std::vector<std::string> vec_Villagers;
+                        vec_Villagers.push_back("Ninja");
+                        vec_Villagers.push_back("Warrior");
+                        vec_Villagers.push_back("Mutant");
+                        vec_Villagers.push_back("Archer");
+
+                        std::string newVillager;
+                        do {
+                            newVillager = vec_Villagers[rand() * 4];
+                        } while (newVillager == getData.villager);
+                        setData.villager = newVillager;
+
+                        //Level continues the same
+                        setData.level = getData.level;
+
                         networkManager->setUserProperties(setData);
+
+                        mainChar->SetCharacterInfo(setData.userID,
+                            std::to_string(setData.date),
+                            setData.strengh,
+                            setData.magicPower,
+                            setData.agility,
+                            setData.maxHealth,
+                            setData.maxMana,
+                            setData.villager,
+                            setData.level);
                     }
 
                     std::string meshPath = modelMap.find(mainChar->mVillager)->second;

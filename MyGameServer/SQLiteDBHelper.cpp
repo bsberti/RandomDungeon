@@ -183,20 +183,11 @@ void SQLiteDBHelper::ExecuteQuery(const char* sql) {
 }
 
 bool SQLiteDBHelper::UpdateUser(std::string userID, bool& newLogin) {
-	std::string query =
-		"UPDATE users SET last_login = DATETIME('now', 'localtime') WHERE id = '" + userID + "';";
+	std::string query = "SELECT * FROM users WHERE id = '" + userID + "';";
 
 	char* errorMsg;
 	std::vector<UsersResultSet> resultList;
-
 	int result = sqlite3_exec(m_DB, query.c_str(), ResultCallbackUsers, &resultList, &errorMsg);
-	if (result != SQLITE_OK) {
-		printf("Failed to execute our query with erro code: %d!\n", result);
-		return false;
-	}
-
-	query = "SELECT * FROM users WHERE id = '" + userID + "';";
-	result = sqlite3_exec(m_DB, query.c_str(), ResultCallbackUsers, &resultList, &errorMsg);
 	if (result != SQLITE_OK) {
 		printf("Failed to execute our query with erro code: %d!\n", result);
 		return false;
@@ -218,8 +209,17 @@ bool SQLiteDBHelper::UpdateUser(std::string userID, bool& newLogin) {
 
 		if (currentDate == dbDate)
 			newLogin = false;
-		else
+		else {
 			newLogin = true;
+
+			query = "UPDATE users SET last_login = DATETIME('now', 'localtime') WHERE id = '" + userID + "';";
+
+			result = sqlite3_exec(m_DB, query.c_str(), ResultCallbackUsers, &resultList, &errorMsg);
+			if (result != SQLITE_OK) {
+				printf("Failed to execute our query with erro code: %d!\n", result);
+				return false;
+			}
+		}
 
 		return true;
 	}
