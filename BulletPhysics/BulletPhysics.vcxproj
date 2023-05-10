@@ -19,6 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="physics\bullet\CharacterController.cpp" />
     <ClCompile Include="physics\bullet\CheckGLError.cpp" />
     <ClCompile Include="physics\bullet\Conversion.cpp" />
     <ClCompile Include="physics\bullet\DebugDrawer.cpp" />
@@ -28,6 +29,7 @@
     <ClCompile Include="physics\bullet\SoftBody.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="physics\bullet\CharacterController.h" />
     <ClInclude Include="physics\bullet\CheckGLError.h" />
     <ClInclude Include="physics\bullet\Conversion.h" />
     <ClInclude Include="physics\bullet\DebugDrawer.h" />

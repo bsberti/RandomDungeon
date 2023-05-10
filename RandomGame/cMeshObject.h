@@ -19,6 +19,8 @@
 #include "Animation.h"
 #include "BoneHierarchy.h"
 
+struct Node;
+
 struct GameObjectBoneData {
 	glm::vec3 Position;
 	glm::vec3 Scale;
@@ -95,12 +97,23 @@ public:
 	std::string textures[8];
 	float textureRatios[8];
 
+	// Character Controler
+	float directionX;
+	float directionZ;
+	bool isMovingForward;
+	bool isTurningLeft;
+	bool isTurningRight;
+	glm::vec3 direction;
+
 	// Behold properties
 	bool dead;
+	bool seeking;
+	bool away;
+	bool moving;
 	unsigned int currentI;
 	unsigned int currentJ;
-	unsigned int moving;
 	unsigned int rotating;
+	std::vector<Node*> seekingPath;
 
 	// Animation properties
 	float CurrentTime;

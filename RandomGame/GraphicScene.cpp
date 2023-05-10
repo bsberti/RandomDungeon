@@ -210,6 +210,7 @@ int GraphicScene::PrepareScene() {
     pVAOManager->loadModel("assets/models/animation/Ninja.fbx");
     pVAOManager->loadModel("assets/models/animation/Warrior.fbx");
     pVAOManager->loadModel("assets/models/animation/Archer.fbx");
+    pVAOManager->loadModel("assets/models/animation/Monk.fbx");
 
 }
 
@@ -345,11 +346,11 @@ void GraphicScene::DrawScene(GLFWwindow* window, glm::vec3 g_cameraEye, glm::vec
             pVAOManager, mModel_location, mModelInverseTransform_location);
     }
 
-    for (std::map< std::string, cMeshObject*>::iterator itBeholds =
-        map_beholds->begin(); itBeholds != map_beholds->end();
+    for (std::vector<cMeshObject*>::iterator itBeholds =
+        map_beholds.begin(); itBeholds != map_beholds.end();
         itBeholds++) 
     {
-        cMeshObject* pCurrentMeshObject = itBeholds->second;
+        cMeshObject* pCurrentMeshObject = *itBeholds;
 
         if (!pCurrentMeshObject->bIsVisible)
             continue;
@@ -477,11 +478,11 @@ void GraphicScene::DrawMapView(GLFWwindow* window, glm::vec3 g_cameraEye, glm::v
             pVAOManager, mModel_location, mModelInverseTransform_location);
     }
 
-    for (std::map< std::string, cMeshObject*>::iterator itBeholds =
-        map_beholds->begin(); itBeholds != map_beholds->end();
+    for (std::vector<cMeshObject*>::iterator itBeholds =
+        map_beholds.begin(); itBeholds != map_beholds.end();
         itBeholds++)
     {
-        cMeshObject* pCurrentMeshObject = itBeholds->second;
+        cMeshObject* pCurrentMeshObject = *itBeholds;
 
         if (!pCurrentMeshObject->bIsVisible)
             continue;
@@ -651,6 +652,19 @@ void GraphicScene::LoadTextures() {
         std::cout << "texture loaded" << std::endl;
     }
     if (!g_pTextureManager->Create2DTextureFromBMPFile("Warrior_normal.bmp")) {
+        std::cout << "Didn't load texture" << std::endl;
+    }
+    else {
+        std::cout << "texture loaded" << std::endl;
+    }
+
+    if (!g_pTextureManager->Create2DTextureFromBMPFile("Monk_diffuse.bmp")) {
+        std::cout << "Didn't load texture" << std::endl;
+    }
+    else {
+        std::cout << "texture loaded" << std::endl;
+    }
+    if (!g_pTextureManager->Create2DTextureFromBMPFile("Monk_normal.bmp")) {
         std::cout << "Didn't load texture" << std::endl;
     }
     else {

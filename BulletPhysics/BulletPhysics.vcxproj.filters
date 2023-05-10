@@ -42,6 +42,9 @@
     <ClCompile Include="physics\bullet\DebugDrawer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="physics\bullet\CharacterController.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="physics\bullet\PhysicsFactory.h">
@@ -63,6 +66,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="physics\bullet\DebugDrawer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="physics\bullet\CharacterController.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

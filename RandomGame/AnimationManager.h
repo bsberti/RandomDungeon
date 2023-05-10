@@ -14,6 +14,7 @@ public:
 	~AnimationManager();
 
 	bool LoadAnimation(const std::string& name, AnimationData animation);
+	void RemoveAnimation(const std::string& name);
 	bool LoadCharacterAnimation(const std::string& name, CharacterAnimationData animation);
 	void Update(const std::vector<cMeshObject*>& gameObjects, float dt);
 

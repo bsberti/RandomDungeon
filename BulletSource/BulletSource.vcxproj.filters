@@ -519,6 +519,12 @@
     <ClInclude Include="..\external\bullet3\src\extern\bullet\BulletCollision\CollisionDispatch\SphereTriangleDetector.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\external\bullet3\src\extern\bullet\BulletDynamics\Character\btCharacterControllerInterface.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\external\bullet3\src\extern\bullet\BulletDynamics\Character\btKinematicCharacterController.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\external\bullet3\src\extern\bullet\LinearMath\btAlignedAllocator.cpp">
@@ -879,6 +885,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\external\bullet3\src\extern\bullet\BulletCollision\CollisionDispatch\SphereTriangleDetector.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\external\bullet3\src\extern\bullet\BulletDynamics\Character\btKinematicCharacterController.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

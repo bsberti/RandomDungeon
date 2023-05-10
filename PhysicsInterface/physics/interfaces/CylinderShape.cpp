@@ -3,7 +3,7 @@
 namespace physics
 {
 	CylinderShape::CylinderShape(const Vector3& halfExtents)
-		: iShape(ShapeType::Cylinder)
+		: iConvexShape(ShapeType::Cylinder)
 		, m_HalfExtents(halfExtents)
 	{ }
 

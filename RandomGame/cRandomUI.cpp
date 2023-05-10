@@ -299,10 +299,10 @@ void cRandomUI::render(GraphicScene& scene, FModManager* fmod, std::vector<cLigh
 
     ImGui::Text("BEHOLDS");
     const char* listbox_beholds[3];
-    for (std::map< std::string, cMeshObject*>::iterator itBeholds =
-        scene.map_beholds->begin(); itBeholds != scene.map_beholds->end();
+    for (std::vector<cMeshObject*>::iterator itBeholds =
+        scene.map_beholds.begin(); itBeholds != scene.map_beholds.end();
         itBeholds++) {
-        cMeshObject* currentBehold = itBeholds->second;
+        cMeshObject* currentBehold = *itBeholds;
         vecBeholds.push_back(currentBehold);
     }
 

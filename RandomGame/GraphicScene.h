@@ -68,7 +68,8 @@ public:
 	std::vector<physics::iRigidBody*> vec_pWalls;
 	int drawFog;
 
-	std::map<std::string, cMeshObject*>* map_beholds;
+	//std::map<std::string, cMeshObject*>* map_beholds;
+	std::vector<cMeshObject*> map_beholds;
 
 	std::vector<glm::vec3> trianglesCenter;
 

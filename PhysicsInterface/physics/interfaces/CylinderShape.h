@@ -5,7 +5,7 @@
 
 namespace physics
 {
-	class CylinderShape : public iShape
+	class CylinderShape : public iConvexShape
 	{
 	public:
 		CylinderShape(const Vector3& halfExtents);
@@ -17,11 +17,11 @@ namespace physics
 
 	protected:
 		CylinderShape(ShapeType shapeType)
-			: iShape(shapeType) {}
+			: iConvexShape(shapeType) {}
 
 	private:
 		Vector3 m_HalfExtents;
-		CylinderShape(const CylinderShape&) : iShape(ShapeType::Cylinder) {}
+		CylinderShape(const CylinderShape&) : iConvexShape(ShapeType::Cylinder) {}
 		CylinderShape& operator=(const CylinderShape&) {
 			return *this;
 		}

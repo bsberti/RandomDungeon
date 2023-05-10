@@ -141,7 +141,9 @@
   <ItemGroup>
     <ClInclude Include="physics\interfaces\BodyType.h" />
     <ClInclude Include="physics\interfaces\BoxShape.h" />
+    <ClInclude Include="physics\interfaces\CapsuleShape.h" />
     <ClInclude Include="physics\interfaces\CylinderShape.h" />
+    <ClInclude Include="physics\interfaces\iCharacterController.h" />
     <ClInclude Include="physics\interfaces\iCollisionBody.h" />
     <ClInclude Include="physics\interfaces\iPhysicsFactory.h" />
     <ClInclude Include="physics\interfaces\iPhysicsWorld.h" />
@@ -157,6 +159,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="physics\interfaces\BoxShape.cpp" />
+    <ClCompile Include="physics\interfaces\CapsuleShape.cpp" />
     <ClCompile Include="physics\interfaces\CylinderShape.cpp" />
     <ClCompile Include="physics\interfaces\PlaneShape.cpp" />
     <ClCompile Include="physics\interfaces\SphereShape.cpp" />

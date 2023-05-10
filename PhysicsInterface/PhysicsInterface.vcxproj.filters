@@ -15,51 +15,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="GdpPhysics\interfaces\iRigidBody.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="GdpPhysics\interfaces\iPhysicsWorld.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="GdpPhysics\interfaces\Math.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="GdpPhysics\interfaces\iPhysicsFactory.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="GdpPhysics\interfaces\iShape.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="GdpPhysics\interfaces\ShapeType.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="GdpPhysics\interfaces\SphereShape.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="GdpPhysics\interfaces\BoxShape.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="GdpPhysics\interfaces\CylinderShape.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="GdpPhysics\interfaces\PlaneShape.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="GdpPhysics\interfaces\RigidBodyDesc.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="GdpPhysics\interfaces\iSoftBody.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="GdpPhysics\interfaces\SoftBodyDesc.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="GdpPhysics\interfaces\iCollisionBody.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="GdpPhysics\interfaces\BodyType.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="physics\interfaces\BodyType.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -105,20 +60,14 @@
     <ClInclude Include="physics\interfaces\SphereShape.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="physics\interfaces\iCharacterController.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="physics\interfaces\CapsuleShape.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="GdpPhysics\interfaces\SphereShape.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="GdpPhysics\interfaces\BoxShape.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="GdpPhysics\interfaces\CylinderShape.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="GdpPhysics\interfaces\PlaneShape.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="physics\interfaces\BoxShape.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -129,6 +78,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="physics\interfaces\SphereShape.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="physics\interfaces\CapsuleShape.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

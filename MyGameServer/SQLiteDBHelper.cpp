@@ -412,8 +412,23 @@ bool SQLiteDBHelper::SetUserProperties(userPropertiesResultSet data) {
 		}
 	}
 	else {
-		printf("Failed to retrieve database information with userID: %d", data.userID);
-		return false;
+		printf("userID: %d not found. Inserting!", data.userID);
+
+		sql = "INSERT INTO user_properties (userID, date, strengh, magic_power, agility, max_health, max_mana, villager, level) VALUES (" + 
+			std::to_string(data.userID) + ", julianday('now', 'localtime'), " +
+			std::to_string(data.strengh) + ", " +
+			std::to_string(data.magicPower) + ", " +
+			std::to_string(data.agility) + ", " +
+			std::to_string(data.max_health) + ", " +
+			std::to_string(data.max_mana) + ", '" +
+			data.villager + "', " +
+			std::to_string(data.level) + "); ";
+
+		result = sqlite3_exec(m_DB, sql.c_str(), ResultCallbackUsers, &resultList, &errorMsg);
+		if (result != SQLITE_OK) {
+			printf("Failed to execute our query with erro code: %d!\n", result);
+			return false;
+		}
 	}
 
 	return true;

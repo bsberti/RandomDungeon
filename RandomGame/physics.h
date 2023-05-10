@@ -9,6 +9,8 @@
 #include <physics\interfaces\SphereShape.h>
 #include <physics\interfaces\PlaneShape.h>
 #include <physics\interfaces\BoxShape.h>
+#include <physics\interfaces\CapsuleShape.h>
+#include <physics\interfaces\iCharacterController.h>
 
 #define Bullet_Physics
 

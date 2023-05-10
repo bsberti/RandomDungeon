@@ -1,12 +1,16 @@
 #include "Conversion.h"
 
+// Shapes
 #include <physics/interfaces/iShape.h>
 #include <physics/interfaces/BoxShape.h>
 #include <physics/interfaces/SphereShape.h>
 #include <physics/interfaces/PlaneShape.h>
 #include <physics/interfaces/CylinderShape.h>
+#include <physics/interfaces/CapsuleShape.h>
 
+// Bodies
 #include "RigidBody.h"
+#include "CharacterController.h"
 
 namespace physics
 {
@@ -158,6 +162,41 @@ namespace physics
 		}
 
 		return NULL;
+	}
+
+	btConvexShape* CastBulletConvexShape(iConvexShape* shape)
+	{
+		switch (shape->GetShapeType())
+		{
+		case ShapeType::Capsule:
+		{
+			CapsuleShape* capsule = CapsuleShape::Cast(shape);
+
+			btScalar radius;
+			btScalar height;
+
+			CastBulletScalar(capsule->GetRadius(), &radius);
+			CastBulletScalar(capsule->GetHeight(), &height);
+
+			btCapsuleShape* btCapsule = new btCapsuleShape(radius, height);
+
+			return btCapsule;
+		}
+		break;
+
+		default:
+			// Not a valid shape
+			assert(0);
+			break;
+		}
+
+		return nullptr;
+	}
+
+	btCharacterControllerInterface* CastBulletCharacterController(
+		iCharacterController* characterController)
+	{
+		return dynamic_cast<CharacterController*>(characterController)->GetBulletCharacterController();
 	}
 
 	btRigidBody* CastBulletRigidBody(iCollisionBody* body)

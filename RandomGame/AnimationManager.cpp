@@ -103,62 +103,111 @@ void AnimationManager::Update(const std::vector<cMeshObject*>& gameObjects, floa
 		{
 			Animation& animation = go->Animation;
 			std::map<std::string, AnimationData>::iterator itFind = m_Animations.find(go->Animation.AnimationType);
-			const AnimationData& animationData = itFind->second;
+			
+			if (go->moving && !go->dead && itFind != m_Animations.end()) {
+				const AnimationData& animationData = itFind->second;
 
-			if (itFind != m_Animations.end())
-			{
-				if (animation.IsPlaying && animation.Speed != 0.0f)
+				if (itFind != m_Animations.end())
 				{
-					animation.AnimationTime += dt * animation.Speed;
-					if (animation.AnimationTime > animationData.Duration)
+					if (animation.IsPlaying && animation.Speed != 0.0f)
 					{
-						if (animation.IsLooping)
+						animation.AnimationTime += dt * animation.Speed;
+						if (animation.AnimationTime > animationData.Duration)
 						{
-							if (animation.Speed > 0)
+							if (animation.IsLooping)
 							{
-								animation.AnimationTime = 0.0f;
+								if (animation.Speed > 0)
+								{
+									animation.AnimationTime = 0.0f;
+								}
+								else
+								{
+									animation.AnimationTime = animationData.Duration;
+								}
 							}
 							else
 							{
 								animation.AnimationTime = animationData.Duration;
+								animation.IsPlaying = false;
+								go->moving = false;
+								go->seeking = false;
 							}
-						}
-						else
-						{
-							animation.AnimationTime = animationData.Duration;
-							animation.IsPlaying = false;
-						}
 
-					}
-					else if (animation.AnimationTime < 0.f)
-					{
-						if (animation.IsLooping)
+						}
+						else if (animation.AnimationTime < 0.f)
 						{
-							if (animation.Speed < 0)
+							if (animation.IsLooping)
 							{
-								animation.AnimationTime = animationData.Duration;
+								if (animation.Speed < 0)
+								{
+									animation.AnimationTime = animationData.Duration;
+								}
+								else
+								{
+									animation.AnimationTime = 0.f;
+								}
 							}
 							else
 							{
 								animation.AnimationTime = 0.f;
+								animation.IsPlaying = false;
+								go->moving = false;
+								go->seeking = false;
 							}
 						}
-						else
-						{
-							animation.AnimationTime = 0.f;
-							animation.IsPlaying = false;
+					}
+
+					if (animation.AnimationTime == animationData.Duration)
+						int breakpoint = 5;
+
+					// Controlling one "node"/"bone".
+					if (animation.IsPlaying) {
+						AnimationData currentData = itFind->second;
+						if (currentData.PositionKeyFrames.size() > 0) {
+							glm::vec3 newPosition = GetAnimationPosition(itFind->second, animation.AnimationTime);
+							
+							if (newPosition.x < go->position.x) { // Going WEST
+								go->rotation = glm::vec3(0.0f, 1.575f, 0.0f);
+							}
+
+							if (newPosition.x > go->position.x) { // Going EAST
+								go->rotation = glm::vec3(0.0f, -1.575f, 0.0f);
+							}
+
+							if (newPosition.z < go->position.z) { // Going NORTH
+								go->rotation = glm::vec3(0.0f, 0.0, 0.0f);
+							}
+
+							if (newPosition.z > go->position.z) { // Going SOUTH
+								go->rotation = glm::vec3(0.0f, 1.575f * 2, 0.0f);
+							}
+
+							go->position = newPosition;
+						}
+
+						if (currentData.ScaleKeyFrames.size() > 0)
+							go->scaleXYZ = GetAnimationScale(itFind->second, animation.AnimationTime);
+
+						if (currentData.RotationKeyFrames.size() > 0) {
+							glm::quat newRotation = GetAnimationRotation(itFind->second, animation.AnimationTime);
+							//go->rotation.x = newRotation.x;
+							//go->rotation.y = newRotation.y;
+							//go->rotation.z = newRotation.z;
 						}
 					}
-				}
 
-				// Controlling one "node"/"bone".
-				go->position = GetAnimationPosition(itFind->second, animation.AnimationTime);
-				go->scaleXYZ = GetAnimationScale(itFind->second, animation.AnimationTime);
-				go->qRotation = GetAnimationRotation(itFind->second, animation.AnimationTime);
+					if (go->seeking) {
+						go->bUse_RGBA_colour = true;
+						go->RGBA_colour = glm::vec4(1.0, 0.0, 0.0, 1.0);
+					}
+					else {
+						go->bUse_RGBA_colour = false;
+					}
 #ifdef PRINT_DEBUG_INFO
-				//printf("Position: %.2f, %.2f, %.2f\n", go->Position.x, go->Position.y, go->Position.z);
-				//printf("Scale: %.2f, %.2f, %.2f\n", go->Scale.x, go->Scale.y, go->Scale.z);
+					//printf("Position: %.2f, %.2f, %.2f\n", go->Position.x, go->Position.y, go->Position.z);
+					//printf("Scale: %.2f, %.2f, %.2f\n", go->Scale.x, go->Scale.y, go->Scale.z);
 #endif
+				}
 			}
 		}
 	}
@@ -230,7 +279,7 @@ void AnimationManager::UpdateBoneHierarchy(BoneNode* node, CharacterAnimationDat
 		glm::mat4 rotationMatrix = glm::mat4_cast(rotation);
 		glm::mat4 scaleMatrix = glm::scale(glm::mat4(1.0f), scale);
 
-		//transformationMatrix = translationMatrix * rotationMatrix * scaleMatrix;
+		transformationMatrix = translationMatrix * rotationMatrix * scaleMatrix;
 
 		//printf("  Local Transformation:\n");
 		//printf("    Position: (%.4f, %.4f, %.4f)\n", position.x, position.y, position.z);
@@ -283,6 +332,20 @@ bool AnimationManager::LoadAnimation(const std::string& name, AnimationData anim
 	m_Animations.insert(std::pair<std::string, AnimationData>(name, animation));
 
 	return true;
+}
+
+void AnimationManager::RemoveAnimation(const std::string& name)
+{
+	std::map<std::string, AnimationData>::iterator itFind = m_Animations.find(name);
+	if (itFind == m_Animations.end())
+	{
+#ifdef PRINT_DEBUG_INFO
+		printf("Animation not added with this name!\n");
+#endif
+		return;
+	}
+
+	m_Animations.erase(name);
 }
 
 bool AnimationManager::LoadCharacterAnimation(const std::string& name, CharacterAnimationData animation)

@@ -99,6 +99,7 @@ public:
 	bool readFile(std::string filePath);
 
 	void BitmapReading();
+	void NodeGridInitialization();
 
 	std::string getRandomValidPosition();
 	bool checkValidPosition(int i, int j);
@@ -108,4 +109,6 @@ public:
 	void cleanPairs();
 
 	std::vector<Node*> AStar();
+	std::vector<Node*> AStarEnemy(Node* currentStartNode);
+	void CleanNodePath(std::vector<Node*> nodePath);
 };

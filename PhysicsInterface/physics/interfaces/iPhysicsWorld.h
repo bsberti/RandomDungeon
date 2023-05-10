@@ -2,6 +2,7 @@
 
 #include "Math.h"
 #include "iCollisionBody.h"
+#include "iCharacterController.h"
 
 namespace physics
 {
@@ -25,6 +26,9 @@ namespace physics
 
 		virtual void AddBody(iCollisionBody* body) = 0;
 		virtual void RemoveBody(iCollisionBody* body) = 0;
+
+		virtual void AddCharacterController(iCharacterController* characterController) = 0;
+		virtual void RemoveCharacterController(iCharacterController* characterController) = 0;
 
 		virtual void TimeStep(float dt) = 0;
 

@@ -240,6 +240,8 @@
     <ClInclude Include="..\external\bullet3\src\extern\bullet\BulletCollision\NarrowPhaseCollision\btSimplexSolverInterface.h" />
     <ClInclude Include="..\external\bullet3\src\extern\bullet\BulletCollision\NarrowPhaseCollision\btSubSimplexConvexCast.h" />
     <ClInclude Include="..\external\bullet3\src\extern\bullet\BulletCollision\NarrowPhaseCollision\btVoronoiSimplexSolver.h" />
+    <ClInclude Include="..\external\bullet3\src\extern\bullet\BulletDynamics\Character\btCharacterControllerInterface.h" />
+    <ClInclude Include="..\external\bullet3\src\extern\bullet\BulletDynamics\Character\btKinematicCharacterController.h" />
     <ClInclude Include="..\external\bullet3\src\extern\bullet\BulletDynamics\ConstraintSolver\btBatchedConstraints.h" />
     <ClInclude Include="..\external\bullet3\src\extern\bullet\BulletDynamics\ConstraintSolver\btConeTwistConstraint.h" />
     <ClInclude Include="..\external\bullet3\src\extern\bullet\BulletDynamics\ConstraintSolver\btConstraintSolver.h" />
@@ -391,6 +393,7 @@
     <ClCompile Include="..\external\bullet3\src\extern\bullet\BulletCollision\NarrowPhaseCollision\btRaycastCallback.cpp" />
     <ClCompile Include="..\external\bullet3\src\extern\bullet\BulletCollision\NarrowPhaseCollision\btSubSimplexConvexCast.cpp" />
     <ClCompile Include="..\external\bullet3\src\extern\bullet\BulletCollision\NarrowPhaseCollision\btVoronoiSimplexSolver.cpp" />
+    <ClCompile Include="..\external\bullet3\src\extern\bullet\BulletDynamics\Character\btKinematicCharacterController.cpp" />
     <ClCompile Include="..\external\bullet3\src\extern\bullet\BulletDynamics\ConstraintSolver\btBatchedConstraints.cpp" />
     <ClCompile Include="..\external\bullet3\src\extern\bullet\BulletDynamics\ConstraintSolver\btConeTwistConstraint.cpp" />
     <ClCompile Include="..\external\bullet3\src\extern\bullet\BulletDynamics\ConstraintSolver\btContactConstraint.cpp" />

@@ -21,7 +21,37 @@ namespace physics
 	private:
 		ShapeType m_ShapeType;
 
-		iShape(const iShape&) {}
+		iShape(const iShape&) = delete;
 		iShape& operator=(const iShape&) {}
+	};
+
+	class iConvexShape : public iShape
+	{
+	public:
+		virtual ~iConvexShape() {}
+
+	protected:
+		iConvexShape(ShapeType shapeType)
+			: iShape(shapeType)
+		{ }
+
+	private:
+		iConvexShape(const iConvexShape&) = delete;
+		iConvexShape& operator=(const iConvexShape&) {}
+	};
+
+	class iConcaveShape : public iShape
+	{
+	public:
+		virtual ~iConcaveShape() {}
+
+	protected:
+		iConcaveShape(ShapeType shapeType)
+			: iShape(shapeType)
+		{ }
+
+	private:
+		iConcaveShape(const iConcaveShape&) = delete;
+		iConcaveShape& operator=(const iConcaveShape&) {}
 	};
 }

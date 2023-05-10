@@ -22,11 +22,15 @@ namespace physics
 		virtual void AddBody(iCollisionBody* body) override;
 		virtual void RemoveBody(iCollisionBody* body) override;
 
+		virtual void AddCharacterController(iCharacterController* characterController) override;
+		virtual void RemoveCharacterController(iCharacterController* characterController) override;
+
 		virtual void TimeStep(float dt) override;
 
 		virtual void DebugDraw() override;
 		virtual void RegisterCollisionListener(iCollisionListener* listener) override {}
-
+		
+		btDiscreteDynamicsWorld* GetDynamicsWorld() { return m_DynamicsWorld; }
 	private:
 		btDefaultCollisionConfiguration* m_CollisionConfiguration;
 		btCollisionDispatcher* m_Dispatcher;

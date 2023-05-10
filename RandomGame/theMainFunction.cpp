@@ -1,13 +1,5 @@
-//#include "../gen-cpp/Leaderboard.h"
-//
-//#include <thrift/transport/TSocket.h>
-//#include <thrift/transport/TServerSocket.h>
-//#include <thrift/transport/TBufferTransports.h>
-//#include <thrift/protocol/TBinaryProtocol.h>
-
 #include "NetworkManager.h"
 
-//#include "globalOpenGL.h"
 #include "globalThings.h"
 
 #include <glm/gtx/matrix_decompose.hpp>
@@ -41,12 +33,17 @@
 physics::iPhysicsFactory* physicsFactory;
 physics::iPhysicsWorld* world;
 physics::iCollisionListener* collisionListener;
+physics::iCharacterController* g_CharController;
+physics::iConvexShape* capsule;
+// Get the ghost object associated with the character controller
+//btPairCachingGhostObject* ghostObject;
 
 // Camera GLOBAL Variables
 glm::vec3 g_cameraEye = glm::vec3(0.0f, 0.0f, 0.0f);
 glm::vec3 g_cameraTarget = glm::vec3(0.0f, 0.0f, 0.0f);
 glm::vec3 g_MapCameraEye = glm::vec3(0.0f, 0.0f, 0.0f);
 glm::vec3 g_MapCameraTarget = glm::vec3(0.0f, 0.0f, 0.0f);
+glm::vec3 cameraOffset = glm::vec3(0.f, 100.f, 60.f);
 
 GraphicScene g_GraphicScene;
 cLuaBrain* pBrain;
@@ -57,7 +54,7 @@ FMOD::Channel* _channel;
 constexpr int max_channels = 255;
 GLFWwindow* window;
 float NinetyDegrees = 1.575f;
-std::map< std::string, cMeshObject*>::iterator itBeholdsToFollow;
+std::vector<cMeshObject*>::iterator itBeholdsToFollow;
 std::vector<Node*> vec_AStarPath;
 
 FModManager* fmod_manager;
@@ -67,15 +64,20 @@ Assimp::Importer g_Importer;
 
 // GLOBAL DEFINITIONS
 #define NUMBER_OF_TAGS 10
-#define MAP_WIDTH 100
-#define MAP_HEIGHT 100
-#define BEHOLDERS_NUMBER 100
+#define MAP_WIDTH 20
+#define MAP_HEIGHT 20
+#define BEHOLDERS_NUMBER 3
 #define GLOBAL_MAP_OFFSET 50
 #define SMALLEST_DISTANCE 0.1
 #define CAMERA_OFFSET 50.0
 #define MAIN_CHAR_JSON_INFO "MainCharacter.json"
 #define NUM_THREADS 64
 #define NUM_ELEMENTS_TO_INIT 10000
+#define FPS 10
+#define SEEKING_FPS 5
+#define ENEMY_DISTANCE 200.f
+#define FORCE 2.f
+#define MOVE_SPEED 0.15f 
 
 // Beholder GLOBAL Variables
 cMeshObject* currentBehold;
@@ -102,6 +104,7 @@ std::string errorMessage;
 
 const char* MainCharANIMATION1 = "assets/models/animation/MutantIdle.fbx";
 const char* MainCharANIMATION2 = "assets/models/animation/MutantWalking.fbx";
+const char* WalkingANIMATION = "assets/models/animation/Walking.fbx";
 const char* MainCharTEXTURE1 = "Mutant_diffuse.bmp";
 const char* MainCharTEXTURE2 = "Mutant_normal.bmp";
 
@@ -879,7 +882,7 @@ void creatingModels() {
                         beholder->currentI = i;
                         beholder->currentJ = j;
 
-                        g_GraphicScene.map_beholds->try_emplace(beholderName, beholder);
+                        //g_GraphicScene.map_beholds->try_emplace(beholderName, beholder);
                     }
 
                     // Creating some Walls! Depending on the adjacents tiles
@@ -1202,8 +1205,18 @@ bool calculateNextPosition(cMeshObject* currentBehold, glm::vec3& nextPosition, 
     std::string eastString = "";
     std::string southString = "";
 
-    unsigned int i = currentBehold->currentI;
-    unsigned int j = currentBehold->currentJ;
+    //unsigned int i = currentBehold->currentI;
+    //unsigned int j = currentBehold->currentJ;
+
+    unsigned int i = (std::ceil(currentBehold->position.z) + (GLOBAL_MAP_OFFSET / 2)) / GLOBAL_MAP_OFFSET;
+    unsigned int j = (std::ceil(currentBehold->position.x) + (GLOBAL_MAP_OFFSET / 2)) / GLOBAL_MAP_OFFSET;
+    currentBehold->currentI = i;
+    currentBehold->currentJ = j;
+
+    //float enemyPosX = (j * GLOBAL_MAP_OFFSET) - (GLOBAL_MAP_OFFSET / 2);
+    //float enemyPosZ = (i * GLOBAL_MAP_OFFSET) - (GLOBAL_MAP_OFFSET / 2);
+    //currentBehold->position.x = enemyPosX;
+    //currentBehold->position.z = enemyPosZ;
 
     if (i > 0) northString = m_blocksLoader->g_blockMap->at(i - 1).at(j);
     if (j > 0) westString = m_blocksLoader->g_blockMap->at(i).at(j - 1);
@@ -1213,39 +1226,40 @@ bool calculateNextPosition(cMeshObject* currentBehold, glm::vec3& nextPosition, 
     glm::vec3 returnVec;
     returnVec = currentBehold->position;
 
-    for (std::map< std::string, cMeshObject*>::iterator itBeholds =
-        g_GraphicScene.map_beholds->begin(); itBeholds != g_GraphicScene.map_beholds->end();
-        itBeholds++) {
-        cMeshObject* cmBehold = itBeholds->second;
-        unsigned int cmBeholdID = cmBehold->getID();
-
-        if (cmBeholdID == currentBehold->getID()) continue;
-
-        // N = i - 1 and j
-        // NE = i - 1 and j + 1
-        // E = i and j + 1
-        // SE = i + 1 and j + 1
-        // S = i + 1 and j
-        // SW = j + 1 and j - 1
-        // W = i and j - 1
-        // NW = i - 1 and j - 1
-        std::string cmBeholdIJString = std::to_string(cmBehold->currentI) + "0" + std::to_string(cmBehold->currentJ);
-
-        std::string N = std::to_string(i - 1) + "0" + std::to_string(j);
-        std::string NE = std::to_string(i - 1) + "0" + std::to_string(j + 1);
-        std::string E = std::to_string(i) + "0" + std::to_string(j + 1);
-        std::string SE = std::to_string(i + 1) + "0" + std::to_string(j + 1);
-        std::string S = std::to_string(i + 1) + "0" + std::to_string(j);
-        std::string SW = std::to_string(i + 1) + "0" + std::to_string(j - 1);
-        std::string W = std::to_string(i) + "0" + std::to_string(j - 1);
-        std::string NW = std::to_string(i - 1) + "0" + std::to_string(j - 1);
-
-        if (cmBeholdIJString == N || cmBeholdIJString == NE || cmBeholdIJString == E || cmBeholdIJString == SE ||
-            cmBeholdIJString == S || cmBeholdIJString == SW || cmBeholdIJString == W || cmBeholdIJString == NW) {
-            // ATTACK!
-            return false;
-        }
-    }
+    //for (std::vector<cMeshObject*>::iterator itBeholds =
+    //    g_GraphicScene.map_beholds.begin(); itBeholds != g_GraphicScene.map_beholds.end();
+    //    itBeholds++)
+    //{
+    //    cMeshObject* cmBehold = *itBeholds;
+    //    unsigned int cmBeholdID = cmBehold->getID();
+    //
+    //    if (cmBeholdID == currentBehold->getID()) continue;
+    //
+    //    // N = i - 1 and j
+    //    // NE = i - 1 and j + 1
+    //    // E = i and j + 1
+    //    // SE = i + 1 and j + 1
+    //    // S = i + 1 and j
+    //    // SW = j + 1 and j - 1
+    //    // W = i and j - 1
+    //    // NW = i - 1 and j - 1
+    //    std::string cmBeholdIJString = std::to_string(cmBehold->currentI) + "0" + std::to_string(cmBehold->currentJ);
+    //
+    //    std::string N = std::to_string(i - 1) + "0" + std::to_string(j);
+    //    std::string NE = std::to_string(i - 1) + "0" + std::to_string(j + 1);
+    //    std::string E = std::to_string(i) + "0" + std::to_string(j + 1);
+    //    std::string SE = std::to_string(i + 1) + "0" + std::to_string(j + 1);
+    //    std::string S = std::to_string(i + 1) + "0" + std::to_string(j);
+    //    std::string SW = std::to_string(i + 1) + "0" + std::to_string(j - 1);
+    //    std::string W = std::to_string(i) + "0" + std::to_string(j - 1);
+    //    std::string NW = std::to_string(i - 1) + "0" + std::to_string(j - 1);
+    //
+    //    if (cmBeholdIJString == N || cmBeholdIJString == NE || cmBeholdIJString == E || cmBeholdIJString == SE ||
+    //        cmBeholdIJString == S || cmBeholdIJString == SW || cmBeholdIJString == W || cmBeholdIJString == NW) {
+    //        // ATTACK!
+    //        return false;
+    //    }
+    //}
 
     bool validPath = false;
     int newI = i;
@@ -1518,7 +1532,7 @@ void updateCurrentMazeView(int newI, int newJ) {
 
     float mainCharX = (newJ * GLOBAL_MAP_OFFSET) - (GLOBAL_MAP_OFFSET / 2);
     float mainCharZ = (newI * GLOBAL_MAP_OFFSET) - (GLOBAL_MAP_OFFSET / 2);
-    mainChar->position = glm::vec3(mainCharX, 50.f, mainCharZ);
+    mainChar->position = glm::vec3(mainCharX, 10.f, mainCharZ);
 
     planeFloor->position.x = mainChar->position.x;
     planeFloor->position.y = -5.f;
@@ -1548,6 +1562,15 @@ void PhysicsInitialization() {
     // Create Physics World
     world = physicsFactory->CreateWorld();
     world->SetGravity(physics::Vector3(0.0f, -981.0f, 0.0f));
+
+    float radius = 1.f;
+    float height = 3.f;
+    capsule = new physics::CapsuleShape(radius, height);
+    float stepHeight = 0.25f;
+    glm::vec3 up(0, 1, 0);
+    g_CharController = physicsFactory->CreateCharacterController(capsule, stepHeight, up);
+
+    world->AddCharacterController(g_CharController);
 
     // Create CollisionListener
     //collisionListener = physicsFactory->CreateCollisionListener();
@@ -1583,9 +1606,10 @@ void MazeInitialization() {
 
     theMM.PrintMaze();
 
-    g_GraphicScene.map_beholds = new std::map<std::string, cMeshObject*>();
+    //g_GraphicScene.map_beholds = new std::vector<cMeshObject*>();
 
     m_blocksLoader = new BlocksLoader(MAP_HEIGHT, MAP_WIDTH);
+    m_blocksLoader->NodeGridInitialization();
     //m_blocksLoader->BitmapReading();
 }
 
@@ -1673,11 +1697,18 @@ void BeholderCreation() {
     
         beholder->currentI = randomI;
         beholder->currentJ = randomJ;
+
+        beholder->Animation.AnimationType = beholder->friendlyName;
+        beholder->Enabled = true;
+        beholder->Animation.Speed = 0.1f;
+        beholder->seeking = false;
+        beholder->away = true;
     
-        g_GraphicScene.map_beholds->try_emplace(beholderName, beholder);
+        //g_GraphicScene.map_beholds->try_emplace(beholderName, beholder);
+        g_GraphicScene.map_beholds.push_back(beholder);
     }
 
-    itBeholdsToFollow = g_GraphicScene.map_beholds->begin();
+    itBeholdsToFollow = g_GraphicScene.map_beholds.begin();
 }
 
 void LuaScriptInitialization() {
@@ -1713,13 +1744,13 @@ void LuaScriptInitialization() {
     pBrain->RunScriptImmediately(moveScriptTowardsDestinationFUNCTION);
 
 
-    pBrain->SetObjectVector(g_GraphicScene.map_beholds);
+    //pBrain->SetObjectVector(g_GraphicScene.map_beholds);
 
-    for (std::map< std::string, cMeshObject*>::iterator itBeholds =
-        g_GraphicScene.map_beholds->begin(); itBeholds != g_GraphicScene.map_beholds->end();
+    for (std::vector<cMeshObject*>::iterator itBeholds =
+        g_GraphicScene.map_beholds.begin(); itBeholds != g_GraphicScene.map_beholds.end();
         itBeholds++)
     {
-        cMeshObject* currentBehold = itBeholds->second;
+        cMeshObject* currentBehold = *itBeholds;
         unsigned int currentBeholdID = currentBehold->getID();
 
         std::string currentBeholdNextTileXScript = "nextTileX" + std::to_string(currentBeholdID) + " = nil";
@@ -1768,7 +1799,7 @@ void MainCharInitialization() {
     mainChar->friendlyName = "MainChar";
     mainChar->meshName = MainCharANIMATION1;
     mainChar->Animation.AnimationType = g_GraphicScene.mAnimationName;
-    mainChar->SetUniformScale(0.3f);
+    mainChar->SetUniformScale(0.18f);
     mainChar->textures[0] = MainCharTEXTURE1;
     mainChar->textures[1] = MainCharTEXTURE2;
 
@@ -1878,23 +1909,23 @@ void DrawingTheScene() {
                         setData.date = getData.date;
 
                         //Strengh 1-99
-                        int newStrengh = 1 + (rand() * 98);
+                        int newStrengh = 1 + (rand() % 98);
                         setData.strengh = newStrengh;
 
                         //Magic Power 1-99
-                        int newMagicPower = 1 + (rand() * 98);
+                        int newMagicPower = 1 + (rand() % 98);
                         setData.magicPower = newMagicPower;
 
                         //Agility 1-99
-                        int newAgility = 1 + (rand() * 98);
+                        int newAgility = 1 + (rand() % 98);
                         setData.agility = newAgility;
 
                         //Max Health 50-300
-                        int newMaxHealth = 50 + (rand() * 250);
+                        int newMaxHealth = 50 + (rand() % 250);
                         setData.maxHealth = newMaxHealth;
 
                         //Max Mana 10-150
-                        int newMaxMana = 10 + (rand() * 140);
+                        int newMaxMana = 10 + (rand() % 140);
                         setData.maxMana = newMaxMana;
 
                         //Group of possible villagers (meshes)
@@ -1902,11 +1933,12 @@ void DrawingTheScene() {
                         vec_Villagers.push_back("Ninja");
                         vec_Villagers.push_back("Warrior");
                         vec_Villagers.push_back("Mutant");
-                        vec_Villagers.push_back("Archer");
+                        vec_Villagers.push_back("Monk");
+                        vec_Villagers.push_back("MainChar");
 
                         std::string newVillager;
                         do {
-                            newVillager = vec_Villagers[rand() * 4];
+                            newVillager = vec_Villagers[rand() % 5];
                         } while (newVillager == getData.villager);
                         setData.villager = newVillager;
 
@@ -1930,16 +1962,87 @@ void DrawingTheScene() {
                     mainChar->meshName = meshPath;
                     mainChar->textures[0] = mainChar->mVillager + "_diffuse.bmp";
                     mainChar->textures[1] = mainChar->mVillager + "_normal.bmp";
+
+                    g_CharController->Warp(mainChar->position);
                 }
             }
 
             if (gameUi.creation_attempted) {
                 if (networkManager->createAccount(gameUi.g_username, gameUi.g_password)) {
                     gameUi.creation_successful = true;
+
+                    bool isNewLogin = false;
+                    int currentPlayerID;
+                    if (networkManager->login(gameUi.g_username, gameUi.g_password, isNewLogin, currentPlayerID)) {
+                        gameUi.newLogin = isNewLogin;
+                        gameUi.login_successful = true;
+
+                        UserProperties setData;
+
+                        //User ID stays the same
+                        setData.userID = currentPlayerID;
+
+                        //Date can be the same
+                        setData.date = 0;
+
+                        //Strengh 1-99
+                        int newStrengh = 1 + (rand() % 98);
+                        setData.strengh = newStrengh;
+
+                        //Magic Power 1-99
+                        int newMagicPower = 1 + (rand() % 98);
+                        setData.magicPower = newMagicPower;
+
+                        //Agility 1-99
+                        int newAgility = 1 + (rand() % 98);
+                        setData.agility = newAgility;
+
+                        //Max Health 50-300
+                        int newMaxHealth = 50 + (rand() % 250);
+                        setData.maxHealth = newMaxHealth;
+
+                        //Max Mana 10-150
+                        int newMaxMana = 10 + (rand() % 140);
+                        setData.maxMana = newMaxMana;
+
+                        //Group of possible villagers (meshes)
+                        std::vector<std::string> vec_Villagers;
+                        vec_Villagers.push_back("Ninja");
+                        vec_Villagers.push_back("Warrior");
+                        vec_Villagers.push_back("Mutant");
+                        vec_Villagers.push_back("Monk");
+                        vec_Villagers.push_back("MainChar");
+
+                        std::string newVillager;
+                        newVillager = vec_Villagers[rand() % 5];
+                        setData.villager = newVillager;
+
+                        //Level continues the same
+                        setData.level = 1;
+
+                        networkManager->setUserProperties(setData);
+
+                        mainChar->SetCharacterInfo(setData.userID,
+                            std::to_string(setData.date),
+                            setData.strengh,
+                            setData.magicPower,
+                            setData.agility,
+                            setData.maxHealth,
+                            setData.maxMana,
+                            setData.villager,
+                            setData.level);
+
+                        std::string meshPath = modelMap.find(mainChar->mVillager)->second;
+                        mainChar->meshName = meshPath;
+                        mainChar->textures[0] = mainChar->mVillager + "_diffuse.bmp";
+                        mainChar->textures[1] = mainChar->mVillager + "_normal.bmp";
+
+                        g_CharController->Warp(mainChar->position);
+                    }
                 }
             }
-
         }
+
     }
     else {
         gameUi.render(g_GraphicScene, fmod_manager, g_pTheLightManager->vecTheLights);
@@ -1966,146 +2069,319 @@ void MapUpdate() {
     if (glm::distance(oldPosition, mainChar->position) > GLOBAL_MAP_OFFSET) {
         nextTileI = (mainChar->position.z + (GLOBAL_MAP_OFFSET / 2)) / GLOBAL_MAP_OFFSET;
         nextTileJ = (mainChar->position.x + (GLOBAL_MAP_OFFSET / 2)) / GLOBAL_MAP_OFFSET;
+        
+        m_blocksLoader->endNode = m_blocksLoader->nodeGrid->get_node(mainChar->currentI, mainChar->currentJ);
 
         updateCurrentMazeView(nextTileI, nextTileJ);
     }
 }
 
 void MeshPositionUpdate() {
-    physics::Vector3 newPositionVector;
-    mainChar->physicsBody->GetPosition(newPositionVector);
-    glm::vec3 newPosition = glm::vec3(newPositionVector.x, newPositionVector.y, newPositionVector.z);
-    mainChar->position = newPosition;
+    //physics::Vector3 newPositionVector;
+    //mainChar->physicsBody->GetPosition(newPositionVector);
+    //glm::vec3 newPosition = glm::vec3(newPositionVector.x, newPositionVector.y, newPositionVector.z);
+    
+    mainChar->directionX = 0.f;
+    mainChar->directionZ = 0.f;
 
+    if (mainChar->isMovingForward)
+    {
+        mainChar->directionX = sin(mainChar->rotation.y);
+        mainChar->directionZ = cos(mainChar->rotation.y);
+    }
+
+    if (mainChar->isTurningLeft)
+    {
+        mainChar->rotation.y += MOVE_SPEED;
+    }
+    else if (mainChar->isTurningRight)
+    {
+        mainChar->rotation.y -= MOVE_SPEED;
+    }
+
+    float directionMagnitude = sqrt(mainChar->directionX * mainChar->directionX + mainChar->directionZ * mainChar->directionZ);
+    if (directionMagnitude > 0.f)
+    {
+        mainChar->directionX /= directionMagnitude;
+        mainChar->directionZ /= directionMagnitude;
+        mainChar->direction = glm::vec3(mainChar->directionX * FORCE, 0.f, mainChar->directionZ * FORCE);
+    }
+    else
+    {
+        mainChar->direction = glm::vec3(0.f);
+    }
+
+    g_CharController->SetWalkDirection(mainChar->direction);
+
+    glm::vec3 newPosition;
+    newPosition = g_CharController->GetPosition();
+    mainChar->position = newPosition;
+    
     //animatedCharacter->position = mainChar->position;
 
-    glm::quat newRotation;
-    mainChar->physicsBody->GetRotation(newRotation);
-    mainChar->qRotation += newRotation;
+    //glm::quat newRotation;
+    //mainChar->physicsBody->GetRotation(newRotation);
+    //mainChar->qRotation += newRotation;
+}
+
+std::vector<Node*> CreateEnemyPath(cMeshObject* enemy) {
+
+    int enemyI;
+    int enemyJ;
+
+    enemyI = (enemy->position.z + (GLOBAL_MAP_OFFSET / 2)) / GLOBAL_MAP_OFFSET;
+    enemyJ = (enemy->position.x + (GLOBAL_MAP_OFFSET / 2)) / GLOBAL_MAP_OFFSET;
+
+    //float enemyPosX = (enemyJ * GLOBAL_MAP_OFFSET) - (GLOBAL_MAP_OFFSET / 2);
+    //float enemyPosZ = (enemyI * GLOBAL_MAP_OFFSET) - (GLOBAL_MAP_OFFSET / 2);
+
+    //enemy->position.x = enemyPosX;
+    //enemy->position.z = enemyPosZ;
+
+    Node* currentNode = m_blocksLoader->nodeGrid->get_node(enemyI, enemyJ);
+
+    m_blocksLoader->endNode = m_blocksLoader->nodeGrid->get_node(mainChar->currentI, mainChar->currentJ);
+
+    std::vector<Node*> returnVec = m_blocksLoader->AStarEnemy(currentNode);
+
+    if (returnVec.size() < 15) {
+        int breakpoint = 5;
+    }
+    return returnVec;
 }
 
 void BeholderBehaviourUpdate() {
-    for (std::map< std::string, cMeshObject*>::iterator itBeholds =
-            g_GraphicScene.map_beholds->begin(); itBeholds != g_GraphicScene.map_beholds->end();
+    for (std::vector<cMeshObject*>::iterator itBeholds =
+            g_GraphicScene.map_beholds.begin(); itBeholds != g_GraphicScene.map_beholds.end();
             itBeholds++) 
         {
-            cMeshObject* currentBehold = itBeholds->second;
+            cMeshObject* currentBehold = *itBeholds;
             unsigned int currentBeholdID = currentBehold->getID();
             int numTilesNext = 0;
         
-            if (currentBehold->moving == 0 && !currentBehold->dead) {
+            if (glm::distance(currentBehold->position, mainChar->position) < ENEMY_DISTANCE && !currentBehold->seeking) {
+
+                //std::cout << "Distance between player and Beholder '" << currentBehold->friendlyName <<
+                //    "' is > " << glm::distance(currentBehold->position, mainChar->position) << std::endl;
+
+                std::vector<Node*> vec_EnemyPath = CreateEnemyPath(currentBehold);
+                if (vec_EnemyPath.size() < 15 && vec_EnemyPath.size() > 0) {
+                    currentBehold->seekingPath = vec_EnemyPath;
+                    animationManager->RemoveAnimation(currentBehold->Animation.AnimationType);
+                    currentBehold->seeking = true;
+                    currentBehold->moving = true;
+
+                    AnimationData currentBeholdAnimDataSeek;
+
+                    Node* currentNode = new Node(0, 0);
+                    Node* oldNode = new Node(0, 0);
+                    float nextPositionStepX;
+                    float nextPositionStepZ;
+                    float invFPS = 1.f / SEEKING_FPS;
+                    glm::vec3 nextPosition;
+                    glm::vec3 oldPosition;
+                    int timeCount = 0;
+
+                    PositionKeyFrame currPKF;
+                    currPKF.value = glm::vec3(currentBehold->position.x, currentBehold->position.y, currentBehold->position.z);
+                    currPKF.time = timeCount;
+                    timeCount++;
+                    currentBeholdAnimDataSeek.PositionKeyFrames.push_back(currPKF);
+
+                    for (int i = 0; i < vec_EnemyPath.size(); i++) {
+
+                        if (i == 0) {
+                            oldNode = vec_EnemyPath[i];
+                        }
+
+                        if ((i + 1) < vec_EnemyPath.size()) {
+                            currentNode = vec_EnemyPath[i + 1];
+
+                            int diffI = currentNode->x - oldNode->x;
+                            int diffJ = currentNode->y - oldNode->y;
+
+                            if (i == 0) {
+                                nextPosition = glm::vec3(currentBehold->position.x + (diffJ * GLOBAL_MAP_OFFSET),
+                                    currentBehold->position.y,
+                                    currentBehold->position.z + (diffI * GLOBAL_MAP_OFFSET));
+
+                                nextPositionStepX = (nextPosition.x - currentBehold->position.x) * invFPS;
+                                nextPositionStepZ = (nextPosition.z - currentBehold->position.z) * invFPS;
+                            }
+                            else {
+                                nextPosition = glm::vec3(oldPosition.x + (diffJ * GLOBAL_MAP_OFFSET),
+                                    oldPosition.y,
+                                    oldPosition.z + (diffI * GLOBAL_MAP_OFFSET));
+
+                                nextPositionStepX = (nextPosition.x - oldPosition.x) * invFPS;
+                                nextPositionStepZ = (nextPosition.z - oldPosition.z) * invFPS;
+                            }
+
+
+                            for (int j = 1; j <= SEEKING_FPS; j++) {
+                                PositionKeyFrame nextPKF;
+                                if (i == 0) {
+                                    nextPKF.value = glm::vec3(currentBehold->position.x + (j * nextPositionStepX),
+                                        currentBehold->position.y,
+                                        currentBehold->position.z + (j * nextPositionStepZ));
+                                }
+                                else {
+                                    nextPKF.value = glm::vec3(oldPosition.x + (j * nextPositionStepX),
+                                        oldPosition.y,
+                                        oldPosition.z + (j * nextPositionStepZ));
+                                }
+                                nextPKF.time = timeCount;
+                                timeCount++;
+                                currentBeholdAnimDataSeek.PositionKeyFrames.push_back(nextPKF);
+                            }
+
+                            oldNode = currentNode;
+                            oldPosition = nextPosition;
+                        }
+                    }
+
+                    currentBehold->Animation.AnimationTime = 0.f;
+                    currentBehold->Animation.IsLooping = false;
+                    currentBehold->Animation.IsPlaying = true;
+
+                    currentBeholdAnimDataSeek.Duration = (vec_EnemyPath.size() - 1) * SEEKING_FPS;
+
+                    animationManager->LoadAnimation(currentBehold->friendlyName, currentBeholdAnimDataSeek);
+
+                    std::cout << " ----------------- BEHOLDER " << currentBehold->friendlyName << "-----------------" << std::endl;
+                    std::cout << " SEEKING path " << std::endl;
+                    for (int i = 0; i < vec_EnemyPath.size(); i++) {
+                        std::cout << ">> i: " << vec_EnemyPath[i]->x << " j: " << vec_EnemyPath[0]->y << std::endl;
+                    }
+
+                    int breakpoint = 1;
+                }
+            }
+
+            //else if (glm::distance(currentBehold->position, mainChar->position) > ENEMY_DISTANCE &&
+            //    currentBehold->seeking && currentBehold->moving) {
+
+            //    currentBehold->moving = false;
+            //    m_blocksLoader->CleanNodePath(currentBehold->seekingPath);
+            //    currentBehold->seekingPath.clear();
+            //}
+
+            if (!currentBehold->moving && !currentBehold->dead && !currentBehold->seeking) {
                 glm::vec3 nextPosition = glm::vec3(0.0f);
+                animationManager->RemoveAnimation(currentBehold->Animation.AnimationType);
+                
                 if (!calculateNextPosition(currentBehold, nextPosition, numTilesNext)) {
                     // Spin and reduce;
                     currentBehold->adjustRoationAngleFromEuler(glm::vec3(0.0f, 0.2f, 0.0f));
                     currentBehold->reduceFromScale(0.99f);
-                    if (currentBehold->scaleXYZ.x <= 0.01) {
-                        currentBehold->dead = true;
-                        std::cout << currentBehold->friendlyName << " is Dead :(" << std::endl;
-                    }
-                    continue;
+                    //if (currentBehold->scaleXYZ.x <= 0.01) {
+                    //    currentBehold->dead = true;
+                    //    std::cout << currentBehold->friendlyName << " is Dead :(" << std::endl;
+                    //}
+                    //continue;
                 }
-        
-                currentBehold->moving = 1;
+
+                std::cout << " ----------------- BEHOLDER " << currentBehold->friendlyName << "-----------------" << std::endl;
+                std::cout << " NEW Destination (x: " << nextPosition.x << ", z: " << nextPosition.z << ")" << std::endl;
+
+                AnimationData currentBeholdAnimData;
+                currentBehold->moving = true;
                 currentBehold->rotating = 1;
-                //currentBehold->PositionKeyFrames.clear();
-                //currentBehold->RotationKeyFrames.clear();
+                
+                //RotationKeyFrame currRKF;        
+                //currRKF.value.x = currentBehold->rotation.x;
+                //currRKF.value.y = currentBehold->rotation.y;
+                //currRKF.value.z = currentBehold->rotation.z;
+                //currRKF.time = 0;
+                //currRKF.useSlerp = false;
+                //currentBeholdAnimData.RotationKeyFrames.push_back(currRKF);
+                //
+                //RotationKeyFrame nextRKF;
+                //nextRKF.time = 1;
+                //nextRKF.useSlerp = false;
+                //
+                //// Setting rotation
+                //if (nextPosition.x < currentBehold->position.x) {// Going WEST
+                //    //currentBehold->setRotationFromEuler(glm::vec3(0.0f, NinetyDegrees, 0.0f));
+                //    nextRKF.value.x = 0.0f;
+                //    nextRKF.value.y = NinetyDegrees;
+                //    nextRKF.value.z = 0.0f;
+                //    currentBehold->rotation = glm::vec3(0.0f, NinetyDegrees, 0.0f);
+                //}
+                //
+                //if (nextPosition.x > currentBehold->position.x) {// Going EAST
+                //    //currentBehold->setRotationFromEuler(glm::vec3(0.0f, -NinetyDegrees, 0.0f));
+                //    nextRKF.value.x = 0.0f;
+                //    nextRKF.value.y = -NinetyDegrees;
+                //    nextRKF.value.z = 0.0f;
+                //    currentBehold->rotation = glm::vec3(0.0f, -NinetyDegrees, 0.0f);
+                //}
+                //
+                //if (nextPosition.z < currentBehold->position.z) {// Going NORTH
+                //    //currentBehold->setRotationFromEuler(glm::vec3(0.0f, 0.0, 0.0f));
+                //    nextRKF.value.x = 0.0f;
+                //    nextRKF.value.y = 0.0f;
+                //    nextRKF.value.z = 0.0f;
+                //    currentBehold->rotation = glm::vec3(0.0f, 0.0, 0.0f);
+                //}
+                //
+                //if (nextPosition.z > currentBehold->position.z) {// Going SOUTH
+                //    //currentBehold->setRotationFromEuler(glm::vec3(0.0f, NinetyDegrees * 2, 0.0f));
+                //    nextRKF.value.x = 0.0f;
+                //    nextRKF.value.y = NinetyDegrees * 2;
+                //    nextRKF.value.z = 0.0f;
+                //    currentBehold->rotation = glm::vec3(0.0f, NinetyDegrees * 2, 0.0f);
+                //}
+                //
+                //currentBeholdAnimData.RotationKeyFrames.push_back(nextRKF);
+                //
+                //std::cout << " ------------------------------------------------------ " << std::endl;
+                //std::cout << currentBehold->friendlyName << " CurrentPosition: (" <<
+                //    currentBehold->position.x << ", " <<
+                //    currentBehold->position.y << ", " <<
+                //    currentBehold->position.z << ")" << std::endl;
+                //
+                //std::cout << currentBehold->friendlyName << " I -> " <<
+                //    currentBehold->currentI << ", J -> " <<
+                //    currentBehold->currentJ << std::endl;
         
-                std::string currentBeholdNextTileXScript = 
-                    "nextTileX" + std::to_string(currentBeholdID) + " = " + 
-                    std::to_string(nextPosition.x);
-                std::string currentBeholdNextTileYScript =
-                    "nextTileY" + std::to_string(currentBeholdID) + " = " +
-                    std::to_string(nextPosition.y);
-                std::string currentBeholdNextTileZScript = 
-                    "nextTileZ" + std::to_string(currentBeholdID) + "  = " +
-                    std::to_string(nextPosition.z);
+                //std::cout << currentBehold->friendlyName << " NextPosition: (" <<
+                //    nextPosition.x << ", " <<
+                //    nextPosition.y << ", " <<
+                //    nextPosition.z << ")" << std::endl;
         
-                RotationKeyFrame currRKF;        
-                currRKF.value = currentBehold->rotation;
-                currRKF.time = 0;
-                currRKF.useSlerp = false;
-                //currentBehold->RotationKeyFrames.push_back(currRKF);
-        
-                RotationKeyFrame nextRKF;
-                nextRKF.time = 1;
-                nextRKF.useSlerp = false;
-        
-                // Setting rotation
-                if (nextPosition.x < currentBehold->position.x) {// Going WEST
-                    //currentBehold->setRotationFromEuler(glm::vec3(0.0f, NinetyDegrees, 0.0f));
-                    nextRKF.value = glm::vec3(0.0f, NinetyDegrees, 0.0f);
-                }
-        
-                if (nextPosition.x > currentBehold->position.x) {// Going EAST
-                    //currentBehold->setRotationFromEuler(glm::vec3(0.0f, -NinetyDegrees, 0.0f));
-                    nextRKF.value = glm::vec3(0.0f, -NinetyDegrees, 0.0f);
-                }
-        
-                if (nextPosition.z < currentBehold->position.z) {// Going NORTH
-                    //currentBehold->setRotationFromEuler(glm::vec3(0.0f, 0.0, 0.0f));
-                    nextRKF.value = glm::vec3(0.0f, 0.0, 0.0f);
-                }
-        
-                if (nextPosition.z > currentBehold->position.z) {// Going SOUTH
-                    //currentBehold->setRotationFromEuler(glm::vec3(0.0f, NinetyDegrees * 2, 0.0f));
-                    nextRKF.value = glm::vec3(0.0f, NinetyDegrees * 2, 0.0f);
-                }
-        
-                //currentBehold->RotationKeyFrames.push_back(nextRKF);
-        
-                std::cout << " ------------------------------------------------------ " << std::endl;
-                std::cout << currentBehold->friendlyName << " CurrentPosition: (" <<
-                    currentBehold->position.x << ", " <<
-                    currentBehold->position.y << ", " <<
-                    currentBehold->position.z << ")" << std::endl;
-        
-                std::cout << currentBehold->friendlyName << " I -> " <<
-                    currentBehold->currentI << ", J -> " <<
-                    currentBehold->currentJ << std::endl;
-        
-                std::cout << currentBehold->friendlyName << " NextPosition: (" <<
-                    nextPosition.x << ", " <<
-                    nextPosition.y << ", " <<
-                    nextPosition.z << ")" << std::endl;
-        
-                std::cout << "nextTileX" << currentBeholdID << " changed" << std::endl;
-                std::cout << "nextTileY" << currentBeholdID << " changed" << std::endl;
-                std::cout << "nextTileZ" << currentBeholdID << " changed" << std::endl;
-        
+                //std::cout << "nextTileX" << currentBeholdID << " changed" << std::endl;
+                //std::cout << "nextTileY" << currentBeholdID << " changed" << std::endl;
+                //std::cout << "nextTileZ" << currentBeholdID << " changed" << std::endl;
+
                 PositionKeyFrame currPKF;
                 currPKF.value = glm::vec3(currentBehold->position.x, currentBehold->position.y, currentBehold->position.z);
                 currPKF.time = 0;
-                //currentBehold->PositionKeyFrames.push_back(currPKF);
-        
-                PositionKeyFrame nextPKF;
-                nextPKF.value = glm::vec3(nextPosition.x, nextPosition.y, nextPosition.z);
-                nextPKF.time = 1;
-                //nextPKF.time = numTilesNext;
-                //currentBehold->PositionKeyFrames.push_back(nextPKF);
-        
-                currentBehold->CurrentTime = 0.f;
-                currentBehold->IsLooping = false;
-                currentBehold->IsPlaying = true;
+                currentBeholdAnimData.PositionKeyFrames.push_back(currPKF);
+
+                int totalFrames = FPS * numTilesNext;
+                float invTotalFrames = 1.f / totalFrames;
+                float nextPositionStepX = (nextPosition.x - currentBehold->position.x) * invTotalFrames;
+                float nextPositionStepZ = (nextPosition.z - currentBehold->position.z) * invTotalFrames;
+                for (int i = 1; i <= totalFrames; i++) {
+                    PositionKeyFrame nextPKF;
+                    nextPKF.value = glm::vec3(currentBehold->position.x + (i * nextPositionStepX),
+                        currentBehold->position.y,
+                        currentBehold->position.z + (i * nextPositionStepZ));
+                    nextPKF.time = i;
+                    currentBeholdAnimData.PositionKeyFrames.push_back(nextPKF);
+                }
+
+                currentBehold->Animation.AnimationTime = 0.f;
+                currentBehold->Animation.IsLooping = false;
+                currentBehold->Animation.IsPlaying = true;
+
+                currentBeholdAnimData.Duration = totalFrames;
+
+                animationManager->LoadAnimation(currentBehold->friendlyName, currentBeholdAnimData);
             }
-            else if (currentBehold->moving == 2 && !currentBehold->dead && currentBehold->rotating == 0) {
-                // Check if the animation is finished?
-                currentBehold->UpdateAnimation(1);
-                //currentBehold->Speed = animationSpeed;
-        
-                //glm::vec3 newPosition = currentBehold->GetAnimationPosition(currentBehold->CurrentTime, animationType);
-                //currentBehold->position.x = newPosition.x;
-                //currentBehold->position.z = newPosition.z;
-            }
-            else if (currentBehold->moving == 1 && !currentBehold->dead && currentBehold->rotating == 1) {
-                currentBehold->UpdateAnimation(1);
-                //currentBehold->Speed = animationSpeed;
-        
-                //glm::vec3 newRotation = currentBehold->GetAnimationRotation(currentBehold->CurrentTime, animationType);
-                //currentBehold->rotation = newRotation;
-            }
+
         }
-        
 }
 
 void ThreadBeholderUpdate() {
@@ -2130,18 +2406,23 @@ void GameLoop() {
 
         MapUpdate();
         MeshPositionUpdate();
-        //BeholderBehaviourUpdate();
+        BeholderBehaviourUpdate();
         //ThreadBeholderUpdate();
 
         // Update will run any Lua script sitting in the "brain"
-        pBrain->Update(1);
+        //pBrain->Update(1);
         animationManager->Update(g_GraphicScene.vec_pMeshCurrentMaze, 1.f);
+        animationManager->Update(g_GraphicScene.map_beholds, 1.f);
 
         g_cameraTarget = mainChar->position;
         g_cameraEye = glm::vec3(mainChar->position.x, 250.f, mainChar->position.z + 100.f);
 
         g_MapCameraTarget = mainChar->position;
         g_MapCameraEye = glm::vec3(mainChar->position.x, (g_GraphicScene.drawFog * 160.f), mainChar->position.z + 2.f);
+
+        // Set camera position and orientation
+        //g_cameraEye = mainChar->position + cameraOffset;
+        //g_cameraTarget = mainChar->position + glm::vec3(sin(mainChar->rotation.y), 0.f, cos(mainChar->rotation.y)); // Camera should look in the same direction as the mainChar
 
         //g_cameraTarget = glm::vec3(gridCameraX, 0.0f, gridCameraZ);
         //g_cameraEye = glm::vec3(gridCameraX, 6000.f, gridCameraZ + 5.f);
@@ -2318,6 +2599,8 @@ int main(int argc, char* argv[]) {
     modelMap.insert(std::make_pair("Archer", "assets/models/animation/Archer.fbx"));
     modelMap.insert(std::make_pair("Warrior", "assets/models/animation/Warrior.fbx"));
     modelMap.insert(std::make_pair("Ninja", "assets/models/animation/Ninja.fbx"));
+    modelMap.insert(std::make_pair("Monk", "assets/models/animation/Monk.fbx"));
+    modelMap.insert(std::make_pair("MainChar", "assets/models/animation/MainChar.fbx"));
 
     PhysicsInitialization();
     MazeInitialization();
@@ -2359,7 +2642,8 @@ int main(int argc, char* argv[]) {
 
         g_GraphicScene.PrepareScene();
         std::string animationName;
-        LoadFBXAnimationFile(animationName, MainCharANIMATION1);
+        //LoadFBXAnimationFile(animationName, MainCharANIMATION1);
+        LoadFBXAnimationFile(animationName, WalkingANIMATION);
         g_GraphicScene.mAnimationName = animationName;
 
         // Setting the lights
@@ -2370,8 +2654,8 @@ int main(int argc, char* argv[]) {
         g_GraphicScene.LoadTextures();
     }
 
-    //BeholderCreation();
-    LuaScriptInitialization();
+    BeholderCreation();
+    //LuaScriptInitialization();
     MainCharInitialization();
     FloorInitialization();
 
@@ -2384,10 +2668,10 @@ int main(int argc, char* argv[]) {
     //BMPMazeInitialization();
 
     updateCurrentMazeView(randomI, randomJ);
+    g_CharController->Warp(mainChar->position);
     //creatingModels();
     //AStarPathPaiting();
-
-    PhysicsMainChar();
+    //PhysicsMainChar();
 
     // -------------------- GAME LOOP  -----------------------
 
@@ -2397,16 +2681,18 @@ int main(int argc, char* argv[]) {
 
     // -------------------- FINISHING  -----------------------
     UserProperties serverImput;
-    serverImput.userID      = mainChar->mPlayerID;
-    serverImput.date        = atoi(mainChar->mLastLogin.c_str());
-    serverImput.strengh     = mainChar->mStrengh;
-    serverImput.magicPower  = mainChar->mMagicPower;
-    serverImput.agility     = mainChar->mAgility;
-    serverImput.maxHealth   = mainChar->mMaxHealth;
-    serverImput.maxMana     = mainChar->mMaxMana;
-    serverImput.villager    = mainChar->mVillager;
-    serverImput.level       = mainChar->mLevel;
-    networkManager->setUserProperties(serverImput);
+    if (mainChar->mPlayerID != 0) {
+        serverImput.userID = mainChar->mPlayerID;
+        serverImput.date = atoi(mainChar->mLastLogin.c_str());
+        serverImput.strengh = mainChar->mStrengh;
+        serverImput.magicPower = mainChar->mMagicPower;
+        serverImput.agility = mainChar->mAgility;
+        serverImput.maxHealth = mainChar->mMaxHealth;
+        serverImput.maxMana = mainChar->mMaxMana;
+        serverImput.villager = mainChar->mVillager;
+        serverImput.level = mainChar->mLevel;
+        networkManager->setUserProperties(serverImput);
+    }
     
     // Clean up the mutex before exiting the program
     DeleteCriticalSection(&dataMutex);
