@@ -256,134 +256,41 @@ void key_callback(GLFWwindow* window,
 
     case MOVING_MAZE:
     {
-        //glm::vec3 direction(0.f);
-        //float force = 2.f;
-        //float directionX = 0.f;
-        //float directionZ = 0.f;
-        //bool isMovingForward = false;
-        //
-        //if (key == GLFW_KEY_A)     // Tile LEFT
-        //{
-        //    mainChar->rotation.y += MOVE_SPEED;
-        //
-        //    if (isMovingForward) // If W is pressed, continue moving forward while turning
-        //    {
-        //        directionX = sin(mainChar->rotation.y);
-        //        directionZ = cos(mainChar->rotation.y);
-        //        float directionMagnitude = sqrt(directionX * directionX + directionZ * directionZ);
-        //        directionX /= directionMagnitude;
-        //        directionZ /= directionMagnitude;
-        //
-        //        direction = glm::vec3(directionX * force, 0.f, directionZ * force);
-        //    }
-        //}
-        //
-        //if (key == GLFW_KEY_D)     // Tile RIGHT
-        //{
-        //    mainChar->rotation.y -= MOVE_SPEED;
-        //
-        //    if (isMovingForward) // If W is pressed, continue moving forward while turning
-        //    {
-        //        directionX = sin(mainChar->rotation.y);
-        //        directionZ = cos(mainChar->rotation.y);
-        //        float directionMagnitude = sqrt(directionX * directionX + directionZ * directionZ);
-        //        directionX /= directionMagnitude;
-        //        directionZ /= directionMagnitude;
-        //
-        //        direction = glm::vec3(directionX * force, 0.f, directionZ * force);
-        //    }
-        //}
-        //
-        //if (key == GLFW_KEY_W)     // Tile UP
-        //{
-        //    isMovingForward = true;
-        //
-        //    directionX = sin(mainChar->rotation.y);
-        //    directionZ = cos(mainChar->rotation.y);
-        //    float directionMagnitude = sqrt(directionX * directionX + directionZ * directionZ);
-        //    directionX /= directionMagnitude;
-        //    directionZ /= directionMagnitude;
-        //
-        //    direction = glm::vec3(directionX * force, 0.f, directionZ* force);
-        //}
-        //
-        //if (key == GLFW_KEY_S)     // Tile DOWN
-        //{
-        //    isMovingForward = false;
-        //
-        //    directionX = sin(mainChar->rotation.y);
-        //    directionZ = cos(mainChar->rotation.y);
-        //    float directionMagnitude = sqrt(directionX * directionX + directionZ * directionZ);
-        //    directionX /= directionMagnitude;
-        //    directionZ /= directionMagnitude;
-        //
-        //    direction = glm::vec3(directionX * -force, 0.f, directionZ * -force);
-        //}
-
-        //if (key == GLFW_KEY_W)
-        //{
-        //    if (action == GLFW_PRESS)
-        //    {
-        //        isMovingForward = true;
-        //        moveCharacter(); // Call the function to update the character's movement
-        //    }
-        //    //else if (action == GLFW_RELEASE)
-        //    //{
-        //    //    isMovingForward = false;
-        //    //    stopCharacter(); // Call the function to stop the character's movement
-        //    //}
-        //}
-        //
-        //if (key == GLFW_KEY_A)
-        //{
-        //    mainChar->rotation.y += MOVE_SPEED;
-        //    if (isMovingForward)
-        //        moveCharacter(); // Call the function to update the character's movement
-        //}
-        //
-        //if (key == GLFW_KEY_D)
-        //{
-        //    mainChar->rotation.y -= MOVE_SPEED;
-        //    if (isMovingForward)
-        //        moveCharacter(); // Call the function to update the character's movement
-        //}
-
-        //g_CharController->SetWalkDirection(direction);
-
-        if (key == GLFW_KEY_W)
-        {
-            if (action == GLFW_PRESS)
+        if (g_GraphicScene.loggedIn) {
+            if (key == GLFW_KEY_W)
             {
-                mainChar->isMovingForward = true;
+                if (action == GLFW_PRESS)
+                {
+                    mainChar->isMovingForward = true;
+                }
+                else if (action == GLFW_RELEASE)
+                {
+                    mainChar->isMovingForward = false;
+                }
             }
-            else if (action == GLFW_RELEASE)
+            else if (key == GLFW_KEY_A)
             {
-                mainChar->isMovingForward = false;
+                if (action == GLFW_PRESS)
+                {
+                    mainChar->isTurningLeft = true;
+                }
+                else if (action == GLFW_RELEASE)
+                {
+                    mainChar->isTurningLeft = false;
+                }
+            }
+            else if (key == GLFW_KEY_D)
+            {
+                if (action == GLFW_PRESS)
+                {
+                    mainChar->isTurningRight = true;
+                }
+                else if (action == GLFW_RELEASE)
+                {
+                    mainChar->isTurningRight = false;
+                }
             }
         }
-        else if (key == GLFW_KEY_A)
-        {
-            if (action == GLFW_PRESS)
-            {
-                mainChar->isTurningLeft = true;
-            }
-            else if (action == GLFW_RELEASE)
-            {
-                mainChar->isTurningLeft = false;
-            }
-        }
-        else if (key == GLFW_KEY_D)
-        {
-            if (action == GLFW_PRESS)
-            {
-                mainChar->isTurningRight = true;
-            }
-            else if (action == GLFW_RELEASE)
-            {
-                mainChar->isTurningRight = false;
-            }
-        }
-
     }
     break;
     } //switch (theEditMode)

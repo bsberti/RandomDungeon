@@ -120,6 +120,15 @@ void DrawObject(cMeshObject* pCurrentMeshObject,
         glUniform1f(bUseRGBA_Colour_ULocID, (GLfloat)GL_FALSE);
     }
 
+    GLint bUseBones_Colour_ULocID = glGetUniformLocation(shaderID, "UseBones");
+
+    if (pCurrentMeshObject->useBones) {
+        glUniform1f(bUseBones_Colour_ULocID, (GLfloat)GL_TRUE);
+    }
+    else {
+        glUniform1f(bUseBones_Colour_ULocID, (GLfloat)GL_FALSE);
+    }
+
     // Copy specular object colour and power. 
     GLint specularColour_ULocID = glGetUniformLocation(shaderID, "specularColour");
 

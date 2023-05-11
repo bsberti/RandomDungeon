@@ -28,6 +28,8 @@ uniform mat4 mModel;
 uniform mat4 mModelInverseTranspose;		// mModel with Only Rotation;
 uniform mat4 mView;
 uniform mat4 mProjection;
+uniform bool UseBones;
+uniform mat4 BoneMatrices[60];
 
 void main()
 {
@@ -37,12 +39,20 @@ void main()
 	// Output is in screen space 
 	// x & y are in (normalized) screen space, z is the depth from the camera
 	mat4 mMVP = mProjection * mView * mModel;
+	vec4 position = vec4(vertPosition, 1.0f);
+	if(UseBones)
+	{
+		mat4 boneTransform = BoneMatrices[int(vBoneID[0])] * vBoneWeight[0];
+		boneTransform += BoneMatrices[int(vBoneID[1])] * vBoneWeight[1];
+		boneTransform += BoneMatrices[int(vBoneID[2])] * vBoneWeight[2];
+		boneTransform += BoneMatrices[int(vBoneID[3])] * vBoneWeight[3];
+		position = boneTransform * vPosition;
+	}
 	
-	gl_Position = mMVP * vec4(vertPosition, 1.0f);
-	
+	gl_Position = mMVP * position;
 	// The location of the vertex in WORLD SPACE 
 	// for the lighting
-	fVertWorldLocation.xyz = (mModel * vec4(vertPosition, 1.0f)).xyz;
+	fVertWorldLocation.xyz = (mModel * position).xyz;
 	fVertWorldLocation.w = 1.0f;
 	
 	// Send the normals to the fragment shader

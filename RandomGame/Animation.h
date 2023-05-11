@@ -12,6 +12,7 @@
 #include <assimp/postprocess.h>
 
 struct BoneInfo {
+	int id;
 	std::string name;
 	glm::mat4 boneOffset;
 	glm::mat4 globalTransformation;

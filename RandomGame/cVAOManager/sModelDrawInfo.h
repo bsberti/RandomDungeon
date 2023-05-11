@@ -3,6 +3,17 @@
 #include <string>
 #include <vector>
 #include <glm/glm.hpp>
+#include <unordered_map>
+
+struct CharacterBoneInfo
+{
+	/*id is index in finalBoneMatrices*/
+	int id;
+
+	/*offset matrix transforms vertex from model space to bone space*/
+	glm::mat4 offset;
+
+};
 
 // Here's our new structure for the vertices (from October 24th and onward)
 // This is the layout that the vertex shaders are expecting
@@ -34,6 +45,8 @@ struct sModelDrawInfo {
 	unsigned int numberOfIndices;
 	unsigned int numberOfTriangles;
 	std::vector<glm::vec3> modelTriangles;
+	std::unordered_map<std::string, CharacterBoneInfo> m_BoneInfoMap;
+	unsigned int m_BoneCounter = 0;
 
 	void CalculateExtents(void);
 

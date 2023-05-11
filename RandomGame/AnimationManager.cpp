@@ -21,85 +21,85 @@ void AnimationManager::Update(const std::vector<cMeshObject*>& gameObjects, floa
 		if (!go->Enabled)
 			continue;
 
-		if (go->Animation.IsCharacterAnimation)
-		{
-			Animation& animation = go->Animation;
-			std::map<std::string, CharacterAnimationData>::iterator itFind = m_CharacterAnimations.find(go->Animation.AnimationType);
-			CharacterAnimationData& animationData = itFind->second;
+		//if (go->Animation.IsCharacterAnimation)
+		//{
+		//	Animation& animation = go->Animation;
+		//	std::map<std::string, CharacterAnimationData>::iterator itFind = m_CharacterAnimations.find(go->Animation.AnimationType);
+		//	CharacterAnimationData& animationData = itFind->second;
 
-			if (itFind != m_CharacterAnimations.end())
-			{
-				if (animation.IsPlaying && animation.Speed != 0.0f)
-				{
-					animation.AnimationTime += dt * animation.Speed * animationData.TicksPerSecond;
+		//	if (itFind != m_CharacterAnimations.end())
+		//	{
+		//		if (animation.IsPlaying && animation.Speed != 0.0f)
+		//		{
+		//			animation.AnimationTime += dt * animation.Speed * animationData.TicksPerSecond;
 
-					double clipDuration = animationData.Duration;
+		//			double clipDuration = animationData.Duration;
 
-					if (animation.AnimationTime > clipDuration)
-					{
-						if (animation.IsLooping)
-						{
-							if (animation.Speed > 0)
-							{
-								animation.AnimationTime = 0.0f;
-							}
-							else
-							{
-								animation.AnimationTime = clipDuration;
-							}
-						}
-						else
-						{
-							animation.AnimationTime = clipDuration;
-							animation.IsPlaying = false;
-						}
+		//			if (animation.AnimationTime > clipDuration)
+		//			{
+		//				if (animation.IsLooping)
+		//				{
+		//					if (animation.Speed > 0)
+		//					{
+		//						animation.AnimationTime = 0.0f;
+		//					}
+		//					else
+		//					{
+		//						animation.AnimationTime = clipDuration;
+		//					}
+		//				}
+		//				else
+		//				{
+		//					animation.AnimationTime = clipDuration;
+		//					animation.IsPlaying = false;
+		//				}
 
-					}
-					else if (animation.AnimationTime < 0.f)
-					{
-						if (animation.IsLooping)
-						{
-							if (animation.Speed < 0)
-							{
-								animation.AnimationTime = animationData.Duration;
-							}
-							else
-							{
-								animation.AnimationTime = 0.f;
-							}
-						}
-						else
-						{
-							animation.AnimationTime = 0.f;
-							animation.IsPlaying = false;
-						}
-					}
+		//			}
+		//			else if (animation.AnimationTime < 0.f)
+		//			{
+		//				if (animation.IsLooping)
+		//				{
+		//					if (animation.Speed < 0)
+		//					{
+		//						animation.AnimationTime = animationData.Duration;
+		//					}
+		//					else
+		//					{
+		//						animation.AnimationTime = 0.f;
+		//					}
+		//				}
+		//				else
+		//				{
+		//					animation.AnimationTime = 0.f;
+		//					animation.IsPlaying = false;
+		//				}
+		//			}
 
-					m_GlobalInverseTransform = animationData.BoneHierarchy->globalInverseTransform;
+		//			m_GlobalInverseTransform = animationData.BoneHierarchy->globalInverseTransform;
 
-					int keyFrameTime = (int)((animation.AnimationTime / clipDuration) * animationData.Duration);
+		//			int keyFrameTime = (int)((animation.AnimationTime / clipDuration) * animationData.Duration);
 
 
-					animation.AnimationTime = 0;
-					glm::mat4 identity(1.f);
+		//			animation.AnimationTime = 0;
+		//			glm::mat4 identity(1.f);
 
-					//printf("--------------------\n");
-					//printf("Time: %.4f %d/%d\n", animation.AnimationTime, keyFrameTime, (int)animationData.Duration);
-					UpdateBoneHierarchy(animationData.BoneHierarchy->root, animationData, identity, animation.AnimationTime);
+		//			//printf("--------------------\n");
+		//			//printf("Time: %.4f %d/%d\n", animation.AnimationTime, keyFrameTime, (int)animationData.Duration);
+		//			UpdateBoneHierarchy(animationData.BoneHierarchy->root, animationData, identity, animation.AnimationTime);
 
-					//Model* model = GDP_GetModel(go->Renderer.MeshId);
+		//			//Model* model = GDP_GetModel(go->Renderer.MeshId);
 
-					SetGameObjectBoneModelMatrices(go, animationData.BoneHierarchy->root, animationData);
-				}
+		//			SetGameObjectBoneModelMatrices(go, animationData.BoneHierarchy->root, animationData);
+		//		}
 
-			}
-		}
-		else if (go->IsBonedObject)
-		{
-			// for each bone, there is an animation channel that controls it's transformation
+		//	}
+		//}
+		//else if (go->IsBonedObject)
+		//{
+		//	// for each bone, there is an animation channel that controls it's transformation
 
-		}
-		else if (go->Animation.AnimationType.length() != 0)
+		//}
+		if (go->Animation.AnimationType.length() != 0)
 		{
 			Animation& animation = go->Animation;
 			std::map<std::string, AnimationData>::iterator itFind = m_Animations.find(go->Animation.AnimationType);

@@ -71,6 +71,7 @@ public:
 	}
 
 	bool isWireframe;
+	bool useBones = false;
 
 	// This is the "diffuse" colour
 	glm::vec4 RGBA_colour;		// RGA & Alpha, 0,0,0,1 (black, with transparency of 1.0)

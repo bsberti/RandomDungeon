@@ -204,6 +204,7 @@
     <ClInclude Include="..\gen-cpp\leaderboard_types.h" />
     <ClInclude Include="Animation.h" />
     <ClInclude Include="AnimationManager.h" />
+    <ClInclude Include="AssimpGLMHelpers.h" />
     <ClInclude Include="BlocksLoader.h" />
     <ClInclude Include="BoneHierarchy.h" />
     <ClInclude Include="BoneShader.h" />
@@ -213,6 +214,9 @@
     <ClInclude Include="cCharacter.h" />
     <ClInclude Include="cFBO.h" />
     <ClInclude Include="cGameObject.h" />
+    <ClInclude Include="CharacterAnimation.h" />
+    <ClInclude Include="CharacterAnimator.h" />
+    <ClInclude Include="CharacterBone.h" />
     <ClInclude Include="CheckGLError.h" />
     <ClInclude Include="cLight.h" />
     <ClInclude Include="cLightHelper.h" />

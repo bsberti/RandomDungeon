@@ -14,6 +14,7 @@
 #include "cVAOManager/c3DModelFileLoader.h"
 #include "cBasicTextureManager/cBasicTextureManager.h"
 #include "cFBO.h"
+#include "CharacterAnimator.h"
 
 /* Link with Win32 shared freeglut lib */
 #           if FREEGLUT_LIB_PRAGMAS
@@ -110,6 +111,10 @@ public:
 	// Animation Stuffs
 	std::vector<Model*> gModelVec;
 
+	bool loggedIn;
+
+	CharacterAnimator* animator = nullptr;
 private:
+	float deltaTime, lastFrame;
 	
 };

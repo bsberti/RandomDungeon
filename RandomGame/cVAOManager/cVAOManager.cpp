@@ -1,4 +1,5 @@
 #include "../globalOpenGL.h"
+#define MAX_BONE_WEIGHTS 4
 
 #include "cVAOManager.h"
 
@@ -10,6 +11,8 @@
 #include <iostream>
 #include <assimp/postprocess.h>
 #include <assimp/scene.h>
+#include "../Animation.h"
+#include "../AssimpGLMHelpers.h"
 #include <assimp/Importer.hpp>
 
 sModelDrawInfo::sModelDrawInfo()
@@ -110,6 +113,62 @@ void cVAOManager::processNode(aiNode* node, const aiScene* scene, const std::str
 	}
 }
 
+void SetVertexBoneDataToDefault(sVertex_RGBA_XYZ_N_UV_T_BiN_Bones& vertex)
+{
+	for (int i = 0; i < MAX_BONE_WEIGHTS; i++)
+	{
+		vertex.vBoneID[i] = -1;
+		vertex.vBoneWeight[i] = 0.0f;
+	}
+}
+
+void SetVertexBoneData(sVertex_RGBA_XYZ_N_UV_T_BiN_Bones& vertex, int boneID, float weight)
+{
+	for (int i = 0; i < MAX_BONE_WEIGHTS; ++i)
+	{
+		if (vertex.vBoneID[i] < 0)
+		{
+			vertex.vBoneWeight[i] = weight;
+			vertex.vBoneID[i] = boneID;
+			break;
+		}
+	}
+}
+
+void ExtractBoneWeightForVertices(sModelDrawInfo* drawInfo, aiMesh* mesh, const aiScene* scene)
+{
+	for (int boneIndex = 0; boneIndex < mesh->mNumBones; ++boneIndex)
+	{
+		int boneID = -1;
+		std::string boneName = mesh->mBones[boneIndex]->mName.C_Str();
+		if (drawInfo->m_BoneInfoMap.find(boneName) == drawInfo->m_BoneInfoMap.end())
+		{
+			CharacterBoneInfo newBoneInfo;
+			newBoneInfo.id = drawInfo->m_BoneCounter;
+			newBoneInfo.offset = AssimpGLMHelpers::ConvertMatrixToGLMFormat(
+				mesh->mBones[boneIndex]->mOffsetMatrix);
+			drawInfo->m_BoneInfoMap[boneName] = newBoneInfo;
+			boneID = drawInfo->m_BoneCounter;
+			drawInfo->m_BoneCounter++;
+		}
+		else
+		{
+			boneID = drawInfo->m_BoneInfoMap[boneName].id;
+		}
+		assert(boneID != -1);
+		auto weights = mesh->mBones[boneIndex]->mWeights;
+		int numWeights = mesh->mBones[boneIndex]->mNumWeights;
+
+		for (int weightIndex = 0; weightIndex < numWeights; ++weightIndex)
+		{
+			int vertexId = weights[weightIndex].mVertexId;
+			float weight = weights[weightIndex].mWeight;
+			assert(vertexId <= drawInfo->numberOfVertices);
+			SetVertexBoneData(drawInfo->pVertices[vertexId], boneID, weight);
+		}
+	}
+}
+
 sModelDrawInfo* cVAOManager::processMesh(aiMesh* mesh, const aiScene* scene)
 {
 	sModelDrawInfo* drawInfo = new sModelDrawInfo();
@@ -122,6 +181,7 @@ sModelDrawInfo* cVAOManager::processMesh(aiMesh* mesh, const aiScene* scene)
 	for (unsigned int i = 0; i < mesh->mNumVertices; i++)
 	{
 		sVertex_RGBA_XYZ_N_UV_T_BiN_Bones vertex;
+		SetVertexBoneDataToDefault(vertex);
 		// process vertex positions, normals and texture coordinates
 		vertex.x = mesh->mVertices[i].x;
 		vertex.y = mesh->mVertices[i].y;
@@ -164,6 +224,9 @@ sModelDrawInfo* cVAOManager::processMesh(aiMesh* mesh, const aiScene* scene)
 			indicesCount++;
 		}
 	}
+
+	ExtractBoneWeightForVertices(drawInfo, mesh, scene);
+
 	return drawInfo;
 }
 
@@ -322,7 +385,19 @@ bool cVAOManager::LoadModelIntoVAO(
 	glDisableVertexAttribArray(vBoneWeight_location);
 
 	// Store the draw information into the map
-	this->m_map_ModelName_to_VAOID[ drawInfo.meshName ] = drawInfo;
+	sModelDrawInfo existingDrawInfo;
+	int meshCount = 1;
+	std::string newMeshName = drawInfo.meshName + std::to_string(meshCount);
+	if (FindDrawInfoByModelName(drawInfo.meshName, existingDrawInfo)) {
+		while (FindDrawInfoByModelName(newMeshName, existingDrawInfo)) {
+			meshCount++;
+			newMeshName = drawInfo.meshName + std::to_string(meshCount);
+		}
+		this->m_map_ModelName_to_VAOID[newMeshName] = drawInfo;
+	}
+	else {
+		this->m_map_ModelName_to_VAOID[drawInfo.meshName] = drawInfo;
+	}
 
 	return true;
 }

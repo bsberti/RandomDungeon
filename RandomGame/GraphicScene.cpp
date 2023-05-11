@@ -7,6 +7,7 @@ GraphicScene::GraphicScene() {
 	cameraTransitioning = false;
     drawFog = 10;
     pVAOManager = new cVAOManager();
+    loggedIn = false;
 }
 
 GraphicScene::~GraphicScene() {
@@ -287,7 +288,7 @@ void GraphicScene::cleanMazeView() {
 }
 
 void GraphicScene::DrawScene(GLFWwindow* window, glm::vec3 g_cameraEye, glm::vec3 g_cameraTarget) {
-    
+
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     // Enable depth testing
@@ -325,11 +326,24 @@ void GraphicScene::DrawScene(GLFWwindow* window, glm::vec3 g_cameraEye, glm::vec
     // We draw everything in our "vec_pMeshCurrentMaze"
     // In other words, go throug the vec_pMeshObjects container
     //  and draw each one of the objects
+
+    float currentFrame = glfwGetTime();
+    deltaTime = currentFrame - lastFrame;
+    lastFrame = currentFrame;
+    if (animator != nullptr)
+        animator->UpdateAnimation(deltaTime);
+
     for (std::vector< cMeshObject* >::iterator itCurrentMesh = vec_pMeshCurrentMaze.begin();
         itCurrentMesh != vec_pMeshCurrentMaze.end();
         itCurrentMesh++)
     {
         cMeshObject* pCurrentMeshObject = *itCurrentMesh;
+        auto transforms = animator->GetFinalBoneMatrices();
+        for (int i = 0; i < transforms.size(); ++i)
+        {
+            GLint boneMatLoc = glGetUniformLocation(shaderID, std::string("BoneMatrices[" + std::to_string(i) + "]").c_str());
+            glUniformMatrix4fv(boneMatLoc, 1, GL_FALSE, glm::value_ptr(transforms[i]));
+        }
 
         if (!pCurrentMeshObject->bIsVisible)
             continue;
@@ -369,22 +383,22 @@ void GraphicScene::DrawScene(GLFWwindow* window, glm::vec3 g_cameraEye, glm::vec
     }
 
     // --------------- Draw the skybox -----------------------------
-    {
-        GLint bIsSkyboxObject_UL = glGetUniformLocation(shaderID, "bIsSkyboxObject");
-        glUniform1f(bIsSkyboxObject_UL, (GLfloat)GL_TRUE);
+    //{
+    //    GLint bIsSkyboxObject_UL = glGetUniformLocation(shaderID, "bIsSkyboxObject");
+    //    glUniform1f(bIsSkyboxObject_UL, (GLfloat)GL_TRUE);
 
-        glm::mat4x4 matModel = glm::mat4x4(1.0f);
+    //    glm::mat4x4 matModel = glm::mat4x4(1.0f);
 
-        pSkyBox->position = g_cameraEye;
-        pSkyBox->SetUniformScale(7500.0f);
+    //    pSkyBox->position = g_cameraEye;
+    //    pSkyBox->SetUniformScale(7500.0f);
 
-        DrawObject(pSkyBox,
-            matModel,
-            shaderID, g_pTextureManager,
-            pVAOManager, mModel_location, mModelInverseTransform_location);
+    //    DrawObject(pSkyBox,
+    //        matModel,
+    //        shaderID, g_pTextureManager,
+    //        pVAOManager, mModel_location, mModelInverseTransform_location);
 
-        glUniform1f(bIsSkyboxObject_UL, (GLfloat)GL_FALSE);
-    }
+    //    glUniform1f(bIsSkyboxObject_UL, (GLfloat)GL_FALSE);
+    //}
 
     //    _____           _          __                           
     //   | ____|_ __   __| |   ___  / _|  ___  ___ ___ _ __   ___ 
