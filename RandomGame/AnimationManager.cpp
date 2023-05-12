@@ -20,85 +20,7 @@ void AnimationManager::Update(const std::vector<cMeshObject*>& gameObjects, floa
 
 		if (!go->Enabled)
 			continue;
-
-		//if (go->Animation.IsCharacterAnimation)
-		//{
-		//	Animation& animation = go->Animation;
-		//	std::map<std::string, CharacterAnimationData>::iterator itFind = m_CharacterAnimations.find(go->Animation.AnimationType);
-		//	CharacterAnimationData& animationData = itFind->second;
-
-		//	if (itFind != m_CharacterAnimations.end())
-		//	{
-		//		if (animation.IsPlaying && animation.Speed != 0.0f)
-		//		{
-		//			animation.AnimationTime += dt * animation.Speed * animationData.TicksPerSecond;
-
-		//			double clipDuration = animationData.Duration;
-
-		//			if (animation.AnimationTime > clipDuration)
-		//			{
-		//				if (animation.IsLooping)
-		//				{
-		//					if (animation.Speed > 0)
-		//					{
-		//						animation.AnimationTime = 0.0f;
-		//					}
-		//					else
-		//					{
-		//						animation.AnimationTime = clipDuration;
-		//					}
-		//				}
-		//				else
-		//				{
-		//					animation.AnimationTime = clipDuration;
-		//					animation.IsPlaying = false;
-		//				}
-
-		//			}
-		//			else if (animation.AnimationTime < 0.f)
-		//			{
-		//				if (animation.IsLooping)
-		//				{
-		//					if (animation.Speed < 0)
-		//					{
-		//						animation.AnimationTime = animationData.Duration;
-		//					}
-		//					else
-		//					{
-		//						animation.AnimationTime = 0.f;
-		//					}
-		//				}
-		//				else
-		//				{
-		//					animation.AnimationTime = 0.f;
-		//					animation.IsPlaying = false;
-		//				}
-		//			}
-
-		//			m_GlobalInverseTransform = animationData.BoneHierarchy->globalInverseTransform;
-
-		//			int keyFrameTime = (int)((animation.AnimationTime / clipDuration) * animationData.Duration);
-
-
-		//			animation.AnimationTime = 0;
-		//			glm::mat4 identity(1.f);
-
-		//			//printf("--------------------\n");
-		//			//printf("Time: %.4f %d/%d\n", animation.AnimationTime, keyFrameTime, (int)animationData.Duration);
-		//			UpdateBoneHierarchy(animationData.BoneHierarchy->root, animationData, identity, animation.AnimationTime);
-
-		//			//Model* model = GDP_GetModel(go->Renderer.MeshId);
-
-		//			SetGameObjectBoneModelMatrices(go, animationData.BoneHierarchy->root, animationData);
-		//		}
-
-		//	}
-		//}
-		//else if (go->IsBonedObject)
-		//{
-		//	// for each bone, there is an animation channel that controls it's transformation
-
-		//}
+		
 		if (go->Animation.AnimationType.length() != 0)
 		{
 			Animation& animation = go->Animation;
@@ -129,8 +51,6 @@ void AnimationManager::Update(const std::vector<cMeshObject*>& gameObjects, floa
 							{
 								animation.AnimationTime = animationData.Duration;
 								animation.IsPlaying = false;
-								go->moving = false;
-								go->seeking = false;
 							}
 
 						}
@@ -151,14 +71,17 @@ void AnimationManager::Update(const std::vector<cMeshObject*>& gameObjects, floa
 							{
 								animation.AnimationTime = 0.f;
 								animation.IsPlaying = false;
-								go->moving = false;
-								go->seeking = false;
 							}
 						}
 					}
 
-					if (animation.AnimationTime == animationData.Duration)
+					if (animation.AnimationTime == animationData.Duration) {
 						int breakpoint = 5;
+						go->moving = false;
+						go->seeking = false;
+						go->attack = false;
+						go->found = false;
+					}
 
 					// Controlling one "node"/"bone".
 					if (animation.IsPlaying) {
@@ -199,6 +122,10 @@ void AnimationManager::Update(const std::vector<cMeshObject*>& gameObjects, floa
 					if (go->seeking) {
 						go->bUse_RGBA_colour = true;
 						go->RGBA_colour = glm::vec4(1.0, 0.0, 0.0, 1.0);
+					}
+					else if (go->found) {
+						go->bUse_RGBA_colour = true;
+						go->RGBA_colour = glm::vec4(0.5, 0.5, 0.0, 1.0);
 					}
 					else {
 						go->bUse_RGBA_colour = false;

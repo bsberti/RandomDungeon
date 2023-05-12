@@ -258,8 +258,67 @@ void BlocksLoader::CleanNodePath(std::vector<Node*> nodePath) {
 	}
 }
 
-std::vector<Node*> BlocksLoader::AStarEnemy(Node* currentStartNode)
+//std::vector<Node*> BlocksLoader::AStarEnemy(Node* currentStartNode)
+//{
+//	// Initialize start node
+//	currentStartNode->g = 0;
+//	currentStartNode->h = sqrt(pow(endNode->x - currentStartNode->x, 2) + pow(endNode->y - currentStartNode->y, 2));
+//	currentStartNode->f = currentStartNode->g + currentStartNode->h;
+//	currentStartNode->is_visited = true;
+//	std::priority_queue<Node*, std::vector<Node*>, CompareNodes> open_list;
+//	open_list.push(currentStartNode);
+//
+//	// Search for end node
+//	while (!open_list.empty()) {
+//		Node* current = open_list.top();
+//		open_list.pop();
+//		if (current == endNode) {
+//			// Path found, return path
+//			std::vector<Node*> path;
+//			while (current) {
+//				path.push_back(current);
+//				current = current->parent;
+//			}
+//			reverse(path.begin(), path.end());
+//			CleanNodePath(path);
+//			return path;
+//		}
+//		// Explore neighbors of current node
+//		for (auto neighbor : current->neighbors) {
+//			if (neighbor->is_obstacle || neighbor->is_visited) {
+//				continue;
+//			}
+//			double g = current->g + sqrt(pow(neighbor->x - current->x, 2) + pow(neighbor->y - current->y, 2));
+//			double h = sqrt(pow(endNode->x - neighbor->x, 2) + pow(endNode->y - neighbor->y, 2));
+//			double f = g + h;
+//			if (neighbor->f == 0 || f < neighbor->f) {
+//				neighbor->g = g;
+//				neighbor->h = h;
+//				neighbor->f = f;
+//				neighbor->parent = current;
+//				neighbor->is_visited = true;
+//				open_list.push(neighbor);
+//			}
+//		}
+//	}
+//	// No path found
+//	return {};
+//}
+
+std::vector<Node*> BlocksLoader::AStarEnemy(Node* currentStartNode, Node* endNode)
 {
+	// Reset node states
+	for (int i = 0; i < blocks_height; i++) {
+		for (int j = 0; j < blocks_width; j++) {
+			Node* node = nodeGrid->get_node(i, j);
+			node->g = 0;
+			node->f = 0;
+			node->h = 0;
+			node->parent = nullptr;
+			node->is_visited = false;
+		}
+	}
+
 	// Initialize start node
 	currentStartNode->g = 0;
 	currentStartNode->h = sqrt(pow(endNode->x - currentStartNode->x, 2) + pow(endNode->y - currentStartNode->y, 2));
@@ -280,7 +339,6 @@ std::vector<Node*> BlocksLoader::AStarEnemy(Node* currentStartNode)
 				current = current->parent;
 			}
 			reverse(path.begin(), path.end());
-			CleanNodePath(path);
 			return path;
 		}
 		// Explore neighbors of current node
@@ -304,3 +362,4 @@ std::vector<Node*> BlocksLoader::AStarEnemy(Node* currentStartNode)
 	// No path found
 	return {};
 }
+

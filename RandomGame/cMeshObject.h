@@ -109,8 +109,9 @@ public:
 	// Behold properties
 	bool dead;
 	bool seeking;
-	bool away;
+	bool attack;
 	bool moving;
+	bool found;
 	unsigned int currentI;
 	unsigned int currentJ;
 	unsigned int rotating;

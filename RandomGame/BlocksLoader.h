@@ -109,6 +109,6 @@ public:
 	void cleanPairs();
 
 	std::vector<Node*> AStar();
-	std::vector<Node*> AStarEnemy(Node* currentStartNode);
+	std::vector<Node*> AStarEnemy(Node* currentStartNode, Node* endNode);
 	void CleanNodePath(std::vector<Node*> nodePath);
 };

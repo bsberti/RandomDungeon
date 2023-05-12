@@ -338,11 +338,14 @@ void GraphicScene::DrawScene(GLFWwindow* window, glm::vec3 g_cameraEye, glm::vec
         itCurrentMesh++)
     {
         cMeshObject* pCurrentMeshObject = *itCurrentMesh;
-        auto transforms = animator->GetFinalBoneMatrices();
-        for (int i = 0; i < transforms.size(); ++i)
-        {
-            GLint boneMatLoc = glGetUniformLocation(shaderID, std::string("BoneMatrices[" + std::to_string(i) + "]").c_str());
-            glUniformMatrix4fv(boneMatLoc, 1, GL_FALSE, glm::value_ptr(transforms[i]));
+
+        if (pCurrentMeshObject->HasBones) {
+            auto transforms = animator->GetFinalBoneMatrices();
+            for (int i = 0; i < transforms.size(); ++i)
+            {
+                GLint boneMatLoc = glGetUniformLocation(shaderID, std::string("BoneMatrices[" + std::to_string(i) + "]").c_str());
+                glUniformMatrix4fv(boneMatLoc, 1, GL_FALSE, glm::value_ptr(transforms[i]));
+            }
         }
 
         if (!pCurrentMeshObject->bIsVisible)

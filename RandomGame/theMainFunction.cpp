@@ -1703,7 +1703,8 @@ void BeholderCreation() {
         beholder->Enabled = true;
         beholder->Animation.Speed = 0.1f;
         beholder->seeking = false;
-        beholder->away = true;
+        beholder->moving = false;
+        beholder->attack = false;
     
         //g_GraphicScene.map_beholds->try_emplace(beholderName, beholder);
         g_GraphicScene.map_beholds.push_back(beholder);
@@ -2106,10 +2107,9 @@ std::vector<Node*> CreateEnemyPath(cMeshObject* enemy) {
     enemyJ = (enemy->position.x + (GLOBAL_MAP_OFFSET / 2)) / GLOBAL_MAP_OFFSET;
 
     Node* currentNode = m_blocksLoader->nodeGrid->get_node(enemyI, enemyJ);
+    Node* mainCharNode = m_blocksLoader->nodeGrid->get_node(mainChar->currentI, mainChar->currentJ);
 
-    m_blocksLoader->endNode = m_blocksLoader->nodeGrid->get_node(mainChar->currentI, mainChar->currentJ);
-
-    std::vector<Node*> returnVec = m_blocksLoader->AStarEnemy(currentNode);
+    std::vector<Node*> returnVec = m_blocksLoader->AStarEnemy(currentNode, mainCharNode);
 
     if (returnVec.size() < 15 && returnVec.size() > 0) {
         int breakpoint = 5;
@@ -2132,20 +2132,22 @@ void BeholderBehaviourUpdate() {
         unsigned int currentBeholdID = currentBehold->getID();
         int numTilesNext = 0;
 
-        if (glm::distance(currentBehold->position, mainChar->position) < ENEMY_DISTANCE && !currentBehold->seeking) {
-        
+        if (currentBehold->found) {
+
             //std::cout << "Distance between player and Beholder '" << currentBehold->friendlyName <<
             //    "' is > " << glm::distance(currentBehold->position, mainChar->position) << std::endl;
-        
+
             std::vector<Node*> vec_EnemyPath = CreateEnemyPath(currentBehold);
-            if (vec_EnemyPath.size() < 15 && vec_EnemyPath.size() > 0) {
+            if (vec_EnemyPath.size() < 10 && vec_EnemyPath.size() > 0) {
                 currentBehold->seekingPath = vec_EnemyPath;
                 animationManager->RemoveAnimation(currentBehold->Animation.AnimationType);
                 currentBehold->seeking = true;
                 currentBehold->moving = true;
-        
+                currentBehold->attack = false;
+                currentBehold->found = false;
+
                 AnimationData currentBeholdAnimDataSeek;
-        
+
                 Node* currentNode = new Node(0, 0);
                 Node* oldNode = new Node(0, 0);
                 float nextPositionStepX;
@@ -2154,30 +2156,30 @@ void BeholderBehaviourUpdate() {
                 glm::vec3 nextPosition;
                 glm::vec3 oldPosition;
                 int timeCount = 0;
-        
+
                 PositionKeyFrame currPKF;
                 currPKF.value = glm::vec3(currentBehold->position.x, currentBehold->position.y, currentBehold->position.z);
                 currPKF.time = timeCount;
                 timeCount++;
                 currentBeholdAnimDataSeek.PositionKeyFrames.push_back(currPKF);
-        
+
                 for (int i = 0; i < vec_EnemyPath.size(); i++) {
-        
+
                     if (i == 0) {
                         oldNode = vec_EnemyPath[i];
                     }
-        
+
                     if ((i + 1) < vec_EnemyPath.size()) {
                         currentNode = vec_EnemyPath[i + 1];
-        
+
                         int diffI = currentNode->x - oldNode->x;
                         int diffJ = currentNode->y - oldNode->y;
-        
+
                         if (i == 0) {
                             nextPosition = glm::vec3(currentBehold->position.x + (diffJ * GLOBAL_MAP_OFFSET),
                                 currentBehold->position.y,
                                 currentBehold->position.z + (diffI * GLOBAL_MAP_OFFSET));
-        
+
                             nextPositionStepX = (nextPosition.x - currentBehold->position.x) * invFPS;
                             nextPositionStepZ = (nextPosition.z - currentBehold->position.z) * invFPS;
                         }
@@ -2185,12 +2187,12 @@ void BeholderBehaviourUpdate() {
                             nextPosition = glm::vec3(oldPosition.x + (diffJ * GLOBAL_MAP_OFFSET),
                                 oldPosition.y,
                                 oldPosition.z + (diffI * GLOBAL_MAP_OFFSET));
-        
+
                             nextPositionStepX = (nextPosition.x - oldPosition.x) * invFPS;
                             nextPositionStepZ = (nextPosition.z - oldPosition.z) * invFPS;
                         }
-        
-        
+
+
                         for (int j = 1; j <= SEEKING_FPS; j++) {
                             PositionKeyFrame nextPKF;
                             if (i == 0) {
@@ -2207,39 +2209,31 @@ void BeholderBehaviourUpdate() {
                             timeCount++;
                             currentBeholdAnimDataSeek.PositionKeyFrames.push_back(nextPKF);
                         }
-        
+
                         oldNode = currentNode;
                         oldPosition = nextPosition;
                     }
                 }
-        
+
                 currentBehold->Animation.AnimationTime = 0.f;
                 currentBehold->Animation.IsLooping = false;
                 currentBehold->Animation.IsPlaying = true;
-        
+
                 currentBeholdAnimDataSeek.Duration = (vec_EnemyPath.size() - 1) * SEEKING_FPS;
-        
+
                 animationManager->LoadAnimation(currentBehold->friendlyName, currentBeholdAnimDataSeek);
-        
-                //std::cout << " ----------------- BEHOLDER " << currentBehold->friendlyName << "-----------------" << std::endl;
-                //std::cout << " SEEKING path " << std::endl;
-                //for (int i = 0; i < vec_EnemyPath.size(); i++) {
-                //    std::cout << ">> i: " << vec_EnemyPath[i]->x << " j: " << vec_EnemyPath[0]->y << std::endl;
-                //}
-        
+
+                std::cout << " ----------------- BEHOLDER " << currentBehold->friendlyName << "-----------------" << std::endl;
+                std::cout << " SEEKING path " << std::endl;
+                for (int i = 0; i < vec_EnemyPath.size(); i++) {
+                    std::cout << ">> i: " << vec_EnemyPath[i]->x << " j: " << vec_EnemyPath[0]->y << std::endl;
+                }
+
                 int breakpoint = 1;
             }
+            
         }
-
-        //else if (glm::distance(currentBehold->position, mainChar->position) > ENEMY_DISTANCE &&
-        //    currentBehold->seeking && currentBehold->moving) {
-        //
-        //    currentBehold->moving = false;
-        //    m_blocksLoader->CleanNodePath(currentBehold->seekingPath);
-        //    currentBehold->seekingPath.clear();
-        //}
-
-        if (!currentBehold->moving && !currentBehold->dead && !currentBehold->seeking) {
+        else if (!currentBehold->moving) {
             glm::vec3 nextPosition = glm::vec3(0.0f);
             animationManager->RemoveAnimation(currentBehold->Animation.AnimationType);
 
@@ -2260,72 +2254,6 @@ void BeholderBehaviourUpdate() {
             AnimationData currentBeholdAnimData;
             currentBehold->moving = true;
             currentBehold->rotating = 1;
-
-            //RotationKeyFrame currRKF;        
-            //currRKF.value.x = currentBehold->rotation.x;
-            //currRKF.value.y = currentBehold->rotation.y;
-            //currRKF.value.z = currentBehold->rotation.z;
-            //currRKF.time = 0;
-            //currRKF.useSlerp = false;
-            //currentBeholdAnimData.RotationKeyFrames.push_back(currRKF);
-            //
-            //RotationKeyFrame nextRKF;
-            //nextRKF.time = 1;
-            //nextRKF.useSlerp = false;
-            //
-            //// Setting rotation
-            //if (nextPosition.x < currentBehold->position.x) {// Going WEST
-            //    //currentBehold->setRotationFromEuler(glm::vec3(0.0f, NinetyDegrees, 0.0f));
-            //    nextRKF.value.x = 0.0f;
-            //    nextRKF.value.y = NinetyDegrees;
-            //    nextRKF.value.z = 0.0f;
-            //    currentBehold->rotation = glm::vec3(0.0f, NinetyDegrees, 0.0f);
-            //}
-            //
-            //if (nextPosition.x > currentBehold->position.x) {// Going EAST
-            //    //currentBehold->setRotationFromEuler(glm::vec3(0.0f, -NinetyDegrees, 0.0f));
-            //    nextRKF.value.x = 0.0f;
-            //    nextRKF.value.y = -NinetyDegrees;
-            //    nextRKF.value.z = 0.0f;
-            //    currentBehold->rotation = glm::vec3(0.0f, -NinetyDegrees, 0.0f);
-            //}
-            //
-            //if (nextPosition.z < currentBehold->position.z) {// Going NORTH
-            //    //currentBehold->setRotationFromEuler(glm::vec3(0.0f, 0.0, 0.0f));
-            //    nextRKF.value.x = 0.0f;
-            //    nextRKF.value.y = 0.0f;
-            //    nextRKF.value.z = 0.0f;
-            //    currentBehold->rotation = glm::vec3(0.0f, 0.0, 0.0f);
-            //}
-            //
-            //if (nextPosition.z > currentBehold->position.z) {// Going SOUTH
-            //    //currentBehold->setRotationFromEuler(glm::vec3(0.0f, NinetyDegrees * 2, 0.0f));
-            //    nextRKF.value.x = 0.0f;
-            //    nextRKF.value.y = NinetyDegrees * 2;
-            //    nextRKF.value.z = 0.0f;
-            //    currentBehold->rotation = glm::vec3(0.0f, NinetyDegrees * 2, 0.0f);
-            //}
-            //
-            //currentBeholdAnimData.RotationKeyFrames.push_back(nextRKF);
-            //
-            //std::cout << " ------------------------------------------------------ " << std::endl;
-            //std::cout << currentBehold->friendlyName << " CurrentPosition: (" <<
-            //    currentBehold->position.x << ", " <<
-            //    currentBehold->position.y << ", " <<
-            //    currentBehold->position.z << ")" << std::endl;
-            //
-            //std::cout << currentBehold->friendlyName << " I -> " <<
-            //    currentBehold->currentI << ", J -> " <<
-            //    currentBehold->currentJ << std::endl;
-
-            //std::cout << currentBehold->friendlyName << " NextPosition: (" <<
-            //    nextPosition.x << ", " <<
-            //    nextPosition.y << ", " <<
-            //    nextPosition.z << ")" << std::endl;
-
-            //std::cout << "nextTileX" << currentBeholdID << " changed" << std::endl;
-            //std::cout << "nextTileY" << currentBeholdID << " changed" << std::endl;
-            //std::cout << "nextTileZ" << currentBeholdID << " changed" << std::endl;
 
             PositionKeyFrame currPKF;
             currPKF.value = glm::vec3(currentBehold->position.x, currentBehold->position.y, currentBehold->position.z);
@@ -2353,7 +2281,36 @@ void BeholderBehaviourUpdate() {
 
             animationManager->LoadAnimation(currentBehold->friendlyName, currentBeholdAnimData);
         }
+        else if (!currentBehold->attack) {
+            if (glm::distance(currentBehold->position, mainChar->position) < GLOBAL_MAP_OFFSET) {
+                animationManager->RemoveAnimation(currentBehold->Animation.AnimationType);
+                currentBehold->attack = true;
+                std::cout << " ----------------- BEHOLDER " << currentBehold->friendlyName << "-----------------" << std::endl;
+                std::cout << " ATTACKING " << std::endl;
 
+                // Adding fake beholder attak animation
+                AnimationData currentBeholdAnimDataAttak;
+                PositionKeyFrame currPKF;
+                currPKF.value = glm::vec3(currentBehold->position.x, currentBehold->position.y, currentBehold->position.z);
+                currPKF.time = 0;
+                currentBeholdAnimDataAttak.PositionKeyFrames.push_back(currPKF);
+
+                int attackAnimationDuration = 2;
+                int totalFrames = FPS * attackAnimationDuration;
+                for (int i = 1; i <= totalFrames; i++) {
+                    PositionKeyFrame nextPKF;
+                    nextPKF.value = glm::vec3(currentBehold->position.x,
+                        currentBehold->position.y,
+                        currentBehold->position.z);
+                    nextPKF.time = i;
+                    currentBeholdAnimDataAttak.PositionKeyFrames.push_back(nextPKF);
+                }
+
+                currentBeholdAnimDataAttak.Duration = totalFrames;
+
+                animationManager->LoadAnimation(currentBehold->friendlyName, currentBeholdAnimDataAttak);
+            }
+        }
     }
 }
 
@@ -2373,11 +2330,21 @@ void MapUpdate() {
         nextTileI = (mainChar->position.z + (GLOBAL_MAP_OFFSET / 2)) / GLOBAL_MAP_OFFSET;
         nextTileJ = (mainChar->position.x + (GLOBAL_MAP_OFFSET / 2)) / GLOBAL_MAP_OFFSET;
         
-        m_blocksLoader->endNode = m_blocksLoader->nodeGrid->get_node(mainChar->currentI, mainChar->currentJ);
+        for (std::vector<cMeshObject*>::iterator itBeholds =
+            g_GraphicScene.map_beholds.begin(); itBeholds != g_GraphicScene.map_beholds.end();
+            itBeholds++)
+        {
+            cMeshObject* currentBehold = *itBeholds;
+            if (glm::distance(currentBehold->position, mainChar->position) < ENEMY_DISTANCE && 
+                !currentBehold->seeking) {
+                currentBehold->found = true;
+            }
+            else {
+                currentBehold->found = false;
+            }
+        }
 
         updateCurrentMazeView(nextTileI, nextTileJ);
-
-        BeholderBehaviourUpdate();
     }
 }
 
@@ -2437,10 +2404,10 @@ void GameLoop() {
         MapUpdate();
         MeshPositionUpdate();
         //ThreadBeholderUpdate();
+        BeholderBehaviourUpdate();
 
         // Update will run any Lua script sitting in the "brain"
         //pBrain->Update(1);
-        animationManager->Update(g_GraphicScene.vec_pMeshCurrentMaze, 1.f);
         animationManager->Update(g_GraphicScene.map_beholds, 1.f);
 
         g_cameraTarget = mainChar->position;
@@ -2448,16 +2415,6 @@ void GameLoop() {
 
         g_MapCameraTarget = mainChar->position;
         g_MapCameraEye = glm::vec3(mainChar->position.x, (g_GraphicScene.drawFog * 160.f), mainChar->position.z + 2.f);
-
-        // Set camera position and orientation
-        //g_cameraEye = mainChar->position + cameraOffset;
-        //g_cameraTarget = mainChar->position + glm::vec3(sin(mainChar->rotation.y), 0.f, cos(mainChar->rotation.y)); // Camera should look in the same direction as the mainChar
-
-        //g_cameraTarget = glm::vec3(gridCameraX, 0.0f, gridCameraZ);
-        //g_cameraEye = glm::vec3(gridCameraX, 6000.f, gridCameraZ + 5.f);
-
-        //g_MapCameraTarget = glm::vec3(1000.f, 0.0, 1000.f);
-        //g_MapCameraEye = glm::vec3(1000.f, 6000.f, 1010.f);
     }
 
     std::stringstream ssTitle;
