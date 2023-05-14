@@ -1798,8 +1798,11 @@ void MainCharInitialization() {
     mainChar = g_GraphicScene.CreateAnimatedCharacter(
         MainCharANIMATION1, animations, drawingInformation);
 
+    //sModelDrawInfo drawInfo;
+    //mainChar = (cCharacter*)g_GraphicScene.CreateGameObjectByType("MainChar", glm::vec3(0.f), drawInfo);
+
     mainChar->friendlyName = "MainChar";
-    mainChar->meshName = MainCharANIMATION1;
+    mainChar->meshName = "MainChar";
     mainChar->Animation.AnimationType = g_GraphicScene.mAnimationName;
     mainChar->SetUniformScale(0.18f);
     mainChar->textures[0] = MainCharTEXTURE1;

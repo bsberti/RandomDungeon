@@ -215,7 +215,6 @@ int GraphicScene::PrepareScene() {
 
 }
 
-
 bool IntersectPlanes(const glm::vec4& plane1, const glm::vec4& plane2, const glm::vec4& plane3, glm::vec3& point) {
     // Calculate the cross product of the first two planes' normals
     glm::vec3 n1(plane1);
@@ -340,11 +339,13 @@ void GraphicScene::DrawScene(GLFWwindow* window, glm::vec3 g_cameraEye, glm::vec
         cMeshObject* pCurrentMeshObject = *itCurrentMesh;
 
         if (pCurrentMeshObject->HasBones) {
-            auto transforms = animator->GetFinalBoneMatrices();
-            for (int i = 0; i < transforms.size(); ++i)
-            {
-                GLint boneMatLoc = glGetUniformLocation(shaderID, std::string("BoneMatrices[" + std::to_string(i) + "]").c_str());
-                glUniformMatrix4fv(boneMatLoc, 1, GL_FALSE, glm::value_ptr(transforms[i]));
+            if (animator != nullptr) {
+                auto transforms = animator->GetFinalBoneMatrices();
+                for (int i = 0; i < transforms.size(); ++i)
+                {
+                    GLint boneMatLoc = glGetUniformLocation(shaderID, std::string("BoneMatrices[" + std::to_string(i) + "]").c_str());
+                    glUniformMatrix4fv(boneMatLoc, 1, GL_FALSE, glm::value_ptr(transforms[i]));
+                }
             }
         }
 
@@ -770,12 +771,12 @@ cCharacter* GraphicScene::CreateAnimatedCharacter(const char* filename,
     tempChar->HasBones = true;
     tempChar->Enabled = true;
 
-    int numAnimations = animations.size();
-    for (int i = 0; i < numAnimations; i++)
-    {
-        // Load animation
-        tempChar->LoadAnimationFromAssimp(animations[i].c_str());
-    }
+    //int numAnimations = animations.size();
+    //for (int i = 0; i < numAnimations; i++)
+    //{
+    //    // Load animation
+    //    tempChar->LoadAnimationFromAssimp(animations[i].c_str());
+    //}
 
     return tempChar;
 }
